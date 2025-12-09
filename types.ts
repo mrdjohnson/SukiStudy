@@ -103,6 +103,7 @@ export interface Subject {
 }
 
 export interface Assignment {
+  id?: number;
   created_at: string;
   subject_id: number;
   subject_type: string;

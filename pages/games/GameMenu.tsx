@@ -42,6 +42,13 @@ export const GameMenu: React.FC = () => {
       desc: 'Trace the path of kana to spell the word.',
       icon: Icons.GridDots,
       color: 'bg-teal-100 text-teal-600'
+    },
+    {
+      id: 'variations',
+      name: 'Kanji Readings',
+      desc: 'Select all valid readings for a Kanji.',
+      icon: Icons.ListCheck,
+      color: 'bg-rose-100 text-rose-600'
     }
   ];
 

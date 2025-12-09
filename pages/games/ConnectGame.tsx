@@ -1,10 +1,15 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Subject } from '../../types';
+import { User, Subject, Assignment } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
+import { waniKaniService } from '../../services/wanikaniService';
+import { useSettings } from '../../contexts/SettingsContext';
+import { playSound } from '../../utils/sound';
+import { toRomaji } from '../../utils/romaji';
 
 // Grid size
 const ROWS = 5;
@@ -13,46 +18,65 @@ const COLS = 5;
 interface Cell {
   id: string; // r-c
   char: string;
+  romaji: string;
   row: number;
   col: number;
-  highlighted: boolean;
+  isRomajiDisplay: boolean; 
   correct: boolean;
+  wrong: boolean;
 }
 
 export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   const { items, loading } = useLearnedSubjects(user);
   const [currentSubject, setCurrentSubject] = useState<Subject | null>(null);
+  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [grid, setGrid] = useState<Cell[]>([]);
   const [selectedCells, setSelectedCells] = useState<string[]>([]); // Array of IDs "r-c"
   const [validPath, setValidPath] = useState<string[]>([]); // IDs of the generated correct path
   const [isDragging, setIsDragging] = useState(false);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(Number(localStorage.getItem('suki_connect_highscore') || 0));
   const [message, setMessage] = useState('');
   const [found, setFound] = useState(false);
   const [hintCellId, setHintCellId] = useState<string | null>(null);
-  
+  const [pressedCell, setPressedCell] = useState<string | null>(null); // For long press tooltip
+
+  const { soundEnabled } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const hiraganaPool = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+
+  useEffect(() => {
+    if (score > highScore) {
+      setHighScore(score);
+      localStorage.setItem('suki_connect_highscore', String(score));
+    }
+  }, [score, highScore]);
 
   const initLevel = () => {
     setSelectedCells([]);
     setFound(false);
     setMessage('');
     setHintCellId(null);
+    setPressedCell(null);
     
-    // Pick a word
-    const candidates = items.filter(i => {
+    // Pick a word (Prioritize reviews)
+    let candidates = items.filter(i => {
        const reading = i.subject.readings?.[0]?.reading;
        return reading && reading.length >= 2 && reading.length <= 8;
     });
-
+    
+    // Fallback to pool if no valid candidates
     if (candidates.length === 0) return;
 
-    const target = candidates[Math.floor(Math.random() * candidates.length)].subject;
-    setCurrentSubject(target);
-    const reading = target.readings![0].reading;
+    // Pick top (reviewable) or random
+    const idx = Math.floor(Math.random() * Math.min(candidates.length, 5)); 
+    const selection = candidates[idx];
+    setCurrentSubject(selection.subject);
+    setCurrentAssignment(selection.assignment);
+
+    const reading = selection.subject.readings![0].reading;
 
     // Generate path
     const pathCoords = generatePath(reading.length);
@@ -70,8 +94,10 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
                 row: r,
                 col: c,
                 char: '',
-                highlighted: false,
-                correct: false
+                romaji: '',
+                isRomajiDisplay: Math.random() > 0.8, // 20% chance to show Romaji
+                correct: false,
+                wrong: false
             });
         }
     }
@@ -79,13 +105,17 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
     // Place word
     pathCoords.forEach((pos, idx) => {
         const cellIdx = pos.r * COLS + pos.c;
-        newGrid[cellIdx].char = reading[idx];
+        const char = reading[idx];
+        newGrid[cellIdx].char = char;
+        newGrid[cellIdx].romaji = toRomaji(char);
     });
 
     // Fill rest
     newGrid.forEach(cell => {
         if (!cell.char) {
-            cell.char = hiraganaPool[Math.floor(Math.random() * hiraganaPool.length)];
+            const char = hiraganaPool[Math.floor(Math.random() * hiraganaPool.length)];
+            cell.char = char;
+            cell.romaji = toRomaji(char);
         }
     });
 
@@ -118,7 +148,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
 
       for (const n of neighbors) {
           if (n.r >= 0 && n.r < ROWS && n.c >= 0 && n.c < COLS) {
-              // Not visited
               if (!path.some(p => p.r === n.r && p.c === n.c)) {
                   path.push(n);
                   if (solvePath(path, targetLen)) return true;
@@ -135,51 +164,46 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
     }
   }, [loading, items]);
 
-  // --- Interaction Logic ---
-
   const handlePointerDown = (e: React.PointerEvent, cellId: string) => {
       if (found) return;
-      e.preventDefault(); // Prevent text selection/scroll
+      e.preventDefault(); 
       setIsDragging(true);
+      setPressedCell(cellId);
 
       const existingIndex = selectedCells.indexOf(cellId);
       if (existingIndex !== -1) {
-          // If clicking an existing cell, truncate path to this cell (remove subsequent)
           setSelectedCells(prev => prev.slice(0, existingIndex + 1));
       } else {
-          // Start new path
           setSelectedCells([cellId]);
       }
       setMessage('');
+      playSound('pop', soundEnabled);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
       if (!isDragging || found) return;
       e.preventDefault();
 
-      // Get element under pointer
       const element = document.elementFromPoint(e.clientX, e.clientY);
       const cellId = element?.getAttribute('data-cell-id');
 
       if (cellId) {
-          // If we entered a cell
+          setPressedCell(cellId);
           const existingIndex = selectedCells.indexOf(cellId);
 
           if (existingIndex !== -1) {
-              // Backtracking logic: If we re-enter a cell already in the path
-              // Truncate the path to keep up to this cell
-              // But only if it's not the exact same cell we are currently at (last one)
               if (existingIndex !== selectedCells.length - 1) {
                    setSelectedCells(prev => prev.slice(0, existingIndex + 1));
+                   playSound('pop', soundEnabled);
               }
           } else {
-              // New cell logic: Check adjacency to last cell
               const lastId = selectedCells[selectedCells.length - 1];
               const [lr, lc] = lastId.split('-').map(Number);
               const [cr, cc] = cellId.split('-').map(Number);
               
               if (Math.abs(lr - cr) <= 1 && Math.abs(lc - cc) <= 1) {
                   setSelectedCells(prev => [...prev, cellId]);
+                  playSound('pop', soundEnabled);
               }
           }
       }
@@ -187,6 +211,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
 
   const handlePointerUp = () => {
       setIsDragging(false);
+      setPressedCell(null);
       if (found) return;
       checkAnswer();
   };
@@ -205,18 +230,30 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
           setScore(s => s + 1);
           setFound(true);
           setMessage("Correct!");
-          // Mark correct cells visually
           setGrid(prev => prev.map(cell => 
              selectedCells.includes(cell.id) ? {...cell, correct: true} : cell
           ));
+          playSound('success', soundEnabled);
+
+          // Submit Review if applicable
+          if (currentAssignment && currentAssignment.id && new Date(currentAssignment.available_at!) < new Date()) {
+            waniKaniService.createReview(currentAssignment.id, 0, 0)
+              .then(() => console.log("Review submitted"))
+              .catch(e => console.error(e));
+          }
+
           setTimeout(initLevel, 1500);
       } else {
-          // Don't clear, just show message
-         // setMessage("Try again");
+          // Highlight wrong path in red
+          if (selectedCells.length > 1) playSound('error', soundEnabled);
+          setGrid(prev => prev.map(cell => 
+            selectedCells.includes(cell.id) ? {...cell, wrong: true} : cell
+         ));
+         setTimeout(() => {
+             setGrid(prev => prev.map(cell => ({...cell, wrong: false})));
+         }, 500);
       }
   };
-
-  // --- Helper Features ---
 
   const handleClear = () => {
       if (!found) {
@@ -230,10 +267,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   };
 
   const handleHint = () => {
-      // Logic: Find the first cell in validPath that isn't in selectedCells, 
-      // OR if user is lost, highlight the first cell of validPath.
-      
-      // If user has started correctly so far
       let matchCount = 0;
       for (let i = 0; i < selectedCells.length; i++) {
           if (selectedCells[i] === validPath[i]) {
@@ -243,29 +276,13 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
           }
       }
 
-      if (matchCount === validPath.length) {
-          return; // Already done
-      }
+      if (matchCount === validPath.length) return;
 
-      // Show the next cell in the valid sequence
       const nextId = validPath[matchCount];
       setHintCellId(nextId);
-      
-      // Remove hint after 1.5s
       setTimeout(() => setHintCellId(null), 1500);
   };
 
-  const handleSelectedCharClick = (index: number) => {
-      if (!found) {
-          setSelectedCells(prev => prev.slice(0, index + 1));
-      }
-  }
-
-  // --- Render Helpers ---
-
-  // Calculate SVG Line Coordinates
-  // Grid is responsive, so we use percentages
-  // Cell center = (col * 100/COLS) + (100/COLS/2)
   const getCenterCoords = (id: string) => {
       const [r, c] = id.split('-').map(Number);
       const x = (c * (100 / COLS)) + (100 / COLS / 2);
@@ -276,48 +293,41 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   if (items.length < 5) return <div className="p-8 text-center text-gray-500">Not enough vocabulary.</div>;
 
-  const currentReadingAttempt = selectedCells.map(id => {
-      const [r, c] = id.split('-').map(Number);
-      return grid[r * COLS + c].char;
-  }).join('');
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 select-none overscroll-none touch-none">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
          <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
-         <h2 className="text-xl font-bold">Hiragana Connect</h2>
+         <div className="flex flex-col items-center">
+             <h2 className="text-xl font-bold">Connect</h2>
+             <span className="text-xs text-indigo-600 font-bold">High Score: {highScore}</span>
+         </div>
          <div className="font-mono bg-gray-100 px-3 py-1 rounded text-sm font-bold">Score: {score}</div>
       </div>
 
-      {/* Prompt Area */}
       <div className="text-center mb-6">
           <div className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Trace the reading</div>
           <div className="text-5xl font-bold text-gray-900 mb-1">{currentSubject?.characters}</div>
           <div className="text-indigo-600 font-medium text-sm">{currentSubject?.meanings[0].meaning}</div>
-      </div>
-
-      {/* Selected Chars Display */}
-      <div className="h-12 mb-4 flex items-center justify-center gap-1">
-          {selectedCells.map((id, idx) => {
-              const [r, c] = id.split('-').map(Number);
-              const char = grid[r * COLS + c].char;
-              return (
-                  <button 
-                    key={`${id}-${idx}`}
-                    onClick={() => handleSelectedCharClick(idx)}
-                    className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center border-2 border-indigo-200 hover:bg-red-100 hover:border-red-200 hover:text-red-600 transition-colors animate-fade-in"
-                  >
-                      {char}
-                  </button>
-              )
-          })}
-          {selectedCells.length === 0 && (
-              <span className="text-gray-300 italic text-sm">Select letters below...</span>
+          {currentAssignment && new Date(currentAssignment.available_at!) < new Date() && (
+             <span className="inline-block mt-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase rounded">Review Item</span>
           )}
       </div>
 
-      {/* Game Board */}
+      <div className="h-12 mb-4 flex items-center justify-center gap-1">
+          {selectedCells.map((id, idx) => {
+              const [r, c] = id.split('-').map(Number);
+              const cell = grid[r * COLS + c];
+              return (
+                  <button 
+                    key={`${id}-${idx}`}
+                    className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center border-2 border-indigo-200"
+                  >
+                      {cell.char}
+                  </button>
+              )
+          })}
+      </div>
+
       <div 
         ref={containerRef}
         className="relative mx-auto aspect-square max-w-[320px] touch-none"
@@ -325,7 +335,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
-          {/* SVG Connector Layer */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
              <defs>
                  <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
@@ -338,43 +347,51 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
                     return `${x}% ${y}%`;
                 }).join(' ')}
                 fill="none"
-                stroke="#a5b4fc"
+                stroke={grid.some(c => c.wrong) ? "#fca5a5" : "#a5b4fc"}
                 strokeWidth="6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
              />
           </svg>
 
-          {/* Grid Cells */}
           <div className="absolute inset-0 grid grid-rows-5 grid-cols-5 gap-4 p-2 z-10">
             {grid.map((cell) => {
                 const isSelected = selectedCells.includes(cell.id);
                 const isHint = cell.id === hintCellId;
-                
+                const isPressed = cell.id === pressedCell;
+
                 return (
                     <div
                         key={cell.id}
                         data-cell-id={cell.id}
                         onPointerDown={(e) => handlePointerDown(e, cell.id)}
                         className={`
-                            rounded-full flex items-center justify-center text-xl font-bold transition-all duration-200 shadow-sm cursor-pointer select-none
+                            relative rounded-full flex items-center justify-center text-xl font-bold transition-all duration-200 shadow-sm cursor-pointer select-none
                             ${cell.correct 
                                 ? 'bg-green-500 text-white transform scale-100 shadow-lg' 
-                                : isSelected 
-                                    ? 'bg-indigo-600 text-white transform scale-110 shadow-indigo-200 shadow-lg border-2 border-white' 
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:border-indigo-300'
+                                : cell.wrong
+                                    ? 'bg-red-500 text-white animate-shake'
+                                    : isSelected 
+                                        ? 'bg-indigo-600 text-white transform scale-110 shadow-indigo-200 shadow-lg border-2 border-white' 
+                                        : 'bg-white text-gray-700 border border-gray-200 hover:border-indigo-300'
                             }
                             ${isHint ? 'ring-4 ring-yellow-400 bg-yellow-50 animate-pulse' : ''}
                         `}
                     >
-                        {cell.char}
+                        {cell.isRomajiDisplay ? cell.romaji : cell.char}
+                        
+                        {/* Tooltip on long press */}
+                        {isPressed && (
+                            <div className="absolute -top-10 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-20">
+                                {toRomaji(cell.char)}
+                            </div>
+                        )}
                     </div>
                 )
             })}
           </div>
       </div>
 
-      {/* Message & Actions */}
       <div className="mt-8 flex items-center justify-between max-w-[320px] mx-auto">
           <Button variant="outline" size="sm" onClick={handleClear} disabled={found || selectedCells.length === 0}>
              <Icons.Eraser className="w-4 h-4 mr-1" />

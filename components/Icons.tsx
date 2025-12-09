@@ -24,7 +24,11 @@ import {
   IconCheck,
   IconBulb,
   IconPlayerSkipForward,
-  IconEraser
+  IconEraser,
+  IconMenu2,
+  IconVolume,
+  IconVolumeOff,
+  IconListCheck
 } from '@tabler/icons-react';
 
 export const Icons = {
@@ -32,7 +36,6 @@ export const Icons = {
   Brain: IconBrain,
   ChevronRight: IconChevronRight,
   ChevronLeft: IconChevronLeft,
-  // Mapping RotateCcw to Loader2 as it is primarily used for loading spinners in the app
   RotateCcw: IconLoader2, 
   Sparkles: IconSparkles,
   Settings: IconSettings,
@@ -53,5 +56,9 @@ export const Icons = {
   Check: IconCheck,
   Lightbulb: IconBulb,
   SkipForward: IconPlayerSkipForward,
-  Eraser: IconEraser
+  Eraser: IconEraser,
+  Menu: IconMenu2,
+  Volume: IconVolume,
+  VolumeOff: IconVolumeOff,
+  ListCheck: IconListCheck
 };

@@ -1,10 +1,11 @@
 
+
 import { useState, useEffect } from 'react';
 import { User, Subject, Assignment } from '../types';
 import { waniKaniService } from '../services/wanikaniService';
 
 export const useLearnedSubjects = (user: User | null) => {
-  const [items, setItems] = useState<{subject: Subject, assignment: Assignment}[]>([]);
+  const [items, setItems] = useState<{subject: Subject, assignment: Assignment, isReviewable: boolean}[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,18 +34,32 @@ export const useLearnedSubjects = (user: User | null) => {
         const assignmentMap = new Map<number, Assignment>();
         const subjectIds: number[] = [];
         assignmentsCol.data.forEach(a => {
-            assignmentMap.set(a.data.subject_id, a.data);
+            assignmentMap.set(a.data.subject_id, { ...a.data, id: a.id });
             subjectIds.push(a.data.subject_id);
         });
 
-        // Batch fetch subjects (chunking if necessary, but WK API handles up to 1000 usually ok, or we assume small set for mini-games)
+        // Batch fetch subjects (chunking if necessary, but WK API handles up to 1000 usually ok)
         const subjectsCol = await waniKaniService.getSubjects(subjectIds.slice(0, 100)); // Limit to latest 100 learned for performance in games
         
         if (subjectsCol && subjectsCol.data) {
-          const combined = subjectsCol.data.map(s => ({
-            subject: { ...s.data, id: s.id, object: s.object, url: s.url },
-            assignment: assignmentMap.get(s.id)!
-          }));
+          const now = new Date();
+          const combined = subjectsCol.data.map(s => {
+            const assignment = assignmentMap.get(s.id)!;
+            const availableAt = assignment.available_at ? new Date(assignment.available_at) : new Date(8640000000000000);
+            return {
+              subject: { ...s.data, id: s.id, object: s.object, url: s.url },
+              assignment: assignment,
+              isReviewable: availableAt < now
+            };
+          });
+
+          // Sort: Reviewable first, then random
+          combined.sort((a, b) => {
+            if (a.isReviewable && !b.isReviewable) return -1;
+            if (!a.isReviewable && b.isReviewable) return 1;
+            return 0.5 - Math.random();
+          });
+
           setItems(combined);
         } else {
           setItems([]);

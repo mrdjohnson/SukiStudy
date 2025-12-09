@@ -10,13 +10,16 @@ class WaniKaniService {
     this.token = token;
   }
 
-  private async request<T>(endpoint: string): Promise<T> {
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     if (!this.token) throw new Error("API Token not set");
     
     const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
       headers: {
         Authorization: `Bearer ${this.token}`,
         'Wanikani-Revision': '20170710', // Recommended revision
+        'Content-Type': 'application/json',
+        ...options?.headers
       },
     });
 
@@ -65,6 +68,19 @@ class WaniKaniService {
     const params = new URLSearchParams();
     params.append('subject_ids', subjectIds.join(','));
     return this.request<WKCollection<StudyMaterial>>(`/study_materials?${params.toString()}`);
+  }
+
+  async createReview(assignmentId: number, incorrectMeaningAnswers: number, incorrectReadingAnswers: number) {
+    return this.request('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({
+        review: {
+          assignment_id: assignmentId,
+          incorrect_meaning_answers: incorrectMeaningAnswers,
+          incorrect_reading_answers: incorrectReadingAnswers
+        }
+      })
+    });
   }
 }
 

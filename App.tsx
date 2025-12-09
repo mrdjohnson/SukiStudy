@@ -5,6 +5,7 @@ import { waniKaniService } from './services/wanikaniService';
 import { User } from './types';
 import { Header } from './components/Header';
 import { Icons } from './components/Icons';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 // Pages
 import { Login } from './pages/Login';
@@ -17,6 +18,7 @@ import { QuizGame } from './pages/games/QuizGame';
 import { ShiritoriGame } from './pages/games/ShiritoriGame';
 import { SortingGame } from './pages/games/SortingGame';
 import { ConnectGame } from './pages/games/ConnectGame';
+import { VariationsQuizGame } from './pages/games/VariationsQuizGame';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,8 +35,7 @@ export default function App() {
           if (userData && userData.data) {
              setUser(userData.data);
           } else {
-             // Only clear if specifically unauthorized, otherwise might be network error
-             // But for simplicity in this demo, we keep token if error is not 401
+             // Only clear if specifically unauthorized
           }
         } catch (e: any) {
           console.error("Auth Error", e);
@@ -56,7 +57,6 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('wk_token');
     setUser(null);
-    window.location.hash = '/login';
   };
 
   if (loading) return (
@@ -69,28 +69,31 @@ export default function App() {
   );
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <Header user={user} onLogout={handleLogout} />
-        
-        <main>
-          <Routes>
-            <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
-            <Route path="/" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/lesson" element={user ? <Session mode="lesson" user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/review" element={user ? <Session mode="review" user={user} /> : <Navigate to="/login" />} />
-            
-            <Route path="/session/games" element={user ? <GameMenu /> : <Navigate to="/login" />} />
-            <Route path="/session/games/memory" element={user ? <MemoryGame user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/games/quiz" element={user ? <QuizGame user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/games/shiritori" element={user ? <ShiritoriGame user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/games/sorting" element={user ? <SortingGame user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/games/connect" element={user ? <ConnectGame user={user} /> : <Navigate to="/login" />} />
+    <SettingsProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-50 font-sans">
+          <Header user={user} onLogout={handleLogout} />
+          
+          <main>
+            <Routes>
+              <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
+              <Route path="/" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/lesson" element={user ? <Session mode="lesson" user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/review" element={user ? <Session mode="review" user={user} /> : <Navigate to="/login" />} />
+              
+              <Route path="/session/games" element={user ? <GameMenu /> : <Navigate to="/login" />} />
+              <Route path="/session/games/memory" element={user ? <MemoryGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/quiz" element={user ? <QuizGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/shiritori" element={user ? <ShiritoriGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/sorting" element={user ? <SortingGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/connect" element={user ? <ConnectGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/variations" element={user ? <VariationsQuizGame user={user} /> : <Navigate to="/login" />} />
 
-            <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+              <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </SettingsProvider>
   );
 }
