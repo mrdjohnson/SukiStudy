@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
-import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
+import { useAllSubjects } from '../../hooks/useAllSubjects';
 import { toHiragana } from '../../utils/kana';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
@@ -10,6 +10,7 @@ import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { HowToPlayModal } from '../../components/HowToPlayModal';
+import { toRomanji } from '../../utils/romanji';
 
 interface ShiritoriGameProps {
   user: User;
@@ -18,7 +19,7 @@ interface ShiritoriGameProps {
 }
 
 export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading: fetchLoading } = useAllSubjects(user, !propItems);
   const items = propItems || fetchedItems;
   const loading = propItems ? false : fetchLoading;
 
@@ -62,7 +63,7 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
     vocabItems.forEach(item => {
       item.subject.readings?.forEach(({ reading }) => {
         if (!reading) return;
-        const firstChar = reading.charAt(0);
+        const firstChar = toRomanji(reading).charAt(0);
         if (!startsWithMap.has(firstChar)) startsWithMap.set(firstChar, []);
         // Avoid duplicates in the array
         if (!startsWithMap.get(firstChar)?.find(x => x.subject.id === item.subject.id)) {
@@ -75,12 +76,11 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
       if (depth >= 4) return true;
       
       // Check ALL possible readings of the current word
-      const possibleReadings = current.readings?.map(r => r.reading) || [];
+      const possibleReadings = current.readings?.map(r => toRomanji(r.reading)) || [];
       
       for (const reading of possibleReadings) {
           if (!reading) continue;
-          const lastChar = getEndingChar(reading);
-          if (lastChar === 'ん') continue;
+          const lastChar = reading.slice(-1);
 
           const candidates = startsWithMap.get(lastChar) || [];
           const validCandidates = candidates.filter(c => !used.has(c.subject.id!));

@@ -70,15 +70,9 @@ class WaniKaniService {
     return this.request<WKCollection<StudyMaterial>>(`/study_materials?${params.toString()}`);
   }
 
-  async startAssignment(subjectId: number) {
-    return this.request('/assignments', {
-      method: 'POST',
-      body: JSON.stringify({
-        assignment: {
-          subject_id: subjectId,
-          // started_at defaults to now
-        }
-      })
+  async startAssignment(assignmentId: number) {
+    return this.request(`/assignments/${assignmentId}/start`, {
+      method: 'PUT',
     });
   }
 

@@ -22,13 +22,13 @@ export const GameMenu: React.FC = () => {
       icon: Icons.FileQuestion,
       color: 'bg-orange-100 text-orange-600'
     },
-    {
-      id: 'shiritori',
-      name: 'Shiritori Chain',
-      desc: 'Link vocabulary words by their last character.',
-      icon: Icons.Link,
-      color: 'bg-pink-100 text-pink-600'
-    },
+    // {
+    //   id: 'shiritori',
+    //   name: 'Shiritori Chain',
+    //   desc: 'Link vocabulary words by their last character.',
+    //   icon: Icons.Link,
+    //   color: 'bg-pink-100 text-pink-600'
+    // },
     {
       id: 'sorting', // Route kept as sorting for compatibility, but logic is matching
       name: 'Matching Pairs',

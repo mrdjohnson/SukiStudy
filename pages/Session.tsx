@@ -22,7 +22,7 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
   
   // Lesson specific state
   const [lessonPhase, setLessonPhase] = useState<SessionPhase>('fetch');
-  const [lessonBatch, setLessonBatch] = useState<{subject: Subject}[]>([]);
+  const [lessonBatch, setLessonBatch] = useState<{subject: Subject, assignment?: Assignment}[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<number[]>([]);
   const [gameQueue, setGameQueue] = useState<string[]>([]);
   const [currentGame, setCurrentGame] = useState<string | null>(null);
@@ -79,9 +79,16 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
                       // Only fetch top 15 lessons as requested
                       const idsToFetch = lessonIds.slice(0, 15);
                       const subCol = await waniKaniService.getSubjects(idsToFetch);
+                      const assignCol = await waniKaniService.getAssignments(idsToFetch); // Fetch assignments
+
+                      const assignMap = new Map<number, Assignment>();
+                      if (assignCol.data) {
+                          assignCol.data.forEach(a => assignMap.set(a.data.subject_id, { ...a.data, id: a.id }));
+                      }
                       
                       const lessonItems = subCol.data.map(s => ({
-                          subject: { ...s.data, id: s.id, object: s.object, url: s.url }
+                          subject: { ...s.data, id: s.id, object: s.object, url: s.url },
+                          assignment: assignMap.get(s.id)
                       }));
                       
                       setItems(lessonItems);
@@ -101,9 +108,9 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
   }, [mode]);
 
   const startLessonBatch = (allItems: typeof items, startIndex: number) => {
-      const batch = allItems.slice(startIndex, startIndex + 5).map(i => i.subject);
+      const batch = allItems.slice(startIndex, startIndex + 5);
       if (batch.length > 0) {
-          setLessonBatch(batch.map(s => ({ subject: s })));
+          setLessonBatch(batch);
           setLessonPhase('learn');
           setCurrentIndex(0);
       } else {
@@ -150,8 +157,8 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
       // API call to start assignments
       for (const item of lessonBatch) {
           try {
-              if (item.subject.id) {
-                  await waniKaniService.startAssignment(item.subject.id);
+              if (item.assignment?.id) {
+                  await waniKaniService.startAssignment(item.assignment.id);
                   setCompletedLessonIds(prev => [...prev, item.subject.id!]);
               }
           } catch (e) {
@@ -229,7 +236,8 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
   if (mode === 'lesson') {
       if (lessonPhase === 'game' && currentGame) {
           const gameItems: GameItem[] = lessonBatch.map(l => ({ 
-              subject: l.subject, 
+              subject: l.subject,
+              assignment: l.assignment,
               isReviewable: false 
           }));
           
