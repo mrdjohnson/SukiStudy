@@ -5,6 +5,7 @@ import { User } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
+import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 interface GameCard {
   id: string; 
@@ -25,9 +26,9 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
   const [timer, setTimer] = useState(300);
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const navigate = useNavigate();
 
-  // Reset function to restart game
   const initGame = () => {
     setLoading(true);
     setMatches(0);
@@ -41,14 +42,11 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
         return; 
     }
     
-    // Pick 6 random subjects
     const selected = [...learnedItems].sort(() => 0.5 - Math.random()).slice(0, 6);
-    
     const gameCards: GameCard[] = [];
     
     selected.forEach(({ subject: s }) => {
       const sType = s.object || 'vocabulary';
-      
       let charContent = s.characters;
       if (!charContent && s.character_images) {
         const svg = s.character_images.find(i => i.content_type === 'image/svg+xml');
@@ -100,9 +98,8 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
     }
   }, [learnedItems, dataLoading]);
 
-  // Timer
   useEffect(() => {
-    if (loading || gameOver || won) return;
+    if (loading || gameOver || won || showHelp) return;
     const interval = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
@@ -114,7 +111,7 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [loading, gameOver, won]);
+  }, [loading, gameOver, won, showHelp]);
 
   const handleCardClick = (index: number) => {
     if (gameOver || won || loading) return;
@@ -173,10 +170,13 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+         <div className="flex items-center gap-2">
             <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
-            Memory Match
-         </h2>
+            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
+               <Icons.Help className="w-6 h-6" />
+            </button>
+            <h2 className="text-2xl font-bold text-gray-900 ml-2">Memory Match</h2>
+         </div>
          <div className="text-xl font-mono font-bold text-gray-700">
              {formatTime(timer)}
          </div>
@@ -214,6 +214,17 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
         </div>
       )}
       <style>{`.rotate-y-180 { transform: rotateY(180deg); } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .perspective-1000 { perspective: 1000px; }`}</style>
+      
+      <HowToPlayModal 
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Memory Match"
+        steps={[
+           { title: "Flip Cards", description: "Tap any card to reveal its content. You can flip two cards at a time.", icon: Icons.Brain },
+           { title: "Find Pairs", description: "Match the Japanese character with its corresponding Meaning or Reading.", icon: Icons.CheckCircle },
+           { title: "Clear the Board", description: "Find all pairs before the time runs out to win!", icon: Icons.Clock }
+        ]}
+      />
     </div>
   );
 };

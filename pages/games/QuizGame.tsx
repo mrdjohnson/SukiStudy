@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject } from '../../types';
@@ -9,6 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
+import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
   const { items, loading } = useLearnedSubjects(user);
@@ -19,6 +19,7 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [incorrectItems, setIncorrectItems] = useState<{subject: Subject, correctAnswer: string, type: string}[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
   
   const { soundEnabled } = useSettings();
   const navigate = useNavigate();
@@ -33,8 +34,7 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
     
     if (items.length < 4) return;
     
-    // Generate 10 questions, favoring reviewable items first
-    const shuffledItems = [...items]; // Priorities already sorted in hook
+    const shuffledItems = [...items]; 
     const selection = shuffledItems.slice(0, 10);
 
     const q = selection.map((item) => {
@@ -83,13 +83,9 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
       setScore(s => s + 1);
       setFeedback('correct');
       playSound('success', soundEnabled);
-
-      // Submit Review
       if (q.isReviewable && q.assignment && q.assignment.id) {
-         // This is a naive submission (0 wrong). In a real app we'd track accumulated failures.
          waniKaniService.createReview(q.assignment.id, 0, 0);
       }
-
     } else {
       setFeedback('wrong');
       playSound('error', soundEnabled);
@@ -146,7 +142,12 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
+               <Icons.Help className="w-6 h-6" />
+            </button>
+        </div>
         <span className="font-bold text-gray-500">{currentQuestion + 1} / {questions.length}</span>
       </div>
 
@@ -193,6 +194,17 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
             )
         })}
       </div>
+
+      <HowToPlayModal 
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Quick Quiz"
+        steps={[
+           { title: "Read the Prompt", description: "Look at the big character displayed on the card.", icon: Icons.FileQuestion },
+           { title: "Choose Wisely", description: "Tap the correct Meaning or Reading from the list below.", icon: Icons.Check },
+           { title: "Review Items", description: "Getting a 'Review' item correct sends the review to WaniKani!", icon: Icons.Sparkles }
+        ]}
+      />
     </div>
   );
 };

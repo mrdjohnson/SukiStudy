@@ -10,9 +10,10 @@ interface LoginProps {
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [token, setToken] = useState(localStorage.getItem('wk_token'));
+  const [token, setToken] = useState(localStorage.getItem('wk_token') || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,9 +62,36 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             Connect Account
           </Button>
 
-          <p className="text-xs text-center text-gray-400">
-            Token is stored locally in your browser.
-          </p>
+          <div className="pt-4 border-t border-gray-100">
+            <button 
+              type="button"
+              onClick={() => setShowHelp(!showHelp)}
+              className="w-full flex items-center justify-center gap-2 text-indigo-600 text-sm font-medium hover:text-indigo-700"
+            >
+              <Icons.Info className="w-4 h-4" />
+              How do I connect?
+            </button>
+
+            {showHelp && (
+              <div className="mt-4 bg-indigo-50 p-4 rounded-xl text-sm text-gray-700 space-y-3 animate-fade-in">
+                <p>To use SukiStudy, you need a valid WaniKani account.</p>
+                <ol className="list-decimal pl-4 space-y-1">
+                   <li>Log in to WaniKani.</li>
+                   <li>Go to Settings {'>'} API Tokens.</li>
+                   <li>Generate a new token with "Default" permissions.</li>
+                   <li>Copy and paste it here.</li>
+                </ol>
+                <a 
+                  href="https://www.wanikani.com/settings/personal_access_tokens" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block w-full text-center mt-3 bg-white border border-indigo-200 text-indigo-700 py-2 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+                >
+                  Get Token from WaniKani
+                </a>
+              </div>
+            )}
+          </div>
         </form>
       </div>
     </div>

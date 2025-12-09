@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject } from '../../types';
@@ -10,6 +9,7 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
+import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
   const { items, loading } = useLearnedSubjects(user);
@@ -18,11 +18,11 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
   const [history, setHistory] = useState<Subject[]>([]);
   const [message, setMessage] = useState('Type the reading in Hiragana');
   const [gameOver, setGameOver] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   const { soundEnabled } = useSettings();
   const navigate = useNavigate();
 
-  // Filter vocab only
   const vocabItems = useMemo(() => 
     items.filter(i => i.subject.object === 'vocabulary')
   , [items]);
@@ -48,7 +48,6 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
     
     if (vocabItems.length === 0) return;
 
-    // Optimization: Build map for speed
     const startsWithMap = new Map<string, typeof vocabItems>();
     vocabItems.forEach(item => {
       const reading = item.subject.readings?.[0]?.reading;
@@ -58,7 +57,6 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
       startsWithMap.get(firstChar)?.push(item);
     });
 
-    // Check chain logic
     const checkChain = (current: Subject, used: Set<number>, depth: number): boolean => {
       if (depth >= 4) return true;
       const reading = current.readings?.[0]?.reading;
@@ -78,7 +76,6 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
       return false;
     };
 
-    // Find start word (prioritize reviews if they form a chain)
     const shuffled = [...vocabItems].sort((a, b) => {
         if (a.isReviewable && !b.isReviewable) return -1;
         return 0.5 - Math.random();
@@ -120,7 +117,6 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
       return;
     }
 
-    // Correct! Submit review if applicable
     playSound('success', soundEnabled);
     if (currentWord.assignment && (currentWord as any).isReviewable && currentWord.assignment.id) {
        waniKaniService.createReview(currentWord.assignment.id, 0, 0);
@@ -128,7 +124,6 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
 
     const lastChar = getEndingChar(normalizedInput);
     
-    // Find next
     const candidates = vocabItems.filter(v => {
       const reading = v.subject.readings?.[0]?.reading;
       if (!reading) return false;
@@ -142,9 +137,8 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
       return;
     }
 
-    // Pick next (prioritize review)
     candidates.sort((a, b) => (a.isReviewable ? -1 : 1));
-    const nextItem = candidates[0]; // Or random from top few?
+    const nextItem = candidates[0]; 
     
     setCurrentWord(nextItem);
     setHistory(h => [...h, nextItem.subject]);
@@ -158,7 +152,12 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-         <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+         <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
+               <Icons.Help className="w-6 h-6" />
+            </button>
+         </div>
          <h2 className="text-xl font-bold">Shiritori ({history.length} Links)</h2>
       </div>
 
@@ -209,6 +208,17 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
            ))}
         </div>
       </div>
+
+      <HowToPlayModal 
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Shiritori Chain"
+        steps={[
+           { title: "Read the Word", description: "Type the correct reading for the displayed word in Hiragana (Romaji auto-converts).", icon: Icons.BookOpen },
+           { title: "Link the Chain", description: "The next word will start with the last character of the previous word.", icon: Icons.Link },
+           { title: "Avoid 'N'", description: "In traditional Shiritori, if a word ends in 'ん' (N), you lose! But here we just try to keep going.", icon: Icons.Check }
+        ]}
+      />
     </div>
   );
 };

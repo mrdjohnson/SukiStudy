@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Subject, SubjectType, Assignment, StudyMaterial } from '../types';
 import { Icons } from './Icons';
 import { generateExplanation } from '../services/geminiService';
@@ -32,7 +32,6 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
       return;
     }
 
-    // Fix: Convert string ID to number for object lookup
     const url = ARTWORK_URLS[Number(id)];
     if (url) {
       if (failedImages.has(url)) {
@@ -87,7 +86,7 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
               src={imageUrl}
               alt="Mnemonic Fullscreen"
               className="max-w-full max-h-[85vh] object-contain rounded-md shadow-2xl"
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking image
+              onClick={(e) => e.stopPropagation()} 
             />
           </div>
         </div>
@@ -101,12 +100,10 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [components, setComponents] = useState<Subject[]>([]);
-  const [loadingComponents, setLoadingComponents] = useState(false);
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [audioIndex, setAudioIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Reset state when subject changes
   useEffect(() => {
     setIsFlipped(false);
     setAiExplanation(null);
@@ -115,7 +112,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
     setStudyMaterial(null);
 
     const loadData = async () => {
-       // Fetch user notes/synonyms
        if (subject.id) {
          try {
            const matCol = await waniKaniService.getStudyMaterials([subject.id]);
@@ -127,10 +123,8 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
          }
        }
 
-       // Fetch components (Radicals/Kanji)
       setComponents([]);
       if (subject.component_subject_ids && subject.component_subject_ids.length > 0) {
-        setLoadingComponents(true);
         try {
           const col = await waniKaniService.getSubjects(subject.component_subject_ids);
           if (col && col.data) {
@@ -138,8 +132,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
           }
         } catch (e) {
           console.error("Failed to load components", e);
-        } finally {
-          setLoadingComponents(false);
         }
       }
     };
@@ -190,18 +182,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
       audioRef.current = audio;
       audio.play();
     }
-
-    // Rotate to next audio source for next click
     setAudioIndex(prev => prev + 1);
-  };
-
-  const getSRSLabel = (stage: number) => {
-    if (stage === 0) return { label: 'Lesson', color: 'bg-gray-400' };
-    if (stage < 5) return { label: `Apprentice ${stage}`, color: 'bg-pink-600' };
-    if (stage < 7) return { label: 'Guru', color: 'bg-purple-600' };
-    if (stage === 7) return { label: 'Master', color: 'bg-blue-700' };
-    if (stage === 8) return { label: 'Enlightened', color: 'bg-sky-500' };
-    return { label: 'Burned', color: 'bg-yellow-600' };
   };
 
   const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning;
@@ -225,29 +206,14 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
     }
   };
 
-  // Helper to detect Japanese characters and wrap them for potential drill-down
   const renderInteractiveSentence = (jaSentence: string) => {
-    // Regex to split by Japanese text vs punctuation/other
-    // This is a naive split. Ideally we would match against user known items, 
-    // but without full user vocabulary loaded, we assume Kanji blocks are interactive.
     const parts = jaSentence.split(/([一-龯]+)/); 
-    
     return (
         <span>
             {parts.map((part, i) => {
                 const isKanji = /[一-龯]/.test(part);
                 if (isKanji) {
-                    return (
-                        <span 
-                            key={i} 
-                            // In a real app we'd need the ID to drill down. 
-                            // Since we don't have the ID from the sentence string, we just highlight it for now
-                            // or we could implement a search-by-character lookup.
-                            className="font-bold text-gray-800"
-                        >
-                            {part}
-                        </span>
-                    )
+                    return <span key={i} className="font-bold text-gray-800">{part}</span>
                 }
                 return <span key={i}>{part}</span>
             })}
@@ -255,72 +221,85 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
     )
   }
 
+  // Determine if this is a popup/modal view (implied by missing prev/next actions)
+  const isPopup = !onNext && !hasNext;
+
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 perspective-1000">
+    <div className={`w-full max-w-2xl mx-auto p-4 perspective-1000 ${isPopup ? 'h-auto' : ''}`}>
       <div
-        className={`relative w-full aspect-[4/5] md:aspect-[16/10] transition-all duration-500 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
+        className={`relative w-full ${isPopup ? 'min-h-[60vh]' : 'aspect-[4/5] md:aspect-[16/10]'} transition-all duration-500 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
         onClick={() => setIsFlipped(!isFlipped)}
       >
         {/* Front */}
         <div className={`absolute inset-0 backface-hidden rounded-2xl shadow-xl flex flex-col items-center justify-center overflow-hidden border border-gray-100 bg-white`}>
-          <div className={`absolute top-0 w-full py-2 text-center text-xs font-bold uppercase tracking-widest ${colors[type]}`}>
-            {type}
+          <div className={`absolute top-0 w-full py-2 flex justify-between px-4 items-center ${colors[type]}`}>
+            <span className="text-xs font-bold uppercase tracking-widest">{type}</span>
+            <span className="text-xs font-bold uppercase bg-white/20 px-2 py-0.5 rounded">Level {subject.level}</span>
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center p-8 w-full">
-            {character ? (
-              <span className="text-8xl md:text-9xl font-bold text-gray-800 mb-8">{character}</span>
-            ) : (
-              <div className="w-32 h-32 mb-8">
-                {renderCharacter("")}
-              </div>
-            )}
-            <p className="text-gray-400 text-sm font-medium">Tap to reveal</p>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 w-full text-center">
+             {/* Character Display */}
+             {character ? (
+               <div className={`font-bold text-gray-800 mb-8 break-all leading-tight ${character.length > 3 ? 'text-5xl md:text-7xl' : 'text-8xl md:text-9xl'}`}>
+                 {character}
+               </div>
+             ) : (
+               <div className="w-32 h-32 mb-8">
+                 {renderCharacter("")}
+               </div>
+             )}
+            <p className="text-gray-400 text-sm font-medium animate-pulse">Tap to reveal</p>
           </div>
         </div>
 
         {/* Back */}
         <div className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}>
-          {/* Back Header */}
-          <div className={`p-4 border-b ${borderColors[type]} flex justify-between items-center`}>
-            <div className="flex items-center gap-4">
-              {/* Small Origin Character on Back */}
-              <div className={`w-12 h-12 flex items-center justify-center rounded-lg ${colors[type]} text-2xl font-bold`}>
-                {character || (
-                  <div className="w-8 h-8">
-                    {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
-                      <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
+          
+          {/* Back Header - Redesigned for Vertical Flow */}
+          <div className={`p-6 border-b ${borderColors[type]}`}>
+             <div className="flex gap-4">
+                {/* Large Origin Character */}
+                <div className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm`}>
+                    {character || (
+                        <div className="w-12 h-12">
+                            {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
+                            <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
+                            )}
+                        </div>
                     )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 leading-tight">{primaryMeaning}</h2>
-                {assignment && (
-                  <div className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold text-white uppercase ${getSRSLabel(assignment.srs_stage).color}`}>
-                    {getSRSLabel(assignment.srs_stage).label}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {primaryReading && (
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <p className="text-xl text-gray-700 font-medium">{primaryReading}</p>
-                  {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
-                    <button
-                      onClick={playAudio}
-                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-indigo-600 transition-colors"
-                      title="Play Audio"
-                    >
-                      <Icons.Sparkles className="w-4 h-4" /> 
-                    </button>
-                  )}
                 </div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Reading</p>
-              </div>
-            )}
+
+                <div className="flex-1 flex flex-col justify-center">
+                    {/* Origin Character (Mobile Only) */}
+                    <div className="sm:hidden text-3xl font-bold text-gray-800 mb-2">{character}</div>
+
+                    {/* Meaning */}
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
+                        {primaryMeaning}
+                    </h2>
+
+                    {/* Reading Row */}
+                    {primaryReading && (
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
+                            {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
+                                <button
+                                    onClick={playAudio}
+                                    className="p-2 bg-white/50 hover:bg-white rounded-full text-indigo-600 transition-colors shadow-sm"
+                                    title="Play Audio"
+                                >
+                                    <Icons.Volume className="w-5 h-5" /> 
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Level Badge */}
+                <div className="absolute top-4 right-4 bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200">
+                    Lv {subject.level}
+                </div>
+             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
@@ -334,29 +313,21 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                             <span className="text-sm font-medium text-gray-800">{studyMaterial.meaning_synonyms.join(', ')}</span>
                         </div>
                     )}
-                    {studyMaterial.meaning_note && (
-                        <div>
-                            <span className="text-xs font-bold text-yellow-600 uppercase block">Meaning Note</span>
-                            <p className="text-sm text-gray-700">{studyMaterial.meaning_note}</p>
-                        </div>
-                    )}
-                     {studyMaterial.reading_note && (
-                        <div>
-                            <span className="text-xs font-bold text-yellow-600 uppercase block">Reading Note</span>
-                            <p className="text-sm text-gray-700">{studyMaterial.reading_note}</p>
+                    {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
+                        <div className="space-y-2 pt-1">
+                            {studyMaterial.meaning_note && <p className="text-sm text-gray-700"><strong>Meaning Note:</strong> {studyMaterial.meaning_note}</p>}
+                            {studyMaterial.reading_note && <p className="text-sm text-gray-700"><strong>Reading Note:</strong> {studyMaterial.reading_note}</p>}
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Standard WaniKani Content */}
+            {/* Standard Content */}
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Meaning Mnemonic</h3>
               <div
-                className="text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: subject.meaning_mnemonic
-                }}
+                className="text-gray-700 leading-relaxed text-sm md:text-base"
+                dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
               />
             </div>
 
@@ -364,10 +335,8 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Reading Mnemonic</h3>
                 <div
-                  className="text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: subject.reading_mnemonic
-                  }}
+                  className="text-gray-700 leading-relaxed text-sm md:text-base"
+                  dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }}
                 />
               </div>
             )}
@@ -379,15 +348,15 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                    <div className="space-y-3">
                        {subject.context_sentences.slice(0, 3).map((s, i) => (
                            <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
-                               <p className="text-lg mb-1 font-medium">{renderInteractiveSentence(s.ja)}</p>
-                               <p className="text-gray-500">{s.en}</p>
+                               <p className="text-base mb-1 font-medium text-gray-800">{renderInteractiveSentence(s.ja)}</p>
+                               <p className="text-gray-500 text-xs">{s.en}</p>
                            </div>
                        ))}
                    </div>
                 </div>
             )}
 
-            {/* Visuals / Mnemonic Artwork */}
+            {/* Visuals */}
             {(type === SubjectType.KANJI || type === SubjectType.RADICAL) && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Visuals</h3>
@@ -395,7 +364,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* Components Section (Kanji Composition or Radicals) */}
+            {/* Components */}
             {components.length > 0 && (
               <div className="pt-4 border-t border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -435,7 +404,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* AI Section */}
+            {/* AI Tutor */}
             <div className="pt-4 border-t border-gray-100">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider flex items-center gap-2">
@@ -464,30 +433,32 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex justify-between items-center mt-8 px-4">
-        <Button
-          variant="ghost"
-          onClick={(e) => { e.stopPropagation(); onPrev(); }}
-          disabled={!hasPrev}
-          className="gap-2"
-        >
-          <Icons.ChevronLeft className="w-5 h-5" />
-          {hasPrev && !onNext ? 'Back' : 'Prev'}
-        </Button>
+      {/* Controls - Hide if popup mode */}
+      {!isPopup && (
+        <div className="flex justify-between items-center mt-8 px-4">
+          <Button
+            variant="ghost"
+            onClick={(e) => { e.stopPropagation(); onPrev(); }}
+            disabled={!hasPrev}
+            className="gap-2"
+          >
+            <Icons.ChevronLeft className="w-5 h-5" />
+            {hasPrev && !onNext ? 'Back' : 'Prev'}
+          </Button>
 
-        <span className="text-sm font-medium text-gray-400">Tap card to flip</span>
+          <span className="text-sm font-medium text-gray-400">Tap card to flip</span>
 
-        <Button
-          variant="ghost"
-          onClick={(e) => { e.stopPropagation(); if (onNext) onNext(); }}
-          disabled={!hasNext}
-          className={`gap-2 ${!onNext ? 'invisible' : ''}`}
-        >
-          Next
-          <Icons.ChevronRight className="w-5 h-5" />
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            onClick={(e) => { e.stopPropagation(); if (onNext) onNext(); }}
+            disabled={!hasNext}
+            className={`gap-2 ${!onNext ? 'invisible' : ''}`}
+          >
+            Next
+            <Icons.ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
+      )}
 
       <style>{`
         .rotate-y-180 {

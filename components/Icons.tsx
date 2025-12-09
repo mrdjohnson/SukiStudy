@@ -28,7 +28,9 @@ import {
   IconMenu2,
   IconVolume,
   IconVolumeOff,
-  IconListCheck
+  IconListCheck,
+  IconHelpCircle,
+  IconInfoCircle
 } from '@tabler/icons-react';
 
 export const Icons = {
@@ -60,5 +62,7 @@ export const Icons = {
   Menu: IconMenu2,
   Volume: IconVolume,
   VolumeOff: IconVolumeOff,
-  ListCheck: IconListCheck
+  ListCheck: IconListCheck,
+  Help: IconHelpCircle,
+  Info: IconInfoCircle
 };

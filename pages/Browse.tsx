@@ -16,7 +16,7 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
   // Filters
   const [levels, setLevels] = useState<number[]>([user.level]);
   const [onlyLearned, setOnlyLearned] = useState(false);
-  const [srsFilter, setSrsFilter] = useState<number[]>([]); // Empty = All
+  const [srsFilter, setSrsFilter] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLevelSelect, setShowLevelSelect] = useState(false);
 
@@ -27,14 +27,6 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const subjectsCol = await waniKaniService.getAssignments([], levels, []);
-        // Fetch subjects for these levels (batching by levels supports multiple)
-        // Wait, waniKaniService.getLevelSubjects only takes one level? 
-        // We updated service earlier to handle comma sep? No, I need to check service.
-        // Actually, getLevelSubjects in service was single level. 
-        // We will loop fetches or assume service can handle it if we modify it, 
-        // but robustly: fetch each level promise all.
-        
         const promises = levels.map(l => waniKaniService.getLevelSubjects(l));
         const results = await Promise.all(promises);
         
@@ -46,16 +38,10 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
             }
         });
 
-        // Fetch assignments for these subjects
         const subjectIds = allSubjects.map(s => s.id!).filter(Boolean);
-        
         let assignments: Record<number, Assignment> = {};
         
-        // Chunk assignments fetch (API limit is usually high but safer to chunk if > 500?)
-        // For now, simple fetch.
         if (subjectIds.length > 0) {
-          // getAssignments takes srsStages etc, we want ALL assignments for these subjects to filter locally or filter in query.
-          // Filtering locally is faster for UI responsiveness on filters.
           const assignmentsCol = await waniKaniService.getAssignments(subjectIds);
           if (assignmentsCol && assignmentsCol.data) {
              assignments = assignmentsCol.data.reduce((acc, curr) => {
@@ -77,7 +63,7 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
       }
     };
     fetchData();
-  }, [user, levels.join(',')]); // Refetch when level selection changes
+  }, [user, levels.join(',')]);
 
   const toggleSrsFilter = (stageGroup: number[]) => {
     const isActive = stageGroup.every(s => srsFilter.includes(s));
@@ -98,32 +84,23 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
 
   const getFilteredItems = () => {
     return items.filter(item => {
-      // 1. Learned Filter
       if (onlyLearned) {
         const stage = item.assignment?.srs_stage;
         if (stage === undefined || stage === 0) return false;
       }
 
-      // 2. SRS Filter
       if (srsFilter.length > 0) {
         const stage = item.assignment?.srs_stage || 0; 
         if (!srsFilter.includes(stage)) return false;
       }
 
-      // 3. Text Search (English, Reading, Romanji)
       if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const qKana = toHiragana(q);
-          
           const s = item.subject;
           
-          // Check Meanings
           const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q));
-          
-          // Check Readings
           const matchReading = s.readings?.some(r => r.reading.includes(qKana) || r.reading.includes(q));
-          
-          // Check Character
           const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana);
 
           if (!matchMeaning && !matchReading && !matchChar) return false;
@@ -133,14 +110,20 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
     });
   };
 
-  const getSRSColor = (stage?: number) => {
-    if (stage === undefined) return 'bg-gray-100 border-gray-200 text-gray-400';
-    if (stage === 0) return 'bg-gray-100 border-gray-200';
-    if (stage < 5) return 'bg-pink-100 border-pink-200 text-pink-700'; 
-    if (stage < 7) return 'bg-purple-100 border-purple-200 text-purple-700';
-    if (stage === 7) return 'bg-blue-100 border-blue-200 text-blue-700';
-    if (stage === 8) return 'bg-sky-100 border-sky-200 text-sky-700';
-    return 'bg-yellow-100 border-yellow-200 text-yellow-700';
+  const getTypeColor = (object: string) => {
+    if (object === 'radical') return 'bg-sky-500 border-sky-600 text-white';
+    if (object === 'kanji') return 'bg-pink-500 border-pink-600 text-white';
+    return 'bg-purple-500 border-purple-600 text-white';
+  };
+
+  const getSRSBadge = (stage?: number) => {
+    if (stage === undefined) return null;
+    if (stage === 0) return <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-[9px] px-1.5 py-0.5 rounded-full border border-white">Lesson</span>;
+    if (stage < 5) return <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-[9px] px-1.5 py-0.5 rounded-full border border-white">Appr</span>;
+    if (stage < 7) return <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-[9px] px-1.5 py-0.5 rounded-full border border-white">Guru</span>;
+    if (stage === 7) return <span className="absolute -top-2 -right-2 bg-blue-700 text-white text-[9px] px-1.5 py-0.5 rounded-full border border-white">Master</span>;
+    if (stage === 8) return <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-[9px] px-1.5 py-0.5 rounded-full border border-white">Enlight</span>;
+    return <span className="absolute -top-2 -right-2 bg-yellow-600 text-white text-[9px] px-1.5 py-0.5 rounded-full border border-white">Burn</span>;
   };
 
   const filteredItems = getFilteredItems();
@@ -163,13 +146,11 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold text-gray-900">Browse</h2>
-            
             <div className="relative">
                 <Button variant="outline" size="sm" onClick={() => setShowLevelSelect(!showLevelSelect)}>
                     Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
                     <Icons.ChevronRight className={`ml-2 w-4 h-4 transition-transform ${showLevelSelect ? 'rotate-90' : ''}`} />
                 </Button>
-                
                 {showLevelSelect && (
                     <div className="absolute top-10 left-0 z-20 bg-white shadow-xl border border-gray-200 rounded-xl p-4 w-72 h-64 overflow-y-auto grid grid-cols-5 gap-2">
                         {Array.from({length: 60}, (_, i) => i + 1).map(l => (
@@ -189,9 +170,7 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
             </div>
             {showLevelSelect && <div className="fixed inset-0 z-10" onClick={() => setShowLevelSelect(false)}></div>}
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/')}>
-             Dashboard
-          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/')}>Dashboard</Button>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -218,9 +197,7 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
                 />
                 <span className="text-sm font-medium text-gray-700">Learned Only</span>
             </label>
-
             <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
-
             <div className="flex flex-wrap gap-2">
                 {SRS_GROUPS.map(group => {
                 const isActive = group.stages.every(s => srsFilter.includes(s));
@@ -250,11 +227,7 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
         </div>
       </div>
 
-      {loading ? (
-           <div className="text-center py-20">
-               <Icons.RotateCcw className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
-           </div>
-      ) : filteredItems.length === 0 ? (
+      {filteredItems.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <Icons.FileQuestion className="w-12 h-12 mx-auto mb-3 text-gray-300" />
           <p>No items match your filters.</p>
@@ -266,20 +239,21 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
               key={subject.id}
               onClick={() => setSelectedItem({subject, assignment})}
               className={`
-                aspect-square rounded-xl p-2 flex flex-col items-center justify-center border-2 transition-all hover:scale-105
-                ${getSRSColor(assignment?.srs_stage)}
+                relative aspect-square rounded-xl p-2 flex flex-col items-center justify-center border transition-all hover:scale-105 shadow-sm hover:shadow-md
+                ${getTypeColor(subject.object || 'vocabulary')}
               `}
             >
-              <div className="text-3xl font-bold mb-1">
+              {getSRSBadge(assignment?.srs_stage)}
+              <div className="text-3xl font-bold mb-1 drop-shadow-sm">
                 {subject.characters || (
                   <div className="w-8 h-8">
                      {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
-                       <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full opacity-80" />
+                       <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
                      )}
                   </div>
                 )}
               </div>
-              <div className="text-xs truncate max-w-full font-medium opacity-80">
+              <div className="text-xs truncate max-w-full font-medium opacity-90 px-2 bg-black/10 rounded">
                 {subject.meanings?.[0]?.meaning}
               </div>
             </button>
@@ -289,8 +263,8 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
 
       {/* Modal Overlay */}
       {selectedItem && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedItem(null)}>
-          <div className="w-full max-w-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setSelectedItem(null)}>
+          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
             <Flashcard 
                subject={selectedItem.subject}
                assignment={selectedItem.assignment}

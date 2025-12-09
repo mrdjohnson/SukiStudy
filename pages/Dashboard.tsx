@@ -26,6 +26,13 @@ export const Dashboard: React.FC<{ user: User }> = ({ user }) => {
     loadData();
   }, []);
 
+  const handleReviewGame = () => {
+    // Pick a random game to play as "Review"
+    const games = ['memory', 'quiz', 'shiritori', 'sorting', 'connect', 'variations'];
+    const randomGame = games[Math.floor(Math.random() * games.length)];
+    navigate(`/session/games/${randomGame}`);
+  };
+
   if (loading) return <div className="flex h-[50vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
 
   const lessonsCount = summary?.lessons?.[0]?.subject_ids?.length || 0;
@@ -77,13 +84,24 @@ export const Dashboard: React.FC<{ user: User }> = ({ user }) => {
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-1">{reviewsCount} Reviews</h3>
           <p className="text-gray-500 mb-6">Items to recall</p>
-          <Button 
-            variant={reviewsCount > 0 ? "secondary" : "outline"} 
-            disabled={reviewsCount === 0}
-            onClick={() => navigate('/session/review')}
-          >
-            Start Reviews
-          </Button>
+          <div className="flex gap-2 w-full">
+            <Button 
+              className="flex-1"
+              variant={reviewsCount > 0 ? "secondary" : "outline"} 
+              disabled={reviewsCount === 0}
+              onClick={() => navigate('/session/review')}
+            >
+              Start
+            </Button>
+            <Button 
+              variant="outline"
+              disabled={reviewsCount === 0}
+              onClick={handleReviewGame}
+              title="Play Review Game"
+            >
+              <Icons.Gamepad2 className="w-5 h-5 text-sky-600" />
+            </Button>
+          </div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group">

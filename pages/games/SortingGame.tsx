@@ -5,13 +5,15 @@ import { User } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
+import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
   const { items, loading } = useLearnedSubjects(user);
   const [pairs, setPairs] = useState<{char: string, val: string, id: number}[]>([]);
-  const [rightOrder, setRightOrder] = useState<string[]>([]); // Current state of right side
+  const [rightOrder, setRightOrder] = useState<string[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [solved, setSolved] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const navigate = useNavigate();
 
   const initGame = () => {
@@ -19,7 +21,6 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
     setSelectedIdx(null);
     if (items.length < 5) return;
     
-    // Pick 5
     const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5);
     const p = selected.map(s => ({
       id: s.subject.id!,
@@ -28,7 +29,6 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
     }));
     
     setPairs(p);
-    // Shuffle right side
     setRightOrder(p.map(x => x.val).sort(() => 0.5 - Math.random()));
   };
 
@@ -43,7 +43,6 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
     if (selectedIdx === null) {
       setSelectedIdx(idx);
     } else {
-      // Swap
       const newOrder = [...rightOrder];
       const temp = newOrder[selectedIdx];
       newOrder[selectedIdx] = newOrder[idx];
@@ -51,7 +50,6 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
       setRightOrder(newOrder);
       setSelectedIdx(null);
       
-      // Check if solved
       const isCorrect = newOrder.every((val, i) => val === pairs[i].val);
       if (isCorrect) setSolved(true);
     }
@@ -63,7 +61,12 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-         <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+         <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
+               <Icons.Help className="w-6 h-6" />
+            </button>
+         </div>
          <h2 className="text-xl font-bold">Sort & Match</h2>
       </div>
 
@@ -73,7 +76,6 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
       </div>
 
       <div className="flex gap-4">
-        {/* Left Col (Fixed) */}
         <div className="flex-1 space-y-3">
            {pairs.map((p) => (
              <div key={p.id} className="h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl font-bold text-2xl shadow-sm">
@@ -82,7 +84,6 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
            ))}
         </div>
 
-        {/* Right Col (Sortable) */}
         <div className="flex-1 space-y-3">
            {rightOrder.map((val, idx) => {
              const isCorrect = val === pairs[idx].val;
@@ -109,6 +110,17 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
            <Button size="lg" onClick={initGame}>Next Level <Icons.ChevronRight className="ml-2" /></Button>
         </div>
       )}
+
+      <HowToPlayModal 
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Sort & Match"
+        steps={[
+           { title: "Match Rows", description: "The goal is to align the meanings on the right with the characters on the left.", icon: Icons.ArrowUpDown },
+           { title: "Tap to Swap", description: "Tap one item on the right list, then tap another to swap their positions.", icon: Icons.GripVertical },
+           { title: "Solve It", description: "When all items are perfectly aligned and green, you win!", icon: Icons.CheckCircle }
+        ]}
+      />
     </div>
   );
 };

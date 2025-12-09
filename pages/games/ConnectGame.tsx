@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, Assignment } from '../../types';
@@ -10,6 +9,7 @@ import { waniKaniService } from '../../services/wanikaniService';
 import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
 import { toRomaji } from '../../utils/romaji';
+import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 // Grid size
 const ROWS = 5;
@@ -31,15 +31,16 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   const [currentSubject, setCurrentSubject] = useState<Subject | null>(null);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [grid, setGrid] = useState<Cell[]>([]);
-  const [selectedCells, setSelectedCells] = useState<string[]>([]); // Array of IDs "r-c"
-  const [validPath, setValidPath] = useState<string[]>([]); // IDs of the generated correct path
+  const [selectedCells, setSelectedCells] = useState<string[]>([]);
+  const [validPath, setValidPath] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(Number(localStorage.getItem('suki_connect_highscore') || 0));
   const [message, setMessage] = useState('');
   const [found, setFound] = useState(false);
   const [hintCellId, setHintCellId] = useState<string | null>(null);
-  const [pressedCell, setPressedCell] = useState<string | null>(null); // For long press tooltip
+  const [pressedCell, setPressedCell] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   const { soundEnabled } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,16 +62,13 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
     setHintCellId(null);
     setPressedCell(null);
     
-    // Pick a word (Prioritize reviews)
     let candidates = items.filter(i => {
        const reading = i.subject.readings?.[0]?.reading;
        return reading && reading.length >= 2 && reading.length <= 8;
     });
     
-    // Fallback to pool if no valid candidates
     if (candidates.length === 0) return;
 
-    // Pick top (reviewable) or random
     const idx = Math.floor(Math.random() * Math.min(candidates.length, 5)); 
     const selection = candidates[idx];
     setCurrentSubject(selection.subject);
@@ -78,15 +76,12 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
 
     const reading = selection.subject.readings![0].reading;
 
-    // Generate path
     const pathCoords = generatePath(reading.length);
     const pathIds = pathCoords.map(p => `${p.r}-${p.c}`);
     setValidPath(pathIds);
     
-    // Fill grid
     const newGrid: Cell[] = [];
     
-    // Create empty cells
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
             newGrid.push({
@@ -95,14 +90,13 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
                 col: c,
                 char: '',
                 romaji: '',
-                isRomajiDisplay: Math.random() > 0.8, // 20% chance to show Romaji
+                isRomajiDisplay: Math.random() > 0.8,
                 correct: false,
                 wrong: false
             });
         }
     }
 
-    // Place word
     pathCoords.forEach((pos, idx) => {
         const cellIdx = pos.r * COLS + pos.c;
         const char = reading[idx];
@@ -110,7 +104,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
         newGrid[cellIdx].romaji = toRomaji(char);
     });
 
-    // Fill rest
     newGrid.forEach(cell => {
         if (!cell.char) {
             const char = hiraganaPool[Math.floor(Math.random() * hiraganaPool.length)];
@@ -127,9 +120,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
         const path: {r: number, c: number}[] = [];
         const startR = Math.floor(Math.random() * ROWS);
         const startC = Math.floor(Math.random() * COLS);
-        
         path.push({r: startR, c: startC});
-        
         if (solvePath(path, length)) return path;
      }
      return [{r:0,c:0}]; 
@@ -137,7 +128,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
 
   const solvePath = (path: {r: number, c: number}[], targetLen: number): boolean => {
       if (path.length === targetLen) return true;
-      
       const curr = path[path.length - 1];
       const neighbors = [
           {r: curr.r-1, c: curr.c}, {r: curr.r+1, c: curr.c},
@@ -169,7 +159,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
       e.preventDefault(); 
       setIsDragging(true);
       setPressedCell(cellId);
-
       const existingIndex = selectedCells.indexOf(cellId);
       if (existingIndex !== -1) {
           setSelectedCells(prev => prev.slice(0, existingIndex + 1));
@@ -183,14 +172,11 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   const handlePointerMove = (e: React.PointerEvent) => {
       if (!isDragging || found) return;
       e.preventDefault();
-
       const element = document.elementFromPoint(e.clientX, e.clientY);
       const cellId = element?.getAttribute('data-cell-id');
-
       if (cellId) {
           setPressedCell(cellId);
           const existingIndex = selectedCells.indexOf(cellId);
-
           if (existingIndex !== -1) {
               if (existingIndex !== selectedCells.length - 1) {
                    setSelectedCells(prev => prev.slice(0, existingIndex + 1));
@@ -200,7 +186,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
               const lastId = selectedCells[selectedCells.length - 1];
               const [lr, lc] = lastId.split('-').map(Number);
               const [cr, cc] = cellId.split('-').map(Number);
-              
               if (Math.abs(lr - cr) <= 1 && Math.abs(lc - cc) <= 1) {
                   setSelectedCells(prev => [...prev, cellId]);
                   playSound('pop', soundEnabled);
@@ -218,14 +203,11 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
 
   const checkAnswer = () => {
       if (selectedCells.length === 0) return;
-
       const selectedChars = selectedCells.map(id => {
           const [r, c] = id.split('-').map(Number);
           return grid[r * COLS + c].char;
       }).join('');
-
       const correctReading = currentSubject?.readings?.[0]?.reading;
-
       if (selectedChars === correctReading) {
           setScore(s => s + 1);
           setFound(true);
@@ -234,17 +216,11 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
              selectedCells.includes(cell.id) ? {...cell, correct: true} : cell
           ));
           playSound('success', soundEnabled);
-
-          // Submit Review if applicable
           if (currentAssignment && currentAssignment.id && new Date(currentAssignment.available_at!) < new Date()) {
-            waniKaniService.createReview(currentAssignment.id, 0, 0)
-              .then(() => console.log("Review submitted"))
-              .catch(e => console.error(e));
+            waniKaniService.createReview(currentAssignment.id, 0, 0).catch(e => console.error(e));
           }
-
           setTimeout(initLevel, 1500);
       } else {
-          // Highlight wrong path in red
           if (selectedCells.length > 1) playSound('error', soundEnabled);
           setGrid(prev => prev.map(cell => 
             selectedCells.includes(cell.id) ? {...cell, wrong: true} : cell
@@ -269,15 +245,10 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   const handleHint = () => {
       let matchCount = 0;
       for (let i = 0; i < selectedCells.length; i++) {
-          if (selectedCells[i] === validPath[i]) {
-              matchCount++;
-          } else {
-              break;
-          }
+          if (selectedCells[i] === validPath[i]) matchCount++;
+          else break;
       }
-
       if (matchCount === validPath.length) return;
-
       const nextId = validPath[matchCount];
       setHintCellId(nextId);
       setTimeout(() => setHintCellId(null), 1500);
@@ -296,7 +267,12 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 select-none overscroll-none touch-none">
       <div className="flex items-center justify-between mb-4">
-         <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+         <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
+               <Icons.Help className="w-6 h-6" />
+            </button>
+         </div>
          <div className="flex flex-col items-center">
              <h2 className="text-xl font-bold">Connect</h2>
              <span className="text-xs text-indigo-600 font-bold">High Score: {highScore}</span>
@@ -379,8 +355,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
                         `}
                     >
                         {cell.isRomajiDisplay ? cell.romaji : cell.char}
-                        
-                        {/* Tooltip on long press */}
                         {isPressed && (
                             <div className="absolute -top-10 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-20">
                                 {toRomaji(cell.char)}
@@ -411,6 +385,17 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
             </Button>
           </div>
       </div>
+
+      <HowToPlayModal 
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Hiragana Connect"
+        steps={[
+           { title: "Trace the Reading", description: "Connect the hiragana characters in order to spell the reading of the displayed word.", icon: Icons.GridDots },
+           { title: "Drag to Connect", description: "Slide your finger or mouse across the grid to link neighboring characters.", icon: Icons.Link },
+           { title: "Watch for Romaji", description: "Some tiles might show Romaji instead of Hiragana. Long press a tile to check its sound.", icon: Icons.Help }
+        ]}
+      />
     </div>
   );
 };

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject } from '../../types';
@@ -9,6 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
+import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
   const { items, loading } = useLearnedSubjects(user);
@@ -18,6 +18,7 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   const { soundEnabled } = useSettings();
   const navigate = useNavigate();
@@ -26,25 +27,20 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
     setSelectedOptions([]);
     setSubmitted(false);
     
-    // Pick a Kanji item
     const kanjiItems = items.filter(i => i.subject.object === 'kanji');
     if (kanjiItems.length === 0) return;
 
-    // Favor reviews
     kanjiItems.sort((a, b) => a.isReviewable ? -1 : 1);
     const target = kanjiItems[Math.floor(Math.random() * Math.min(5, kanjiItems.length))];
 
-    // Correct readings
     const correctReadings = target.subject.readings?.map(r => r.reading) || [];
     
-    // Distractors (readings from other kanji)
     const distractors = kanjiItems
       .filter(i => i.subject.id !== target.subject.id)
       .flatMap(i => i.subject.readings?.map(r => r.reading) || [])
       .sort(() => 0.5 - Math.random())
-      .slice(0, 5); // 5 distractors
+      .slice(0, 5); 
 
-    // Combine and shuffle
     const options = Array.from(new Set([...correctReadings, ...distractors])).sort(() => 0.5 - Math.random());
 
     setQuestion({
@@ -70,14 +66,12 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
     const correctSet = new Set(question.correctReadings);
     const selectedSet = new Set(selectedOptions);
     
-    // Check perfect match: All correct selected, no extra selected
     const allCorrectSelected = question.correctReadings.every((r: string) => selectedSet.has(r));
     const noExtras = selectedOptions.every(o => correctSet.has(o));
     
     if (allCorrectSelected && noExtras) {
        playSound('success', soundEnabled);
        setScore(s => s + 1);
-       // Submit review
        if (question.target.isReviewable && question.target.assignment.id) {
           waniKaniService.createReview(question.target.assignment.id, 0, 0);
        }
@@ -111,7 +105,12 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
        <div className="flex justify-between items-center mb-8">
-        <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
+               <Icons.Help className="w-6 h-6" />
+            </button>
+        </div>
         <span className="font-bold text-gray-500">Round {round} / 5</span>
       </div>
 
@@ -152,6 +151,17 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
              <Button size="lg" onClick={nextRound}>Next Question</Button>
          )}
       </div>
+
+      <HowToPlayModal 
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Kanji Readings"
+        steps={[
+           { title: "See the Kanji", description: "Identify the Kanji character displayed in the center.", icon: Icons.FileQuestion },
+           { title: "Select Variations", description: "A Kanji can have multiple readings (On'yomi & Kun'yomi). Tap ALL valid readings from the list.", icon: Icons.ListCheck },
+           { title: "Submit", description: "Press submit to check. You must select all correct ones and no wrong ones to win!", icon: Icons.CheckCircle }
+        ]}
+      />
     </div>
   );
 };
