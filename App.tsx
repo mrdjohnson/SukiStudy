@@ -16,9 +16,10 @@ import { GameMenu } from './pages/games/GameMenu';
 import { MemoryGame } from './pages/games/MemoryGame';
 import { QuizGame } from './pages/games/QuizGame';
 import { ShiritoriGame } from './pages/games/ShiritoriGame';
-import { SortingGame } from './pages/games/SortingGame';
+import { MatchingGame } from './pages/games/SortingGame';
 import { ConnectGame } from './pages/games/ConnectGame';
 import { VariationsQuizGame } from './pages/games/VariationsQuizGame';
+import { RecallGame } from './pages/games/RecallGame';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -85,9 +86,10 @@ export default function App() {
               <Route path="/session/games/memory" element={user ? <MemoryGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/quiz" element={user ? <QuizGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/shiritori" element={user ? <ShiritoriGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/sorting" element={user ? <SortingGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/sorting" element={user ? <MatchingGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/connect" element={user ? <ConnectGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/variations" element={user ? <VariationsQuizGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/recall" element={user ? <RecallGame user={user} /> : <Navigate to="/login" />} />
 
               <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
             </Routes>

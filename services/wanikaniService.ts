@@ -70,6 +70,18 @@ class WaniKaniService {
     return this.request<WKCollection<StudyMaterial>>(`/study_materials?${params.toString()}`);
   }
 
+  async startAssignment(subjectId: number) {
+    return this.request('/assignments', {
+      method: 'POST',
+      body: JSON.stringify({
+        assignment: {
+          subject_id: subjectId,
+          // started_at defaults to now
+        }
+      })
+    });
+  }
+
   async createReview(assignmentId: number, incorrectMeaningAnswers: number, incorrectReadingAnswers: number) {
     return this.request('/reviews', {
       method: 'POST',

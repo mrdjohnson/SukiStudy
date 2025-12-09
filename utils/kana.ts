@@ -18,7 +18,7 @@ export const toHiragana = (input: string): string => {
     'pa': 'ぱ', 'pi': 'ぴ', 'pu': 'ぷ', 'pe': 'ぺ', 'po': 'ぽ',
     'kya': 'きゃ', 'kyu': 'きゅ', 'kyo': 'きょ',
     'sha': 'しゃ', 'shu': 'しゅ', 'sho': 'しょ',
-    'cha': 'ちゃ', 'chu': 'ちゅ', 'cho': 'ちょ',
+    'cha': 'ちゃ', 'chu': 'ちゅ', 'ちょ': 'ちょ',
     'nya': 'にゃ', 'nyu': 'にゅ', 'nyo': 'にょ',
     'hya': 'ひゃ', 'hyu': 'ひゅ', 'hyo': 'ひょ',
     'mya': 'みゃ', 'myu': 'みゅ', 'myo': 'みょ',
@@ -27,22 +27,15 @@ export const toHiragana = (input: string): string => {
     'ja': 'じゃ', 'ju': 'じゅ', 'jo': 'じょ',
     'bya': 'びゃ', 'byu': 'びゅ', 'byo': 'びょ',
     'pya': 'ぴゃ', 'pyu': 'ぴゅ', 'pyo': 'ぴょ',
-    '-': 'ー'
+    'っ': 't', 'ー': '-'
   };
-  
-  // Naive replacement for basic inputs
-  let str = input.toLowerCase();
-  
-  // Double consonants (small tsu)
-  str = str.replace(/([kstnhmyrwgzbpd])\1/g, 'っ$1');
 
-  // Sort keys by length descending to match longest first (e.g., 'shi' before 's')
+  let str = input.toLowerCase();
+  str = str.replace(/([kstnhmyrwgzbpd])\1/g, 'っ$1');
   const keys = Object.keys(table).sort((a, b) => b.length - a.length);
-  
   keys.forEach(key => {
     const regex = new RegExp(key, 'g');
     str = str.replace(regex, table[key]);
   });
-  
   return str;
 };

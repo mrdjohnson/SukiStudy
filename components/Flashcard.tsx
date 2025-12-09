@@ -56,7 +56,10 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
     <>
       <div 
         className="mt-4 mb-4 relative group cursor-zoom-in inline-block"
-        onClick={() => setIsOpen(true)}
+        onClick={(e) => {
+           e.stopPropagation();
+           setIsOpen(true);
+        }}
       >
         <img
           src={imageUrl}
@@ -72,20 +75,21 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
 
       {isOpen && (
         <div 
-          className="fixed inset-0 z-[150] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
         >
-          <div className="relative max-w-5xl max-h-full w-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+             {/* Close button placed fixed to screen to avoid being covered by large images */}
             <button 
-              className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors"
-              onClick={() => setIsOpen(false)}
+              className="fixed top-4 right-4 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors pointer-events-auto z-[160]"
+              onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
             >
-              <Icons.X className="w-8 h-8" />
+              <Icons.X className="w-6 h-6" />
             </button>
             <img
               src={imageUrl}
               alt="Mnemonic Fullscreen"
-              className="max-w-full max-h-[85vh] object-contain rounded-md shadow-2xl"
+              className="max-w-full max-h-[90vh] object-contain rounded-md shadow-2xl pointer-events-auto"
               onClick={(e) => e.stopPropagation()} 
             />
           </div>
@@ -253,13 +257,18 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
         </div>
 
         {/* Back */}
-        <div className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}>
-          
+        <div 
+            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
+            onClick={(e) => e.stopPropagation()} /* Prevent flipping back when clicking the content area generally */
+        >
           {/* Back Header - Redesigned for Vertical Flow */}
           <div className={`p-6 border-b ${borderColors[type]}`}>
              <div className="flex gap-4">
-                {/* Large Origin Character */}
-                <div className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm`}>
+                {/* Large Origin Character - Click to flip back */}
+                <div 
+                    onClick={() => setIsFlipped(false)}
+                    className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
+                >
                     {character || (
                         <div className="w-12 h-12">
                             {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
@@ -271,7 +280,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
 
                 <div className="flex-1 flex flex-col justify-center">
                     {/* Origin Character (Mobile Only) */}
-                    <div className="sm:hidden text-3xl font-bold text-gray-800 mb-2">{character}</div>
+                    <div onClick={() => setIsFlipped(false)} className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">{character}</div>
 
                     {/* Meaning */}
                     <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">

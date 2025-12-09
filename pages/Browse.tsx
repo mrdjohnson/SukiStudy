@@ -263,8 +263,14 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
 
       {/* Modal Overlay */}
       {selectedItem && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setSelectedItem(null)}>
-          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
+        <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" 
+            onClick={() => setSelectedItem(null)}
+        >
+          <div 
+            className="w-full max-w-2xl h-full flex items-center" 
+            onClick={e => e.stopPropagation()}
+          >
             <Flashcard 
                subject={selectedItem.subject}
                assignment={selectedItem.assignment}

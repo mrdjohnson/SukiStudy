@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Icons } from './Icons';
 import { User } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
+import { HowToPlayModal } from './HowToPlayModal';
 
 interface HeaderProps {
   user: User | null;
@@ -12,7 +13,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { soundEnabled, toggleSound } = useSettings();
+  const { soundEnabled, toggleSound, romajiEnabled, toggleRomaji, helpSteps } = useSettings();
+  const [showHelp, setShowHelp] = useState(false);
 
   return (
     <>
@@ -44,6 +46,28 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                     <div className="h-4 w-px bg-gray-300"></div>
                     <span className="text-sm font-semibold text-indigo-600 truncate max-w-[100px]">{user.username}</span>
                   </div>
+
+                  {/* Desktop Actions */}
+                  <div className="hidden lg:flex items-center gap-2">
+                     <button 
+                        onClick={toggleSound} 
+                        className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                        title={soundEnabled ? "Mute Sound" : "Enable Sound"}
+                     >
+                        {soundEnabled ? <Icons.Volume className="w-5 h-5" /> : <Icons.VolumeOff className="w-5 h-5" />}
+                     </button>
+                  </div>
+
+                  {/* Contextual Help Icon */}
+                  {helpSteps && (
+                     <button 
+                       onClick={() => setShowHelp(true)}
+                       className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors animate-fade-in"
+                       title="How to Play"
+                     >
+                       <Icons.Help className="w-6 h-6" />
+                     </button>
+                  )}
                 </>
               )}
             </div>
@@ -78,10 +102,22 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
         </div>
 
         <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-gray-50 space-y-4">
+           {/* Sound Toggle */}
            <div className="flex items-center justify-between px-4">
              <span className="text-sm font-medium text-gray-600">Sound Effects</span>
              <button onClick={toggleSound} className="p-2 bg-white rounded-full shadow-sm border border-gray-200">
                 {soundEnabled ? <Icons.Volume className="w-5 h-5 text-indigo-600" /> : <Icons.VolumeOff className="w-5 h-5 text-gray-400" />}
+             </button>
+           </div>
+           
+           {/* Romaji Toggle */}
+           <div className="flex items-center justify-between px-4">
+             <span className="text-sm font-medium text-gray-600">Game Romaji</span>
+             <button 
+                onClick={toggleRomaji} 
+                className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${romajiEnabled ? 'bg-indigo-600' : 'bg-gray-300'}`}
+             >
+                <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ${romajiEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
              </button>
            </div>
            
@@ -93,6 +129,15 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
            </button>
         </div>
       </div>
+
+      {helpSteps && (
+        <HowToPlayModal 
+          isOpen={showHelp}
+          onClose={() => setShowHelp(false)}
+          title="How to Play"
+          steps={helpSteps}
+        />
+      )}
     </>
   );
 };

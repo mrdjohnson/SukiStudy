@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
-import { HowToPlayModal } from '../../components/HowToPlayModal';
+import { Flashcard } from '../../components/Flashcard';
 
 export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
   const { items, loading } = useLearnedSubjects(user);
@@ -18,10 +18,19 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
   const [submitted, setSubmitted] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
+  const [showFlashcard, setShowFlashcard] = useState(false);
   
-  const { soundEnabled } = useSettings();
+  const { soundEnabled, setHelpSteps } = useSettings();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setHelpSteps([
+        { title: "Select Variations", description: "Select all correct readings (On'yomi & Kun'yomi).", icon: Icons.ListCheck },
+        { title: "Hidden Meaning", description: "The English meaning is hidden until you submit.", icon: Icons.FileQuestion },
+        { title: "Check Details", description: "After submitting, click the Kanji to see full details.", icon: Icons.BookOpen }
+    ]);
+    return () => setHelpSteps(null);
+  }, []);
 
   const initRound = () => {
     setSelectedOptions([]);
@@ -107,17 +116,25 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
        <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
             <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
-            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
-               <Icons.Help className="w-6 h-6" />
-            </button>
         </div>
         <span className="font-bold text-gray-500">Round {round} / 5</span>
       </div>
 
       <div className="text-center mb-8">
          <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">Select ALL correct readings</div>
-         <div className="text-6xl font-bold text-gray-900 mb-2">{question.target.subject.characters}</div>
-         <div className="text-gray-500">{question.target.subject.meanings[0].meaning}</div>
+         
+         <div 
+            onClick={() => submitted && setShowFlashcard(true)}
+            className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-8' : 'text-gray-900'}`}
+            title={submitted ? "Click to view flashcard" : ""}
+         >
+            {question.target.subject.characters}
+         </div>
+
+         {/* Meaning revealed after submit */}
+         <div className={`text-lg font-medium transition-opacity duration-500 ${submitted ? 'opacity-100 text-gray-700' : 'opacity-0'}`}>
+            {question.target.subject.meanings[0].meaning}
+         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
@@ -152,16 +169,19 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
          )}
       </div>
 
-      <HowToPlayModal 
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        title="Kanji Readings"
-        steps={[
-           { title: "See the Kanji", description: "Identify the Kanji character displayed in the center.", icon: Icons.FileQuestion },
-           { title: "Select Variations", description: "A Kanji can have multiple readings (On'yomi & Kun'yomi). Tap ALL valid readings from the list.", icon: Icons.ListCheck },
-           { title: "Submit", description: "Press submit to check. You must select all correct ones and no wrong ones to win!", icon: Icons.CheckCircle }
-        ]}
-      />
+      {showFlashcard && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setShowFlashcard(false)}>
+            <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
+                <Flashcard 
+                    subject={question.target.subject}
+                    hasPrev={false}
+                    hasNext={false}
+                    onPrev={() => setShowFlashcard(false)}
+                    onNext={() => setShowFlashcard(false)}
+                />
+            </div>
+        </div>
+      )}
     </div>
   );
 };

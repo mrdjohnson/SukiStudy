@@ -9,7 +9,6 @@ import { waniKaniService } from '../../services/wanikaniService';
 import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
 import { toRomaji } from '../../utils/romaji';
-import { HowToPlayModal } from '../../components/HowToPlayModal';
 
 // Grid size
 const ROWS = 5;
@@ -40,13 +39,21 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
   const [found, setFound] = useState(false);
   const [hintCellId, setHintCellId] = useState<string | null>(null);
   const [pressedCell, setPressedCell] = useState<string | null>(null);
-  const [showHelp, setShowHelp] = useState(false);
 
-  const { soundEnabled } = useSettings();
+  const { soundEnabled, romajiEnabled, setHelpSteps } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const hiraganaPool = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+
+  useEffect(() => {
+    setHelpSteps([
+        { title: "Trace Reading", description: "Connect hiragana to spell the word's reading.", icon: Icons.GridDots },
+        { title: "Drag to Connect", description: "Slide across neighbors.", icon: Icons.Link },
+        { title: "Romaji", description: "If enabled, some tiles show as Romaji.", icon: Icons.FileQuestion }
+    ]);
+    return () => setHelpSteps(null);
+  }, []);
 
   useEffect(() => {
     if (score > highScore) {
@@ -90,7 +97,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
                 col: c,
                 char: '',
                 romaji: '',
-                isRomajiDisplay: Math.random() > 0.8,
+                isRomajiDisplay: romajiEnabled && Math.random() > 0.8,
                 correct: false,
                 wrong: false
             });
@@ -269,9 +276,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
       <div className="flex items-center justify-between mb-4">
          <div className="flex items-center gap-2">
             <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
-            <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
-               <Icons.Help className="w-6 h-6" />
-            </button>
          </div>
          <div className="flex flex-col items-center">
              <h2 className="text-xl font-bold">Connect</h2>
@@ -385,17 +389,6 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
             </Button>
           </div>
       </div>
-
-      <HowToPlayModal 
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        title="Hiragana Connect"
-        steps={[
-           { title: "Trace the Reading", description: "Connect the hiragana characters in order to spell the reading of the displayed word.", icon: Icons.GridDots },
-           { title: "Drag to Connect", description: "Slide your finger or mouse across the grid to link neighboring characters.", icon: Icons.Link },
-           { title: "Watch for Romaji", description: "Some tiles might show Romaji instead of Hiragana. Long press a tile to check its sound.", icon: Icons.Help }
-        ]}
-      />
     </div>
   );
 };

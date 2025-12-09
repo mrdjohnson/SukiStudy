@@ -30,9 +30,9 @@ export const GameMenu: React.FC = () => {
       color: 'bg-pink-100 text-pink-600'
     },
     {
-      id: 'sorting',
-      name: 'Sort & Order',
-      desc: 'Match keys to values by reordering list items.',
+      id: 'sorting', // Route kept as sorting for compatibility, but logic is matching
+      name: 'Matching Pairs',
+      desc: 'Find matching pairs of Kanji and Meanings.',
       icon: Icons.ArrowUpDown,
       color: 'bg-blue-100 text-blue-600'
     },
@@ -49,6 +49,13 @@ export const GameMenu: React.FC = () => {
       desc: 'Select all valid readings for a Kanji.',
       icon: Icons.ListCheck,
       color: 'bg-rose-100 text-rose-600'
+    },
+    {
+        id: 'recall',
+        name: 'Word Recall',
+        desc: 'List words starting with a specific character.',
+        icon: Icons.Sparkles,
+        color: 'bg-indigo-100 text-indigo-600'
     }
   ];
 
