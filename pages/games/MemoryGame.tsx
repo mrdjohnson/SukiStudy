@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User } from '../../types';
+import { User, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
@@ -17,10 +17,18 @@ interface GameCard {
   subjectType: string;
 }
 
-export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
-  const { items: learnedItems, loading: dataLoading } = useLearnedSubjects(user);
+interface MemoryGameProps {
+    user: User;
+    items?: GameItem[];
+    onComplete?: () => void;
+}
+
+export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const items = propItems || fetchedItems;
+  const loading = propItems ? false : fetchLoading;
+
   const [cards, setCards] = useState<GameCard[]>([]);
-  const [loading, setLoading] = useState(true);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [matches, setMatches] = useState(0);
   const [timer, setTimer] = useState(300);
@@ -30,19 +38,17 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
   const navigate = useNavigate();
 
   const initGame = () => {
-    setLoading(true);
     setMatches(0);
     setFlippedIndices([]);
     setGameOver(false);
     setWon(false);
     setTimer(300);
 
-    if (learnedItems.length < 6) {
-        setLoading(false);
+    if (items.length < 6) {
         return; 
     }
     
-    const selected = [...learnedItems].sort(() => 0.5 - Math.random()).slice(0, 6);
+    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 6);
     const gameCards: GameCard[] = [];
     
     selected.forEach(({ subject: s }) => {
@@ -87,16 +93,13 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
     });
 
     setCards(gameCards.sort(() => 0.5 - Math.random()));
-    setLoading(false);
   };
 
   useEffect(() => {
-    if (!dataLoading && learnedItems.length >= 6) {
+    if (!loading && items.length >= 6) {
        initGame();
-    } else if (!dataLoading) {
-      setLoading(false);
     }
-  }, [learnedItems, dataLoading]);
+  }, [items, loading]);
 
   useEffect(() => {
     if (loading || gameOver || won || showHelp) return;
@@ -112,6 +115,12 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
     }, 1000);
     return () => clearInterval(interval);
   }, [loading, gameOver, won, showHelp]);
+
+  useEffect(() => {
+    if (won && onComplete) {
+      setTimeout(onComplete, 2000);
+    }
+  }, [won, onComplete]);
 
   const handleCardClick = (index: number) => {
     if (gameOver || won || loading) return;
@@ -163,15 +172,15 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (loading || dataLoading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
+  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
 
-  if (learnedItems.length < 6) return <div className="p-8 text-center text-gray-500">Not enough learned items to play. Start some lessons!</div>;
+  if (items.length < 6) return <div className="p-8 text-center text-gray-500">Not enough items to play.</div>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            {!propItems && <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>}
             <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
                <Icons.Help className="w-6 h-6" />
             </button>

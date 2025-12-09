@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Subject } from '../../types';
+import { User, Subject, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
@@ -10,8 +10,17 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { Flashcard } from '../../components/Flashcard';
 
-export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
-  const { items, loading } = useLearnedSubjects(user);
+interface VariationsQuizGameProps {
+    user: User;
+    items?: GameItem[];
+    onComplete?: () => void;
+}
+
+export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const items = propItems || fetchedItems;
+  const loading = propItems ? false : fetchLoading;
+
   const [question, setQuestion] = useState<any>(null);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [finished, setFinished] = useState(false);
@@ -25,7 +34,7 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
 
   useEffect(() => {
     setHelpSteps([
-        { title: "Select Variations", description: "Select all correct readings (On'yomi & Kun'yomi).", icon: Icons.ListCheck },
+        { title: "Select Variations", description: "Select all correct readings (On'yomi & Kun'yomi). Only readings WaniKani accepts count.", icon: Icons.ListCheck },
         { title: "Hidden Meaning", description: "The English meaning is hidden until you submit.", icon: Icons.FileQuestion },
         { title: "Check Details", description: "After submitting, click the Kanji to see full details.", icon: Icons.BookOpen }
     ]);
@@ -42,8 +51,12 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
     kanjiItems.sort((a, b) => a.isReviewable ? -1 : 1);
     const target = kanjiItems[Math.floor(Math.random() * Math.min(5, kanjiItems.length))];
 
-    const correctReadings = target.subject.readings?.map(r => r.reading) || [];
+    // Filter to only accepted answers (taught readings)
+    const correctReadings = target.subject.readings
+        ?.filter(r => r.accepted_answer || r.primary)
+        .map(r => r.reading) || [];
     
+    // Distractors from other kanji
     const distractors = kanjiItems
       .filter(i => i.subject.id !== target.subject.id)
       .flatMap(i => i.subject.readings?.map(r => r.reading) || [])
@@ -92,6 +105,7 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
   const nextRound = () => {
     if (round >= 5) {
       setFinished(true);
+      if (onComplete) setTimeout(onComplete, 1000);
     } else {
       setRound(r => r + 1);
       initRound();
@@ -105,7 +119,10 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
         <Icons.Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Game Over!</h2>
         <p className="text-xl text-gray-600 mb-8">Score: {score} / 5</p>
-        <Button onClick={() => { setRound(1); setScore(0); setFinished(false); initRound(); }}>Play Again</Button>
+        <div className="flex justify-center gap-4">
+            <Button onClick={() => { setRound(1); setScore(0); setFinished(false); initRound(); }}>Play Again</Button>
+            {!propItems && <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>}
+        </div>
      </div>
   );
 
@@ -115,7 +132,7 @@ export const VariationsQuizGame: React.FC<{ user: User }> = ({ user }) => {
     <div className="max-w-2xl mx-auto px-4 py-8">
        <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            {!propItems && <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>}
         </div>
         <span className="font-bold text-gray-500">Round {round} / 5</span>
       </div>

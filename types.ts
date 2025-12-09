@@ -129,4 +129,10 @@ export interface Summary {
   }[];
 }
 
+export interface GameItem {
+  subject: Subject;
+  assignment?: Assignment;
+  isReviewable: boolean;
+}
+
 export type FlashcardMode = 'lesson' | 'review' | 'browse';

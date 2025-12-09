@@ -9,10 +9,10 @@ import { Flashcard } from '../components/Flashcard';
 import { toHiragana } from '../utils/kana';
 
 export const Browse: React.FC<{ user: User }> = ({ user }) => {
-  const [items, setItems] = useState<{subject: Subject, assignment?: Assignment}[]>([]);
+  const [items, setItems] = useState<{ subject: Subject, assignment?: Assignment }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<{subject: Subject, assignment?: Assignment} | null>(null);
-  
+  const [selectedItem, setSelectedItem] = useState<{ subject: Subject, assignment?: Assignment } | null>(null);
+
   // Filters
   const [levels, setLevels] = useState<number[]>([user.level]);
   const [onlyLearned, setOnlyLearned] = useState(false);
@@ -27,24 +27,21 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const promises = levels.map(l => waniKaniService.getLevelSubjects(l));
-        const results = await Promise.all(promises);
-        
+        const results = await waniKaniService.getLevelSubjects(levels);
+
         let allSubjects: Subject[] = [];
-        results.forEach(res => {
-            if (res.data) {
-                const subs = res.data.map(r => ({ ...r.data, id: r.id, object: r.object, url: r.url }));
-                allSubjects = [...allSubjects, ...subs];
-            }
-        });
+        if (results.data) {
+          const subs = results.data.map(r => ({ ...r.data, id: r.id, object: r.object, url: r.url }));
+          allSubjects = [...allSubjects, ...subs];
+        }
 
         const subjectIds = allSubjects.map(s => s.id!).filter(Boolean);
         let assignments: Record<number, Assignment> = {};
-        
+
         if (subjectIds.length > 0) {
           const assignmentsCol = await waniKaniService.getAssignments(subjectIds);
           if (assignmentsCol && assignmentsCol.data) {
-             assignments = assignmentsCol.data.reduce((acc, curr) => {
+            assignments = assignmentsCol.data.reduce((acc, curr) => {
               acc[curr.data.subject_id] = curr.data;
               return acc;
             }, {} as Record<number, Assignment>);
@@ -75,11 +72,11 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
   };
 
   const toggleLevel = (l: number) => {
-      if (levels.includes(l)) {
-          if (levels.length > 1) setLevels(prev => prev.filter(x => x !== l));
-      } else {
-          setLevels(prev => [...prev, l]);
-      }
+    if (levels.includes(l)) {
+      if (levels.length > 1) setLevels(prev => prev.filter(x => x !== l));
+    } else {
+      setLevels(prev => [...prev, l]);
+    }
   }
 
   const getFilteredItems = () => {
@@ -90,20 +87,20 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
       }
 
       if (srsFilter.length > 0) {
-        const stage = item.assignment?.srs_stage || 0; 
+        const stage = item.assignment?.srs_stage || 0;
         if (!srsFilter.includes(stage)) return false;
       }
 
       if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase().trim();
-          const qKana = toHiragana(q);
-          const s = item.subject;
-          
-          const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q));
-          const matchReading = s.readings?.some(r => r.reading.includes(qKana) || r.reading.includes(q));
-          const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana);
+        const q = searchQuery.toLowerCase().trim();
+        const qKana = toHiragana(q);
+        const s = item.subject;
 
-          if (!matchMeaning && !matchReading && !matchChar) return false;
+        const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q));
+        const matchReading = s.readings?.some(r => r.reading.includes(qKana) || r.reading.includes(q));
+        const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana);
+
+        if (!matchMeaning && !matchReading && !matchChar) return false;
       }
 
       return true;
@@ -140,33 +137,33 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
+
       {/* Filters Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold text-gray-900">Browse</h2>
             <div className="relative">
-                <Button variant="outline" size="sm" onClick={() => setShowLevelSelect(!showLevelSelect)}>
-                    Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
-                    <Icons.ChevronRight className={`ml-2 w-4 h-4 transition-transform ${showLevelSelect ? 'rotate-90' : ''}`} />
-                </Button>
-                {showLevelSelect && (
-                    <div className="absolute top-10 left-0 z-20 bg-white shadow-xl border border-gray-200 rounded-xl p-4 w-72 h-64 overflow-y-auto grid grid-cols-5 gap-2">
-                        {Array.from({length: 60}, (_, i) => i + 1).map(l => (
-                            <button
-                                key={l}
-                                onClick={() => toggleLevel(l)}
-                                className={`
+              <Button variant="outline" size="sm" onClick={() => setShowLevelSelect(!showLevelSelect)}>
+                Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
+                <Icons.ChevronRight className={`ml-2 w-4 h-4 transition-transform ${showLevelSelect ? 'rotate-90' : ''}`} />
+              </Button>
+              {showLevelSelect && (
+                <div className="absolute top-10 left-0 z-20 bg-white shadow-xl border border-gray-200 rounded-xl p-4 w-72 h-64 overflow-y-auto grid grid-cols-5 gap-2">
+                  {Array.from({ length: 60 }, (_, i) => i + 1).map(l => (
+                    <button
+                      key={l}
+                      onClick={() => toggleLevel(l)}
+                      className={`
                                     w-10 h-10 rounded-lg text-sm font-bold flex items-center justify-center transition-colors
                                     ${levels.includes(l) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
                                 `}
-                            >
-                                {l}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             {showLevelSelect && <div className="fixed inset-0 z-10" onClick={() => setShowLevelSelect(false)}></div>}
           </div>
@@ -174,54 +171,54 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-           <div className="flex-1 w-full md:max-w-md">
-               <div className="relative">
-                   <Icons.Sparkles className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-                   <input 
-                      type="text" 
-                      placeholder="Search English, Kana, or Romaji..." 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                   />
-               </div>
-           </div>
+          <div className="flex-1 w-full md:max-w-md">
+            <div className="relative">
+              <Icons.Sparkles className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search English, Kana, or Romaji..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
+          </div>
 
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <label className="flex items-center space-x-2 cursor-pointer select-none">
-                <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={onlyLearned}
                 onChange={(e) => setOnlyLearned(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300" 
-                />
-                <span className="text-sm font-medium text-gray-700">Learned Only</span>
+                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+              />
+              <span className="text-sm font-medium text-gray-700">Learned Only</span>
             </label>
             <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
             <div className="flex flex-wrap gap-2">
-                {SRS_GROUPS.map(group => {
+              {SRS_GROUPS.map(group => {
                 const isActive = group.stages.every(s => srsFilter.includes(s));
                 return (
-                    <button
+                  <button
                     key={group.label}
                     onClick={() => toggleSrsFilter(group.stages)}
                     className={`
                         px-3 py-1 rounded-full text-xs font-bold border transition-all
                         ${isActive ? group.color : 'bg-gray-50 border-gray-200 text-gray-400'}
                     `}
-                    >
+                  >
                     {group.label}
-                    </button>
+                  </button>
                 );
-                })}
-                {srsFilter.length > 0 && (
-                <button 
-                    onClick={() => setSrsFilter([])}
-                    className="px-3 py-1 text-xs text-gray-500 hover:text-gray-900 underline"
+              })}
+              {srsFilter.length > 0 && (
+                <button
+                  onClick={() => setSrsFilter([])}
+                  className="px-3 py-1 text-xs text-gray-500 hover:text-gray-900 underline"
                 >
-                    Clear
+                  Clear
                 </button>
-                )}
+              )}
             </div>
           </div>
         </div>
@@ -234,10 +231,10 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-          {filteredItems.map(({subject, assignment}) => (
-            <button 
+          {filteredItems.map(({ subject, assignment }) => (
+            <button
               key={subject.id}
-              onClick={() => setSelectedItem({subject, assignment})}
+              onClick={() => setSelectedItem({ subject, assignment })}
               className={`
                 relative aspect-square rounded-xl p-2 flex flex-col items-center justify-center border transition-all hover:scale-105 shadow-sm hover:shadow-md
                 ${getTypeColor(subject.object || 'vocabulary')}
@@ -247,9 +244,9 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
               <div className="text-3xl font-bold mb-1 drop-shadow-sm">
                 {subject.characters || (
                   <div className="w-8 h-8">
-                     {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
-                       <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
-                     )}
+                    {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
+                      <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
+                    )}
                   </div>
                 )}
               </div>
@@ -263,21 +260,21 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
 
       {/* Modal Overlay */}
       {selectedItem && (
-        <div 
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" 
-            onClick={() => setSelectedItem(null)}
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+          onClick={() => setSelectedItem(null)}
         >
-          <div 
-            className="w-full max-w-2xl h-full flex items-center" 
+          <div
+            className="w-full max-w-2xl h-full flex items-center"
             onClick={e => e.stopPropagation()}
           >
-            <Flashcard 
-               subject={selectedItem.subject}
-               assignment={selectedItem.assignment}
-               hasPrev={false}
-               hasNext={false}
-               onPrev={() => setSelectedItem(null)}
-               onNext={() => setSelectedItem(null)}
+            <Flashcard
+              subject={selectedItem.subject}
+              assignment={selectedItem.assignment}
+              hasPrev={false}
+              hasNext={false}
+              onPrev={() => setSelectedItem(null)}
+              onNext={() => setSelectedItem(null)}
             />
           </div>
         </div>

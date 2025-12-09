@@ -45,8 +45,8 @@ class WaniKaniService {
     return this.request<WKCollection<Subject>>(`/subjects?ids=${idsString}`);
   }
 
-  async getLevelSubjects(level: number): Promise<WKCollection<Subject>> {
-    return this.request<WKCollection<Subject>>(`/subjects?levels=${level}`);
+  async getLevelSubjects(levels: number[]): Promise<WKCollection<Subject>> {
+    return this.request<WKCollection<Subject>>(`/subjects?levels=${levels.join(',')}`);
   }
 
   async getAssignments(subjectIds?: number[], levels?: number[], srsStages?: number[]): Promise<WKCollection<Assignment>> {

@@ -20,6 +20,7 @@ import { MatchingGame } from './pages/games/SortingGame';
 import { ConnectGame } from './pages/games/ConnectGame';
 import { VariationsQuizGame } from './pages/games/VariationsQuizGame';
 import { RecallGame } from './pages/games/RecallGame';
+import { TypingGame } from './pages/games/TypingGame';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -90,6 +91,7 @@ export default function App() {
               <Route path="/session/games/connect" element={user ? <ConnectGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/variations" element={user ? <VariationsQuizGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/recall" element={user ? <RecallGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/typing" element={user ? <TypingGame user={user} /> : <Navigate to="/login" />} />
 
               <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
             </Routes>

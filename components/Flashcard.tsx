@@ -76,7 +76,11 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
       {isOpen && (
         <div 
           className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
-          onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+          onClick={(e) => { 
+             e.preventDefault(); 
+             e.stopPropagation(); 
+             setIsOpen(false); 
+          }}
         >
           <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
              {/* Close button placed fixed to screen to avoid being covered by large images */}
@@ -229,7 +233,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
   const isPopup = !onNext && !hasNext;
 
   return (
-    <div className={`w-full max-w-2xl mx-auto p-4 perspective-1000 ${isPopup ? 'h-auto' : ''}`}>
+    <div className={`w-full max-w-2xl mx-auto p-4 perspective-1000 ${isPopup ? 'h-auto' : ''}`} onClick={e => e.stopPropagation()}>
       <div
         className={`relative w-full ${isPopup ? 'min-h-[60vh]' : 'aspect-[4/5] md:aspect-[16/10]'} transition-all duration-500 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
         onClick={() => setIsFlipped(!isFlipped)}

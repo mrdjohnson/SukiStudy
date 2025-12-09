@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Subject } from '../../types';
+import { User, Subject, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
@@ -10,8 +10,17 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { HowToPlayModal } from '../../components/HowToPlayModal';
 
-export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
-  const { items, loading } = useLearnedSubjects(user);
+interface QuizGameProps {
+    user: User;
+    items?: GameItem[];
+    onComplete?: () => void;
+}
+
+export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const items = propItems || fetchedItems;
+  const loading = propItems ? false : fetchLoading;
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -34,7 +43,7 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
     
     if (items.length < 4) return;
     
-    const shuffledItems = [...items]; 
+    const shuffledItems = [...items].sort(() => 0.5 - Math.random());
     const selection = shuffledItems.slice(0, 10);
 
     const q = selection.map((item) => {
@@ -99,6 +108,7 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
             setCurrentQuestion(c => c + 1);
         } else {
             setFinished(true);
+            if (onComplete) setTimeout(onComplete, 1000);
         }
     }, 1500);
   };
@@ -131,7 +141,7 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
 
         <div className="flex justify-center gap-4">
            <Button onClick={initGame}>Play Again</Button>
-           <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>
+           {!propItems && <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>}
         </div>
      </div>
   );
@@ -143,7 +153,7 @@ export const QuizGame: React.FC<{ user: User }> = ({ user }) => {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            {!propItems && <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>}
             <button onClick={() => setShowHelp(true)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full">
                <Icons.Help className="w-6 h-6" />
             </button>

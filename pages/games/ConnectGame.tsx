@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Subject, Assignment } from '../../types';
+import { User, Subject, Assignment, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
 import { waniKaniService } from '../../services/wanikaniService';
 import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
-import { toRomaji } from '../../utils/romaji';
+import { toRomanji } from '../../utils/romanji';
 
 // Grid size
 const ROWS = 5;
@@ -25,8 +25,17 @@ interface Cell {
   wrong: boolean;
 }
 
-export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
-  const { items, loading } = useLearnedSubjects(user);
+interface ConnectGameProps {
+    user: User;
+    items?: GameItem[];
+    onComplete?: () => void;
+}
+
+export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const items = propItems || fetchedItems;
+  const loading = propItems ? false : fetchLoading;
+
   const [currentSubject, setCurrentSubject] = useState<Subject | null>(null);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [grid, setGrid] = useState<Cell[]>([]);
@@ -50,7 +59,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
     setHelpSteps([
         { title: "Trace Reading", description: "Connect hiragana to spell the word's reading.", icon: Icons.GridDots },
         { title: "Drag to Connect", description: "Slide across neighbors.", icon: Icons.Link },
-        { title: "Romaji", description: "If enabled, some tiles show as Romaji.", icon: Icons.FileQuestion }
+        { title: "Romaji", description: "If enabled, some tiles show as Romanji.", icon: Icons.FileQuestion }
     ]);
     return () => setHelpSteps(null);
   }, []);
@@ -79,7 +88,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
     const idx = Math.floor(Math.random() * Math.min(candidates.length, 5)); 
     const selection = candidates[idx];
     setCurrentSubject(selection.subject);
-    setCurrentAssignment(selection.assignment);
+    setCurrentAssignment(selection.assignment || null);
 
     const reading = selection.subject.readings![0].reading;
 
@@ -108,14 +117,14 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
         const cellIdx = pos.r * COLS + pos.c;
         const char = reading[idx];
         newGrid[cellIdx].char = char;
-        newGrid[cellIdx].romaji = toRomaji(char);
+        newGrid[cellIdx].romaji = toRomanji(char);
     });
 
     newGrid.forEach(cell => {
         if (!cell.char) {
             const char = hiraganaPool[Math.floor(Math.random() * hiraganaPool.length)];
             cell.char = char;
-            cell.romaji = toRomaji(char);
+            cell.romaji = toRomanji(char);
         }
     });
 
@@ -226,6 +235,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
           if (currentAssignment && currentAssignment.id && new Date(currentAssignment.available_at!) < new Date()) {
             waniKaniService.createReview(currentAssignment.id, 0, 0).catch(e => console.error(e));
           }
+          if (onComplete && score % 5 === 0 && score > 0) onComplete();
           setTimeout(initLevel, 1500);
       } else {
           if (selectedCells.length > 1) playSound('error', soundEnabled);
@@ -275,7 +285,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
     <div className="max-w-2xl mx-auto px-4 py-6 select-none overscroll-none touch-none">
       <div className="flex items-center justify-between mb-4">
          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            {!propItems && <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>}
          </div>
          <div className="flex flex-col items-center">
              <h2 className="text-xl font-bold">Connect</h2>
@@ -361,7 +371,7 @@ export const ConnectGame: React.FC<{ user: User }> = ({ user }) => {
                         {cell.isRomajiDisplay ? cell.romaji : cell.char}
                         {isPressed && (
                             <div className="absolute -top-10 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-20">
-                                {toRomaji(cell.char)}
+                                {toRomanji(cell.char)}
                             </div>
                         )}
                     </div>

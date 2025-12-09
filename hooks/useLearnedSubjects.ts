@@ -1,14 +1,18 @@
 
-
 import { useState, useEffect } from 'react';
-import { User, Subject, Assignment } from '../types';
+import { User, Subject, Assignment, GameItem } from '../types';
 import { waniKaniService } from '../services/wanikaniService';
 
-export const useLearnedSubjects = (user: User | null) => {
-  const [items, setItems] = useState<{subject: Subject, assignment: Assignment, isReviewable: boolean}[]>([]);
+export const useLearnedSubjects = (user: User | null, enabled: boolean = true) => {
+  const [items, setItems] = useState<GameItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) {
+        setLoading(false);
+        return;
+    }
+
     const fetchData = async () => {
       if (!user) {
         setLoading(false);
@@ -72,7 +76,7 @@ export const useLearnedSubjects = (user: User | null) => {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, enabled]);
 
   return { items, loading };
 };

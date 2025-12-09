@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Subject, Assignment } from '../types';
+import { User, Subject, Assignment, GameItem } from '../types';
 import { waniKaniService } from '../services/wanikaniService';
 import { Icons } from '../components/Icons';
 import { Button } from '../components/ui/Button';
 import { Flashcard } from '../components/Flashcard';
 import { MatchingGame } from './games/SortingGame'; 
 import { QuizGame } from './games/QuizGame';
+import { MemoryGame } from './games/MemoryGame';
+import { ConnectGame } from './games/ConnectGame';
+import { VariationsQuizGame } from './games/VariationsQuizGame';
 
-type SessionPhase = 'fetch' | 'learn' | 'quiz' | 'match' | 'submit' | 'complete';
+type SessionPhase = 'fetch' | 'learn' | 'game' | 'submit' | 'complete';
 
 export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ mode, user }) => {
   const [items, setItems] = useState<{subject: Subject, assignment?: Assignment}[]>([]);
@@ -21,6 +24,8 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
   const [lessonPhase, setLessonPhase] = useState<SessionPhase>('fetch');
   const [lessonBatch, setLessonBatch] = useState<{subject: Subject}[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<number[]>([]);
+  const [gameQueue, setGameQueue] = useState<string[]>([]);
+  const [currentGame, setCurrentGame] = useState<string | null>(null);
   
   const navigate = useNavigate();
 
@@ -112,16 +117,30 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
          if (currentIndex < lessonBatch.length - 1) {
              setCurrentIndex(prev => prev + 1);
          } else {
-             // Finished learning batch, move to games
-             setLessonPhase('quiz');
+             // Finished learning batch, generate game queue
+             const games = ['quiz', 'matching', 'memory'];
+             
+             // Add type-specific games
+             const isAllVocab = lessonBatch.every(i => i.subject.object === 'vocabulary');
+             const isAllKanji = lessonBatch.every(i => i.subject.object === 'kanji');
+             
+             if (isAllVocab) games.push('connect');
+             if (isAllKanji) games.push('variations');
+
+             // Pick 2 random games
+             const selected = games.sort(() => 0.5 - Math.random()).slice(0, 2);
+             setGameQueue(selected);
+             setCurrentGame(selected[0]);
+             setLessonPhase('game');
          }
      }
   };
 
-  const handleLessonGameComplete = async () => {
-      if (lessonPhase === 'quiz') {
-          setLessonPhase('match');
-      } else if (lessonPhase === 'match') {
+  const handleGameComplete = async () => {
+      const nextIdx = gameQueue.indexOf(currentGame!) + 1;
+      if (nextIdx < gameQueue.length) {
+          setCurrentGame(gameQueue[nextIdx]);
+      } else {
           setLessonPhase('submit');
           await submitLessonBatch();
       }
@@ -208,47 +227,38 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
 
   // --- LESSON GAMES RENDER ---
   if (mode === 'lesson') {
-      if (lessonPhase === 'quiz') {
-          // Render simplified Quiz Game for current batch
-          // We need to wrap it to inject the specific batch as "items"
-          // Since the game components expect User/Hook, we'll need a way to override. 
-          // For simplicity in this refactor, I will create a temporary placeholder view that *looks* like the game 
-          // but uses the batch logic, OR pass the items directly if I update the game component. 
-          // Update: I will just render a "Mini Quiz" using Flashcards logic or a simple multiple choice here to stick to the prompt's request
-          // prompt: "play two learning games with only those 5 items"
+      if (lessonPhase === 'game' && currentGame) {
+          const gameItems: GameItem[] = lessonBatch.map(l => ({ 
+              subject: l.subject, 
+              isReviewable: false 
+          }));
           
+          const commonProps = {
+              user,
+              items: gameItems,
+              onComplete: handleGameComplete
+          };
+
           return (
               <div className="max-w-4xl mx-auto px-4 py-8">
-                  <div className="mb-4 text-center">
-                      <h2 className="text-xl font-bold text-gray-800">Knowledge Check: Quiz</h2>
-                      <p className="text-gray-500 text-sm">Review the 5 items you just learned.</p>
+                  <div className="mb-6 text-center">
+                      <h2 className="text-xl font-bold text-gray-800 flex items-center justify-center gap-2">
+                          <Icons.Gamepad2 className="w-5 h-5 text-indigo-500" />
+                          Reviewing Batch
+                      </h2>
+                      <div className="flex justify-center gap-1 mt-2">
+                         {gameQueue.map((g, idx) => (
+                             <div key={g} className={`h-1.5 w-8 rounded-full ${g === currentGame ? 'bg-indigo-600' : idx < gameQueue.indexOf(currentGame!) ? 'bg-green-400' : 'bg-gray-200'}`} />
+                         ))}
+                      </div>
                   </div>
-                  {/* Reuse the QuizGame component logic but we need to refactor QuizGame to accept "items" prop. 
-                      Since I cannot refactor all games safely in one go, I'll simulate it with a message for now or 
-                      better, assume the user plays through a manual simple quiz.
-                  */}
-                  <div className="bg-white p-8 rounded-2xl shadow-lg text-center">
-                      <Icons.Brain className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-                      <p className="mb-6">Ready to test your memory on these 5 items?</p>
-                      <Button onClick={handleLessonGameComplete}>Start Mini-Quiz (Simulated)</Button>
-                  </div>
+                  
+                  {currentGame === 'quiz' && <QuizGame {...commonProps} />}
+                  {currentGame === 'matching' && <MatchingGame {...commonProps} />}
+                  {currentGame === 'memory' && <MemoryGame {...commonProps} />}
+                  {currentGame === 'connect' && <ConnectGame {...commonProps} />}
+                  {currentGame === 'variations' && <VariationsQuizGame {...commonProps} />}
               </div>
-          )
-      }
-
-      if (lessonPhase === 'match') {
-          return (
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <div className="mb-4 text-center">
-                    <h2 className="text-xl font-bold text-gray-800">Knowledge Check: Matching</h2>
-                    <p className="text-gray-500 text-sm">Match the pairs to finish the batch.</p>
-                </div>
-                 <div className="bg-white p-8 rounded-2xl shadow-lg text-center">
-                      <Icons.ArrowUpDown className="w-16 h-16 text-teal-500 mx-auto mb-4" />
-                      <p className="mb-6">Connect the Kanji to their meanings.</p>
-                      <Button onClick={handleLessonGameComplete}>Start Matching (Simulated)</Button>
-                  </div>
-            </div>
           )
       }
       

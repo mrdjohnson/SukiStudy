@@ -33,7 +33,7 @@ export const GameMenu: React.FC = () => {
       id: 'sorting', // Route kept as sorting for compatibility, but logic is matching
       name: 'Matching Pairs',
       desc: 'Find matching pairs of Kanji and Meanings.',
-      icon: Icons.ArrowUpDown,
+      icon: Icons.Shuffle,
       color: 'bg-blue-100 text-blue-600'
     },
     {
@@ -56,6 +56,13 @@ export const GameMenu: React.FC = () => {
         desc: 'List words starting with a specific character.',
         icon: Icons.Sparkles,
         color: 'bg-indigo-100 text-indigo-600'
+    },
+    {
+      id: 'typing',
+      name: 'Typing Practice',
+      desc: 'Type the correct reading or meaning.',
+      icon: Icons.Keyboard,
+      color: 'bg-emerald-100 text-emerald-600'
     }
   ];
 
