@@ -1,0 +1,5 @@
+{
+  "name": "SukiStudy",
+  "description": "A modern flashcard application for WaniKani users, enhanced with Gemini AI for deep etymology explanations and custom mnemonics.",
+  "requestFramePermissions": []
+}
