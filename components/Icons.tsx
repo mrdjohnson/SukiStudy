@@ -1,3 +1,4 @@
+
 import { 
   IconBook, 
   IconBrain, 
@@ -18,7 +19,12 @@ import {
   IconArrowsSort,
   IconGripVertical,
   IconTrophy,
-  IconArrowsShuffle
+  IconArrowsShuffle,
+  IconGridDots,
+  IconCheck,
+  IconBulb,
+  IconPlayerSkipForward,
+  IconEraser
 } from '@tabler/icons-react';
 
 export const Icons = {
@@ -42,5 +48,10 @@ export const Icons = {
   ArrowUpDown: IconArrowsSort,
   GripVertical: IconGripVertical,
   Trophy: IconTrophy,
-  Shuffle: IconArrowsShuffle
+  Shuffle: IconArrowsShuffle,
+  GridDots: IconGridDots,
+  Check: IconCheck,
+  Lightbulb: IconBulb,
+  SkipForward: IconPlayerSkipForward,
+  Eraser: IconEraser
 };

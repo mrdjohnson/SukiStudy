@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Subject, SubjectType, Assignment } from '../types';
+import { Subject, SubjectType, Assignment, StudyMaterial } from '../types';
 import { Icons } from './Icons';
 import { generateExplanation } from '../services/geminiService';
 import { waniKaniService } from '../services/wanikaniService';
@@ -102,6 +102,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
   const [loadingAi, setLoadingAi] = useState(false);
   const [components, setComponents] = useState<Subject[]>([]);
   const [loadingComponents, setLoadingComponents] = useState(false);
+  const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [audioIndex, setAudioIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -111,9 +112,22 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
     setAiExplanation(null);
     setLoadingAi(false);
     setAudioIndex(0);
+    setStudyMaterial(null);
 
-    // Fetch components (Radicals/Kanji)
-    const loadComponents = async () => {
+    const loadData = async () => {
+       // Fetch user notes/synonyms
+       if (subject.id) {
+         try {
+           const matCol = await waniKaniService.getStudyMaterials([subject.id]);
+           if (matCol.data && matCol.data.length > 0) {
+             setStudyMaterial(matCol.data[0].data);
+           }
+         } catch (e) {
+           console.error("Failed user materials", e);
+         }
+       }
+
+       // Fetch components (Radicals/Kanji)
       setComponents([]);
       if (subject.component_subject_ids && subject.component_subject_ids.length > 0) {
         setLoadingComponents(true);
@@ -129,7 +143,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
         }
       }
     };
-    loadComponents();
+    loadData();
   }, [subject.id]);
 
   const getSubjectType = (s: Subject): SubjectType => {
@@ -211,6 +225,36 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
     }
   };
 
+  // Helper to detect Japanese characters and wrap them for potential drill-down
+  const renderInteractiveSentence = (jaSentence: string) => {
+    // Regex to split by Japanese text vs punctuation/other
+    // This is a naive split. Ideally we would match against user known items, 
+    // but without full user vocabulary loaded, we assume Kanji blocks are interactive.
+    const parts = jaSentence.split(/([一-龯]+)/); 
+    
+    return (
+        <span>
+            {parts.map((part, i) => {
+                const isKanji = /[一-龯]/.test(part);
+                if (isKanji) {
+                    return (
+                        <span 
+                            key={i} 
+                            // In a real app we'd need the ID to drill down. 
+                            // Since we don't have the ID from the sentence string, we just highlight it for now
+                            // or we could implement a search-by-character lookup.
+                            className="font-bold text-gray-800"
+                        >
+                            {part}
+                        </span>
+                    )
+                }
+                return <span key={i}>{part}</span>
+            })}
+        </span>
+    )
+  }
+
   return (
     <div className="w-full max-w-2xl mx-auto p-4 perspective-1000">
       <div
@@ -231,7 +275,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                 {renderCharacter("")}
               </div>
             )}
-            <p>{subject.id},{subject.slug}</p>
             <p className="text-gray-400 text-sm font-medium">Tap to reveal</p>
           </div>
         </div>
@@ -271,7 +314,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                       className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-indigo-600 transition-colors"
                       title="Play Audio"
                     >
-                      <Icons.Sparkles className="w-4 h-4" /> {/* Using sparkle as simplified "voice" icon representation */}
+                      <Icons.Sparkles className="w-4 h-4" /> 
                     </button>
                   )}
                 </div>
@@ -281,6 +324,30 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
+            
+            {/* User Synonyms / Notes */}
+            {studyMaterial && (
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
+                    {studyMaterial.meaning_synonyms.length > 0 && (
+                        <div>
+                            <span className="text-xs font-bold text-yellow-600 uppercase">Your Synonyms: </span>
+                            <span className="text-sm font-medium text-gray-800">{studyMaterial.meaning_synonyms.join(', ')}</span>
+                        </div>
+                    )}
+                    {studyMaterial.meaning_note && (
+                        <div>
+                            <span className="text-xs font-bold text-yellow-600 uppercase block">Meaning Note</span>
+                            <p className="text-sm text-gray-700">{studyMaterial.meaning_note}</p>
+                        </div>
+                    )}
+                     {studyMaterial.reading_note && (
+                        <div>
+                            <span className="text-xs font-bold text-yellow-600 uppercase block">Reading Note</span>
+                            <p className="text-sm text-gray-700">{studyMaterial.reading_note}</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Standard WaniKani Content */}
             <div>
@@ -303,6 +370,21 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                   }}
                 />
               </div>
+            )}
+
+             {/* Context Sentences */}
+            {subject.context_sentences && subject.context_sentences.length > 0 && (
+                <div>
+                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Context Sentences</h3>
+                   <div className="space-y-3">
+                       {subject.context_sentences.slice(0, 3).map((s, i) => (
+                           <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
+                               <p className="text-lg mb-1 font-medium">{renderInteractiveSentence(s.ja)}</p>
+                               <p className="text-gray-500">{s.en}</p>
+                           </div>
+                       ))}
+                   </div>
+                </div>
             )}
 
             {/* Visuals / Mnemonic Artwork */}

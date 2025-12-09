@@ -27,8 +27,15 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
   const [won, setWon] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (dataLoading) return;
+  // Reset function to restart game
+  const initGame = () => {
+    setLoading(true);
+    setMatches(0);
+    setFlippedIndices([]);
+    setGameOver(false);
+    setWon(false);
+    setTimer(300);
+
     if (learnedItems.length < 6) {
         setLoading(false);
         return; 
@@ -83,7 +90,14 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
 
     setCards(gameCards.sort(() => 0.5 - Math.random()));
     setLoading(false);
-    setTimer(300);
+  };
+
+  useEffect(() => {
+    if (!dataLoading && learnedItems.length >= 6) {
+       initGame();
+    } else if (!dataLoading) {
+      setLoading(false);
+    }
   }, [learnedItems, dataLoading]);
 
   // Timer
@@ -196,7 +210,7 @@ export const MemoryGame: React.FC<{ user: User }> = ({ user }) => {
       ) : (
         <div className="text-center py-12">
             <h2 className="text-3xl font-bold mb-4">{won ? "You Won!" : "Time's Up!"}</h2>
-            <Button onClick={() => window.location.reload()}>Play Again</Button>
+            <Button onClick={initGame}>Play Again</Button>
         </div>
       )}
       <style>{`.rotate-y-180 { transform: rotateY(180deg); } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .perspective-1000 { perspective: 1000px; }`}</style>

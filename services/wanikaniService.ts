@@ -1,4 +1,5 @@
-import { WKResource, WKCollection, User, Summary, Subject, Assignment } from '../types';
+
+import { WKResource, WKCollection, User, Summary, Subject, Assignment, StudyMaterial } from '../types';
 
 const BASE_URL = 'https://api.wanikani.com/v2';
 
@@ -57,6 +58,13 @@ class WaniKaniService {
     if (srsStages && srsStages.length > 0) params.append('srs_stages', srsStages.join(','));
     
     return this.request<WKCollection<Assignment>>(`/assignments?${params.toString()}`);
+  }
+
+  async getStudyMaterials(subjectIds: number[]): Promise<WKCollection<StudyMaterial>> {
+    if (subjectIds.length === 0) return { object: 'collection', url: '', pages: { per_page: 0, next_url: null, previous_url: null }, total_count: 0, data: [] };
+    const params = new URLSearchParams();
+    params.append('subject_ids', subjectIds.join(','));
+    return this.request<WKCollection<StudyMaterial>>(`/study_materials?${params.toString()}`);
   }
 }
 

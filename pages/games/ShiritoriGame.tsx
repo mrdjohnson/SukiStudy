@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
@@ -17,15 +17,100 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
   const navigate = useNavigate();
 
   // Filter vocab only
-  const vocab = items.filter(i => i.subject.object === 'vocabulary').map(i => i.subject);
+  const vocab = useMemo(() => 
+    items
+      .filter(i => i.subject.object === 'vocabulary')
+      .map(i => i.subject)
+  , [items]);
+
+  // Helper to normalize ending char (e.g., small tsu -> big tsu, ignore long vowel)
+  const getEndingChar = (reading: string): string => {
+    if (!reading) return '';
+    let char = reading.slice(-1);
+    if (char === 'ー' && reading.length > 1) {
+       char = reading.slice(-2, -1);
+    }
+    
+    const smallMap: Record<string, string> = {
+      'ぁ': 'あ', 'ぃ': 'い', 'ぅ': 'う', 'ぇ': 'え', 'ぉ': 'お',
+      'っ': 'つ', 'ゃ': 'や', 'ゅ': 'ゆ', 'ょ': 'よ', 'ゎ': 'わ'
+    };
+    return smallMap[char] || char;
+  };
+
+  const initGame = () => {
+    setHistory([]);
+    setGameOver(false);
+    setMessage('Type the reading in Hiragana');
+    setInput('');
+    
+    if (vocab.length === 0) return;
+
+    // Build Adjacency Map: First char -> List of words starting with it
+    const startsWithMap = new Map<string, Subject[]>();
+    vocab.forEach(v => {
+      const reading = v.readings?.[0]?.reading; // Hiragana
+      if (!reading) return;
+      const firstChar = reading.charAt(0);
+      if (!startsWithMap.has(firstChar)) startsWithMap.set(firstChar, []);
+      startsWithMap.get(firstChar)?.push(v);
+    });
+
+    // DFS to check if a chain of length 'targetDepth' exists
+    const checkChain = (current: Subject, used: Set<number>, depth: number): boolean => {
+      if (depth >= 4) return true;
+
+      const reading = current.readings?.[0]?.reading;
+      if (!reading) return false;
+      
+      const lastChar = getEndingChar(reading);
+      if (lastChar === 'ん') return false; // Dead end 
+
+      const candidates = startsWithMap.get(lastChar) || [];
+      const validCandidates = candidates.filter(c => !used.has(c.id!));
+      
+      // Shuffle candidates to check random paths rather than just first found to avoid deterministic boring chains
+      const shuffledCandidates = [...validCandidates].sort(() => 0.5 - Math.random());
+
+      for (const next of shuffledCandidates) {
+        const newUsed = new Set(used);
+        newUsed.add(next.id!);
+        if (checkChain(next, newUsed, depth + 1)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const findValidStart = (): Subject | null => {
+      const shuffled = [...vocab].sort(() => 0.5 - Math.random());
+      
+      // Try to find a word with a chain of 4
+      for (const startWord of shuffled) {
+        if (checkChain(startWord, new Set([startWord.id!]), 1)) {
+           return startWord;
+        }
+      }
+
+      // If no chain of 4 for any word, say the game is not ready yet
+      return  null;
+    };
+
+    const startWord = findValidStart();
+    if (startWord) {
+      setCurrentWord(startWord);
+      setHistory([startWord]);
+    } else {
+        setGameOver(true);
+        setMessage("Not enough vocabulary to start a chain.");
+    }
+  };
 
   useEffect(() => {
-    if (loading || vocab.length === 0) return;
-    // Start with random word
-    const start = vocab[Math.floor(Math.random() * vocab.length)];
-    setCurrentWord(start);
-    setHistory([start]);
-  }, [loading]);
+    if (!loading && vocab.length > 0) {
+        initGame();
+    }
+  }, [loading, vocab]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +118,7 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
 
     // 1. Check if input matches reading of current word
     const readings = currentWord.readings?.map(r => r.reading) || [];
-    const normalizedInput = toHiragana(input).trim(); // Basic conversion
+    const normalizedInput = toHiragana(input).trim();
 
     if (!readings.includes(normalizedInput)) {
       setMessage("Incorrect reading. Try again.");
@@ -41,20 +126,19 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
     }
 
     // 2. Get last char
-    const lastChar = normalizedInput.slice(-1);
+    const lastChar = getEndingChar(normalizedInput);
     
     // 3. Find next word in user's vocab starting with lastChar
-    // Note: 'ー' implies vowel extension, usually we look at previous char, but simpler to just match exact char for now or ignore 'ー'
-    const nextChar = lastChar === 'ー' ? normalizedInput.slice(-2, -1) : lastChar;
-    
     const candidates = vocab.filter(v => {
       const reading = v.readings?.[0]?.reading;
-      return reading && reading.startsWith(nextChar) && !history.find(h => h.id === v.id);
+      if (!reading) return false;
+      const firstChar = reading.charAt(0);
+      return firstChar === lastChar && !history.find(h => h.id === v.id);
     });
 
     if (candidates.length === 0) {
       setGameOver(true);
-      setMessage("Chain broken! No words found starting with " + nextChar);
+      setMessage(`Chain broken! No learned words found starting with "${lastChar}"`);
       return;
     }
 
@@ -62,11 +146,11 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
     setCurrentWord(nextWord);
     setHistory(h => [...h, nextWord]);
     setInput('');
-    setMessage(`Good! Next word starts with ${nextChar}`);
+    setMessage(`Good! Next word starts with ${lastChar}`);
   };
 
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
-  if (vocab.length < 10) return <div className="p-8 text-center">Not enough vocabulary to play Shiritori.</div>;
+  if (vocab.length < 4) return <div className="p-8 text-center text-gray-500">Not enough vocabulary to play Shiritori.</div>;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -76,18 +160,18 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center mb-8">
-         {!gameOver ? (
+         {!gameOver && currentWord ? (
             <>
               <div className="text-gray-400 text-sm mb-2">Current Word</div>
-              <div className="text-5xl font-bold text-gray-900 mb-4">{currentWord?.characters}</div>
-              <div className="text-indigo-600 font-medium">{currentWord?.meanings[0].meaning}</div>
+              <div className="text-5xl font-bold text-gray-900 mb-4">{currentWord.characters}</div>
+              <div className="text-indigo-600 font-medium">{currentWord.meanings[0].meaning}</div>
             </>
          ) : (
             <div>
                <Icons.Link className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-               <h3 className="text-2xl font-bold text-gray-900">Chain Broken!</h3>
+               <h3 className="text-2xl font-bold text-gray-900">{gameOver ? "Chain Broken!" : "Ready"}</h3>
                <p className="text-gray-500">You connected {history.length} words.</p>
-               <Button className="mt-4" onClick={() => window.location.reload()}>Try Again</Button>
+               <Button className="mt-4" onClick={initGame}>Try Again</Button>
             </div>
          )}
       </div>
@@ -111,22 +195,23 @@ export const ShiritoriGame: React.FC<{ user: User }> = ({ user }) => {
 
 
       <div className="mt-12">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Vocab Options</h3>
-        <div className="flex flex-wrap gap-2">
-           {vocab.map((w, i) => (
-             <span key={i} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Vocab Pool ({vocab.length})</h3>
+        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+           {vocab.slice(0, 20).map((w, i) => (
+             <span key={i} className="px-3 py-1 bg-gray-50 text-gray-400 rounded-full text-xs">
                {w.characters}
              </span>
            ))}
+           {vocab.length > 20 && <span className="text-xs text-gray-400 self-center">...</span>}
         </div>
       </div>
 
       {/* Chain History */}
-      <div className="mt-12">
+      <div className="mt-8">
         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Chain History</h3>
         <div className="flex flex-wrap gap-2">
            {history.slice(0, -1).reverse().map((w, i) => (
-             <span key={i} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+             <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-sm font-medium">
                {w.characters}
              </span>
            ))}

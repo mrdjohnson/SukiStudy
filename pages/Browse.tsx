@@ -6,11 +6,20 @@ import { waniKaniService } from '../services/wanikaniService';
 import { Icons } from '../components/Icons';
 import { Button } from '../components/ui/Button';
 import { Flashcard } from '../components/Flashcard';
+import { toHiragana } from '../utils/kana';
 
 export const Browse: React.FC<{ user: User }> = ({ user }) => {
   const [items, setItems] = useState<{subject: Subject, assignment?: Assignment}[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<{subject: Subject, assignment?: Assignment} | null>(null);
+  
+  // Filters
+  const [levels, setLevels] = useState<number[]>([user.level]);
+  const [onlyLearned, setOnlyLearned] = useState(false);
+  const [srsFilter, setSrsFilter] = useState<number[]>([]); // Empty = All
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showLevelSelect, setShowLevelSelect] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,16 +27,35 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const subjectsCol = await waniKaniService.getLevelSubjects(user.level);
-        // Safety check for data array
-        const subjects = (subjectsCol?.data || []).map(r => ({ ...r.data, id: r.id, object: r.object, url: r.url }));
+        const subjectsCol = await waniKaniService.getAssignments([], levels, []);
+        // Fetch subjects for these levels (batching by levels supports multiple)
+        // Wait, waniKaniService.getLevelSubjects only takes one level? 
+        // We updated service earlier to handle comma sep? No, I need to check service.
+        // Actually, getLevelSubjects in service was single level. 
+        // We will loop fetches or assume service can handle it if we modify it, 
+        // but robustly: fetch each level promise all.
         
+        const promises = levels.map(l => waniKaniService.getLevelSubjects(l));
+        const results = await Promise.all(promises);
+        
+        let allSubjects: Subject[] = [];
+        results.forEach(res => {
+            if (res.data) {
+                const subs = res.data.map(r => ({ ...r.data, id: r.id, object: r.object, url: r.url }));
+                allSubjects = [...allSubjects, ...subs];
+            }
+        });
+
         // Fetch assignments for these subjects
-        const subjectIds = subjects.map(s => s.id!).filter(Boolean);
+        const subjectIds = allSubjects.map(s => s.id!).filter(Boolean);
         
         let assignments: Record<number, Assignment> = {};
         
+        // Chunk assignments fetch (API limit is usually high but safer to chunk if > 500?)
+        // For now, simple fetch.
         if (subjectIds.length > 0) {
+          // getAssignments takes srsStages etc, we want ALL assignments for these subjects to filter locally or filter in query.
+          // Filtering locally is faster for UI responsiveness on filters.
           const assignmentsCol = await waniKaniService.getAssignments(subjectIds);
           if (assignmentsCol && assignmentsCol.data) {
              assignments = assignmentsCol.data.reduce((acc, curr) => {
@@ -37,7 +65,7 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
           }
         }
 
-        setItems(subjects.map(s => ({
+        setItems(allSubjects.map(s => ({
           subject: s,
           assignment: s.id ? assignments[s.id] : undefined
         })));
@@ -49,54 +77,215 @@ export const Browse: React.FC<{ user: User }> = ({ user }) => {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, levels.join(',')]); // Refetch when level selection changes
+
+  const toggleSrsFilter = (stageGroup: number[]) => {
+    const isActive = stageGroup.every(s => srsFilter.includes(s));
+    if (isActive) {
+      setSrsFilter(prev => prev.filter(s => !stageGroup.includes(s)));
+    } else {
+      setSrsFilter(prev => [...prev, ...stageGroup]);
+    }
+  };
+
+  const toggleLevel = (l: number) => {
+      if (levels.includes(l)) {
+          if (levels.length > 1) setLevels(prev => prev.filter(x => x !== l));
+      } else {
+          setLevels(prev => [...prev, l]);
+      }
+  }
+
+  const getFilteredItems = () => {
+    return items.filter(item => {
+      // 1. Learned Filter
+      if (onlyLearned) {
+        const stage = item.assignment?.srs_stage;
+        if (stage === undefined || stage === 0) return false;
+      }
+
+      // 2. SRS Filter
+      if (srsFilter.length > 0) {
+        const stage = item.assignment?.srs_stage || 0; 
+        if (!srsFilter.includes(stage)) return false;
+      }
+
+      // 3. Text Search (English, Reading, Romanji)
+      if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const qKana = toHiragana(q);
+          
+          const s = item.subject;
+          
+          // Check Meanings
+          const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q));
+          
+          // Check Readings
+          const matchReading = s.readings?.some(r => r.reading.includes(qKana) || r.reading.includes(q));
+          
+          // Check Character
+          const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana);
+
+          if (!matchMeaning && !matchReading && !matchChar) return false;
+      }
+
+      return true;
+    });
+  };
 
   const getSRSColor = (stage?: number) => {
     if (stage === undefined) return 'bg-gray-100 border-gray-200 text-gray-400';
     if (stage === 0) return 'bg-gray-100 border-gray-200';
-    if (stage < 5) return 'bg-pink-100 border-pink-200 text-pink-700'; // Apprentice
-    if (stage < 7) return 'bg-purple-100 border-purple-200 text-purple-700'; // Guru
-    if (stage === 7) return 'bg-blue-100 border-blue-200 text-blue-700'; // Master
-    if (stage === 8) return 'bg-sky-100 border-sky-200 text-sky-700'; // Enlightened
-    return 'bg-yellow-100 border-yellow-200 text-yellow-700'; // Burned
+    if (stage < 5) return 'bg-pink-100 border-pink-200 text-pink-700'; 
+    if (stage < 7) return 'bg-purple-100 border-purple-200 text-purple-700';
+    if (stage === 7) return 'bg-blue-100 border-blue-200 text-blue-700';
+    if (stage === 8) return 'bg-sky-100 border-sky-200 text-sky-700';
+    return 'bg-yellow-100 border-yellow-200 text-yellow-700';
   };
 
-  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
+  const filteredItems = getFilteredItems();
+
+  const SRS_GROUPS = [
+    { label: 'Apprentice', stages: [1, 2, 3, 4], color: 'text-pink-600 bg-pink-100 border-pink-200' },
+    { label: 'Guru', stages: [5, 6], color: 'text-purple-600 bg-purple-100 border-purple-200' },
+    { label: 'Master', stages: [7], color: 'text-blue-600 bg-blue-100 border-blue-200' },
+    { label: 'Enlightened', stages: [8], color: 'text-sky-600 bg-sky-100 border-sky-200' },
+    { label: 'Burned', stages: [9], color: 'text-yellow-600 bg-yellow-100 border-yellow-200' },
+  ];
+
+  if (loading && items.length === 0) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
-         <h2 className="text-2xl font-bold text-gray-900">Level {user?.level} Content</h2>
-         <Button variant="outline" size="sm" onClick={() => navigate('/')}>
-           Back to Dashboard
-         </Button>
+      
+      {/* Filters Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-gray-900">Browse</h2>
+            
+            <div className="relative">
+                <Button variant="outline" size="sm" onClick={() => setShowLevelSelect(!showLevelSelect)}>
+                    Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
+                    <Icons.ChevronRight className={`ml-2 w-4 h-4 transition-transform ${showLevelSelect ? 'rotate-90' : ''}`} />
+                </Button>
+                
+                {showLevelSelect && (
+                    <div className="absolute top-10 left-0 z-20 bg-white shadow-xl border border-gray-200 rounded-xl p-4 w-72 h-64 overflow-y-auto grid grid-cols-5 gap-2">
+                        {Array.from({length: 60}, (_, i) => i + 1).map(l => (
+                            <button
+                                key={l}
+                                onClick={() => toggleLevel(l)}
+                                className={`
+                                    w-10 h-10 rounded-lg text-sm font-bold flex items-center justify-center transition-colors
+                                    ${levels.includes(l) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                                `}
+                            >
+                                {l}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+            {showLevelSelect && <div className="fixed inset-0 z-10" onClick={() => setShowLevelSelect(false)}></div>}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+             Dashboard
+          </Button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+           <div className="flex-1 w-full md:max-w-md">
+               <div className="relative">
+                   <Icons.Sparkles className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                   <input 
+                      type="text" 
+                      placeholder="Search English, Kana, or Romaji..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                   />
+               </div>
+           </div>
+
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <label className="flex items-center space-x-2 cursor-pointer select-none">
+                <input 
+                type="checkbox" 
+                checked={onlyLearned}
+                onChange={(e) => setOnlyLearned(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300" 
+                />
+                <span className="text-sm font-medium text-gray-700">Learned Only</span>
+            </label>
+
+            <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
+
+            <div className="flex flex-wrap gap-2">
+                {SRS_GROUPS.map(group => {
+                const isActive = group.stages.every(s => srsFilter.includes(s));
+                return (
+                    <button
+                    key={group.label}
+                    onClick={() => toggleSrsFilter(group.stages)}
+                    className={`
+                        px-3 py-1 rounded-full text-xs font-bold border transition-all
+                        ${isActive ? group.color : 'bg-gray-50 border-gray-200 text-gray-400'}
+                    `}
+                    >
+                    {group.label}
+                    </button>
+                );
+                })}
+                {srsFilter.length > 0 && (
+                <button 
+                    onClick={() => setSrsFilter([])}
+                    className="px-3 py-1 text-xs text-gray-500 hover:text-gray-900 underline"
+                >
+                    Clear
+                </button>
+                )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-        {items.map(({subject, assignment}) => (
-          <button 
-            key={subject.id}
-            onClick={() => setSelectedItem({subject, assignment})}
-            className={`
-              aspect-square rounded-xl p-2 flex flex-col items-center justify-center border-2 transition-all hover:scale-105
-              ${getSRSColor(assignment?.srs_stage)}
-            `}
-          >
-            <div className="text-3xl font-bold mb-1">
-              {subject.characters || (
-                <div className="w-8 h-8">
-                   {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
-                     <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full opacity-80" />
-                   )}
-                </div>
-              )}
-            </div>
-            <div className="text-xs truncate max-w-full font-medium opacity-80">
-              {subject.meanings?.[0]?.meaning}
-            </div>
-          </button>
-        ))}
-      </div>
+      {loading ? (
+           <div className="text-center py-20">
+               <Icons.RotateCcw className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+           </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">
+          <Icons.FileQuestion className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p>No items match your filters.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+          {filteredItems.map(({subject, assignment}) => (
+            <button 
+              key={subject.id}
+              onClick={() => setSelectedItem({subject, assignment})}
+              className={`
+                aspect-square rounded-xl p-2 flex flex-col items-center justify-center border-2 transition-all hover:scale-105
+                ${getSRSColor(assignment?.srs_stage)}
+              `}
+            >
+              <div className="text-3xl font-bold mb-1">
+                {subject.characters || (
+                  <div className="w-8 h-8">
+                     {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
+                       <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full opacity-80" />
+                     )}
+                  </div>
+                )}
+              </div>
+              <div className="text-xs truncate max-w-full font-medium opacity-80">
+                {subject.meanings?.[0]?.meaning}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Modal Overlay */}
       {selectedItem && (

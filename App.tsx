@@ -16,14 +16,11 @@ import { MemoryGame } from './pages/games/MemoryGame';
 import { QuizGame } from './pages/games/QuizGame';
 import { ShiritoriGame } from './pages/games/ShiritoriGame';
 import { SortingGame } from './pages/games/SortingGame';
+import { ConnectGame } from './pages/games/ConnectGame';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(()=> {
-    window.location.hash = '/' 
-  }, [])
 
   // Init Auth
   useEffect(() => {
@@ -88,6 +85,7 @@ export default function App() {
             <Route path="/session/games/quiz" element={user ? <QuizGame user={user} /> : <Navigate to="/login" />} />
             <Route path="/session/games/shiritori" element={user ? <ShiritoriGame user={user} /> : <Navigate to="/login" />} />
             <Route path="/session/games/sorting" element={user ? <SortingGame user={user} /> : <Navigate to="/login" />} />
+            <Route path="/session/games/connect" element={user ? <ConnectGame user={user} /> : <Navigate to="/login" />} />
 
             <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
           </Routes>

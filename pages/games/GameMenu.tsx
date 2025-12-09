@@ -35,6 +35,13 @@ export const GameMenu: React.FC = () => {
       desc: 'Match keys to values by reordering list items.',
       icon: Icons.ArrowUpDown,
       color: 'bg-blue-100 text-blue-600'
+    },
+    {
+      id: 'connect',
+      name: 'Hiragana Connect',
+      desc: 'Trace the path of kana to spell the word.',
+      icon: Icons.GridDots,
+      color: 'bg-teal-100 text-teal-600'
     }
   ];
 

@@ -14,8 +14,11 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
   const [solved, setSolved] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (loading || items.length < 5) return;
+  const initGame = () => {
+    setSolved(false);
+    setSelectedIdx(null);
+    if (items.length < 5) return;
+    
     // Pick 5
     const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5);
     const p = selected.map(s => ({
@@ -27,7 +30,12 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
     setPairs(p);
     // Shuffle right side
     setRightOrder(p.map(x => x.val).sort(() => 0.5 - Math.random()));
-    setSolved(false);
+  };
+
+  useEffect(() => {
+    if (!loading && items.length >= 5) {
+       initGame();
+    }
   }, [items, loading]);
 
   const handleRightClick = (idx: number) => {
@@ -98,7 +106,7 @@ export const SortingGame: React.FC<{ user: User }> = ({ user }) => {
       
       {solved && (
         <div className="mt-8 text-center animate-bounce">
-           <Button size="lg" onClick={() => window.location.reload()}>Next Level <Icons.ChevronRight className="ml-2" /></Button>
+           <Button size="lg" onClick={initGame}>Next Level <Icons.ChevronRight className="ml-2" /></Button>
         </div>
       )}
     </div>

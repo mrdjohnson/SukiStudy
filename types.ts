@@ -1,3 +1,4 @@
+
 export enum SubjectType {
   RADICAL = 'radical',
   KANJI = 'kanji',
@@ -30,6 +31,16 @@ export interface User {
   started_at: string;
   current_vacation_started_at: string | null;
   profile_url: string;
+}
+
+export interface StudyMaterial {
+  created_at: string;
+  subject_id: number;
+  subject_type: string;
+  meaning_note: string | null;
+  reading_note: string | null;
+  meaning_synonyms: string[];
+  hidden: boolean;
 }
 
 export interface Subject {
@@ -84,6 +95,10 @@ export interface Subject {
       voice_actor_name: string;
       voice_description: string;
     };
+  }[];
+  context_sentences?: {
+    en: string;
+    ja: string;
   }[];
 }
 
