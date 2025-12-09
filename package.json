@@ -15,7 +15,7 @@
     "react-router-dom": "^7.10.1",
     "react-dom": "^19.2.1",
     "recharts": "^3.5.1",
-    "lucide-react": "^0.556.0"
+    "@tabler/icons-react": "^3.29.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
