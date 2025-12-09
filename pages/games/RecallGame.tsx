@@ -218,6 +218,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
                     hasNext={false}
                     onPrev={() => setSelectedSubject(null)}
                     onNext={() => setSelectedSubject(null)}
+                    flipped
                 />
             </div>
         </div>

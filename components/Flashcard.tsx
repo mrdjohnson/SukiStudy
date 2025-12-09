@@ -7,6 +7,7 @@ import { waniKaniService } from '../services/wanikaniService';
 import ReactMarkdown from 'react-markdown';
 import { Button } from './ui/Button';
 import { ARTWORK_URLS } from '../utils/artworkUrls'
+import { toRomanji } from '../utils/romanji'
 
 interface FlashcardProps {
   subject: Subject;
@@ -16,6 +17,7 @@ interface FlashcardProps {
   hasPrev: boolean;
   hasNext: boolean;
   onDrillDown?: (subject: Subject) => void;
+  flipped?: boolean
 }
 
 // Global cache for failed image URLs to prevent flickering/re-checking in same session
@@ -41,7 +43,7 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
         setError(false);
       }
     } else {
-        setError(true);
+      setError(true);
     }
   }, [id, type]);
 
@@ -54,11 +56,11 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
 
   return (
     <>
-      <div 
+      <div
         className="mt-4 mb-4 relative group cursor-zoom-in inline-block"
         onClick={(e) => {
-           e.stopPropagation();
-           setIsOpen(true);
+          e.stopPropagation();
+          setIsOpen(true);
         }}
       >
         <img
@@ -74,17 +76,17 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
       </div>
 
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
-          onClick={(e) => { 
-             e.preventDefault(); 
-             e.stopPropagation(); 
-             setIsOpen(false); 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(false);
           }}
         >
           <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
-             {/* Close button placed fixed to screen to avoid being covered by large images */}
-            <button 
+            {/* Close button placed fixed to screen to avoid being covered by large images */}
+            <button
               className="fixed top-4 right-4 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors pointer-events-auto z-[160]"
               onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
             >
@@ -94,7 +96,7 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
               src={imageUrl}
               alt="Mnemonic Fullscreen"
               className="max-w-full max-h-[90vh] object-contain rounded-md shadow-2xl pointer-events-auto"
-              onClick={(e) => e.stopPropagation()} 
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         </div>
@@ -103,8 +105,8 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
   );
 };
 
-export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNext, onPrev, hasPrev, hasNext, onDrillDown }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
+export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNext, onPrev, hasPrev, hasNext, onDrillDown, flipped }) => {
+  const [isFlipped, setIsFlipped] = useState(flipped);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [components, setComponents] = useState<Subject[]>([]);
@@ -113,23 +115,23 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    setIsFlipped(false);
+    setIsFlipped(flipped);
     setAiExplanation(null);
     setLoadingAi(false);
     setAudioIndex(0);
     setStudyMaterial(null);
 
     const loadData = async () => {
-       if (subject.id) {
-         try {
-           const matCol = await waniKaniService.getStudyMaterials([subject.id]);
-           if (matCol.data && matCol.data.length > 0) {
-             setStudyMaterial(matCol.data[0].data);
-           }
-         } catch (e) {
-           console.error("Failed user materials", e);
-         }
-       }
+      if (subject.id) {
+        try {
+          const matCol = await waniKaniService.getStudyMaterials([subject.id]);
+          if (matCol.data && matCol.data.length > 0) {
+            setStudyMaterial(matCol.data[0].data);
+          }
+        } catch (e) {
+          console.error("Failed user materials", e);
+        }
+      }
 
       setComponents([]);
       if (subject.component_subject_ids && subject.component_subject_ids.length > 0) {
@@ -215,17 +217,17 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
   };
 
   const renderInteractiveSentence = (jaSentence: string) => {
-    const parts = jaSentence.split(/([一-龯]+)/); 
+    const parts = jaSentence.split(/([一-龯]+)/);
     return (
-        <span>
-            {parts.map((part, i) => {
-                const isKanji = /[一-龯]/.test(part);
-                if (isKanji) {
-                    return <span key={i} className="font-bold text-gray-800">{part}</span>
-                }
-                return <span key={i}>{part}</span>
-            })}
-        </span>
+      <span>
+        {parts.map((part, i) => {
+          const isKanji = /[一-龯]/.test(part);
+          if (isKanji) {
+            return <span key={i} className="font-bold text-gray-800">{part}</span>
+          }
+          return <span key={i}>{part}</span>
+        })}
+      </span>
     )
   }
 
@@ -246,93 +248,93 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center p-8 w-full text-center">
-             {/* Character Display */}
-             {character ? (
-               <div className={`font-bold text-gray-800 mb-8 break-all leading-tight ${character.length > 3 ? 'text-5xl md:text-7xl' : 'text-8xl md:text-9xl'}`}>
-                 {character}
-               </div>
-             ) : (
-               <div className="w-32 h-32 mb-8">
-                 {renderCharacter("")}
-               </div>
-             )}
+            {/* Character Display */}
+            {character ? (
+              <div className={`font-bold text-gray-800 mb-8 break-all leading-tight ${character.length > 3 ? 'text-5xl md:text-7xl' : 'text-8xl md:text-9xl'}`}>
+                {character}
+              </div>
+            ) : (
+              <div className="w-32 h-32 mb-8">
+                {renderCharacter("")}
+              </div>
+            )}
             <p className="text-gray-400 text-sm font-medium animate-pulse">Tap to reveal</p>
           </div>
         </div>
 
         {/* Back */}
-        <div 
-            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
-            onClick={(e) => e.stopPropagation()} /* Prevent flipping back when clicking the content area generally */
+        <div
+          className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
+          onClick={(e) => e.stopPropagation()} /* Prevent flipping back when clicking the content area generally */
         >
           {/* Back Header - Redesigned for Vertical Flow */}
           <div className={`p-6 border-b ${borderColors[type]}`}>
-             <div className="flex gap-4">
-                {/* Large Origin Character - Click to flip back */}
-                <div 
-                    onClick={() => setIsFlipped(false)}
-                    className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
-                >
-                    {character || (
-                        <div className="w-12 h-12">
-                            {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
-                            <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
-                            )}
-                        </div>
+            <div className="flex gap-4">
+              {/* Large Origin Character - Click to flip back */}
+              <div
+                onClick={() => setIsFlipped(false)}
+                className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
+              >
+                {character || (
+                  <div className="w-12 h-12">
+                    {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
+                      <img src={subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} alt="" className="w-full h-full brightness-0 invert" />
                     )}
-                </div>
+                  </div>
+                )}
+              </div>
 
-                <div className="flex-1 flex flex-col justify-center">
-                    {/* Origin Character (Mobile Only) */}
-                    <div onClick={() => setIsFlipped(false)} className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">{character}</div>
+              <div className="flex-1 flex flex-col justify-center">
+                {/* Origin Character (Mobile Only) */}
+                <div onClick={() => setIsFlipped(false)} className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">{character}</div>
 
-                    {/* Meaning */}
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
-                        {primaryMeaning}
-                    </h2>
+                {/* Meaning */}
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
+                  {primaryMeaning}
+                </h2>
 
-                    {/* Reading Row */}
-                    {primaryReading && (
-                        <div className="flex items-center gap-3">
-                            <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
-                            {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
-                                <button
-                                    onClick={playAudio}
-                                    className="p-2 bg-white/50 hover:bg-white rounded-full text-indigo-600 transition-colors shadow-sm"
-                                    title="Play Audio"
-                                >
-                                    <Icons.Volume className="w-5 h-5" /> 
-                                </button>
-                            )}
-                        </div>
+                {/* Reading Row */}
+                {primaryReading && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
+                    {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
+                      <button
+                        onClick={playAudio}
+                        className="p-2 bg-white/50 hover:bg-white rounded-full text-indigo-600 transition-colors shadow-sm"
+                        title="Play Audio"
+                      >
+                        <Icons.Volume className="w-5 h-5" />
+                      </button>
                     )}
-                </div>
+                  </div>
+                )}
+              </div>
 
-                {/* Level Badge */}
-                <div className="absolute top-4 right-4 bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200">
-                    Lv {subject.level}
-                </div>
-             </div>
+              {/* Level Badge */}
+              <div className="absolute top-4 right-4 bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200">
+                Lv {subject.level}
+              </div>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
-            
+
             {/* User Synonyms / Notes */}
             {studyMaterial && (
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
-                    {studyMaterial.meaning_synonyms.length > 0 && (
-                        <div>
-                            <span className="text-xs font-bold text-yellow-600 uppercase">Your Synonyms: </span>
-                            <span className="text-sm font-medium text-gray-800">{studyMaterial.meaning_synonyms.join(', ')}</span>
-                        </div>
-                    )}
-                    {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
-                        <div className="space-y-2 pt-1">
-                            {studyMaterial.meaning_note && <p className="text-sm text-gray-700"><strong>Meaning Note:</strong> {studyMaterial.meaning_note}</p>}
-                            {studyMaterial.reading_note && <p className="text-sm text-gray-700"><strong>Reading Note:</strong> {studyMaterial.reading_note}</p>}
-                        </div>
-                    )}
-                </div>
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
+                {studyMaterial.meaning_synonyms.length > 0 && (
+                  <div>
+                    <span className="text-xs font-bold text-yellow-600 uppercase">Your Synonyms: </span>
+                    <span className="text-sm font-medium text-gray-800">{studyMaterial.meaning_synonyms.join(', ')}</span>
+                  </div>
+                )}
+                {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
+                  <div className="space-y-2 pt-1">
+                    {studyMaterial.meaning_note && <p className="text-sm text-gray-700"><strong>Meaning Note:</strong> {studyMaterial.meaning_note}</p>}
+                    {studyMaterial.reading_note && <p className="text-sm text-gray-700"><strong>Reading Note:</strong> {studyMaterial.reading_note}</p>}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Standard Content */}
@@ -354,19 +356,34 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-             {/* Context Sentences */}
-            {subject.context_sentences && subject.context_sentences.length > 0 && (
-                <div>
-                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Context Sentences</h3>
-                   <div className="space-y-3">
-                       {subject.context_sentences.slice(0, 3).map((s, i) => (
-                           <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
-                               <p className="text-base mb-1 font-medium text-gray-800">{renderInteractiveSentence(s.ja)}</p>
-                               <p className="text-gray-500 text-xs">{s.en}</p>
-                           </div>
-                       ))}
-                   </div>
+            {/* Readings */}
+            {subject.readings && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Readings</h3>
+
+                <div className="space-y-3">
+                  {subject.readings.map(reading => (
+                    <div key={reading.reading}>
+                    {reading.reading}, {toRomanji(reading.reading)}
+                    </div>
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {/* Context Sentences */}
+            {subject.context_sentences && subject.context_sentences.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Context Sentences</h3>
+                <div className="space-y-3">
+                  {subject.context_sentences.slice(0, 3).map((s, i) => (
+                    <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
+                      <p className="text-base mb-1 font-medium text-gray-800">{renderInteractiveSentence(s.ja)}</p>
+                      <p className="text-gray-500 text-xs">{s.en}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Visuals */}
