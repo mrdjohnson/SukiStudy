@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Subject, SubjectType, Assignment } from '../types';
 import { Icons } from './Icons';
@@ -31,7 +32,8 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
       return;
     }
 
-    const url = ARTWORK_URLS[id];
+    // Fix: Convert string ID to number for object lookup
+    const url = ARTWORK_URLS[Number(id)];
     if (url) {
       if (failedImages.has(url)) {
         setError(true);

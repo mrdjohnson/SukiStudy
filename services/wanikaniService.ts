@@ -45,7 +45,7 @@ class WaniKaniService {
     return this.request<WKCollection<Subject>>(`/subjects?levels=${level}`);
   }
 
-  async getAssignments(subjectIds?: number[], levels?: number[]): Promise<WKCollection<Assignment>> {
+  async getAssignments(subjectIds?: number[], levels?: number[], srsStages?: number[]): Promise<WKCollection<Assignment>> {
     // Prevent fetching all assignments if an empty array is explicitly passed but meant to filter
     if (subjectIds && subjectIds.length === 0 && (!levels || levels.length === 0)) {
        return { object: 'collection', url: '', pages: { per_page: 0, next_url: null, previous_url: null }, total_count: 0, data: [] };
@@ -54,6 +54,7 @@ class WaniKaniService {
     const params = new URLSearchParams();
     if (subjectIds && subjectIds.length > 0) params.append('subject_ids', subjectIds.join(','));
     if (levels && levels.length > 0) params.append('levels', levels.join(','));
+    if (srsStages && srsStages.length > 0) params.append('srs_stages', srsStages.join(','));
     
     return this.request<WKCollection<Assignment>>(`/assignments?${params.toString()}`);
   }

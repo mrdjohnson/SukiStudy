@@ -13,7 +13,13 @@ import {
   Clock,
   Gamepad2,
   Maximize2,
-  X
+  X,
+  FileQuestion,
+  Link,
+  ArrowUpDown,
+  GripVertical,
+  Trophy,
+  Shuffle
 } from 'lucide-react';
 
 export const Icons = {
@@ -30,5 +36,11 @@ export const Icons = {
   Clock,
   Gamepad2,
   Maximize2,
-  X
+  X,
+  FileQuestion,
+  Link,
+  ArrowUpDown,
+  GripVertical,
+  Trophy,
+  Shuffle
 };

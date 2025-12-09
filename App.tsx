@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { waniKaniService } from './services/wanikaniService';
 import { User, Summary, Subject, Assignment, SubjectType } from './types';
 import { Header } from './components/Header';
@@ -8,9 +9,120 @@ import { Flashcard } from './components/Flashcard';
 import { Icons } from './components/Icons';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
+// --- Shared Helpers ---
+
+// Simple WanaKana-ish converter (Romaji -> Hiragana) for Shiritori input
+const toHiragana = (input: string): string => {
+  const table: Record<string, string> = {
+    'a': 'あ', 'i': 'い', 'u': 'う', 'e': 'え', 'o': 'お',
+    'ka': 'か', 'ki': 'き', 'ku': 'く', 'ke': 'け', 'ko': 'こ',
+    'sa': 'さ', 'shi': 'し', 'su': 'す', 'se': 'せ', 'so': 'そ',
+    'ta': 'た', 'chi': 'ち', 'tsu': 'つ', 'te': 'て', 'to': 'と',
+    'na': 'な', 'ni': 'に', 'nu': 'ぬ', 'ne': 'ね', 'no': 'の',
+    'ha': 'は', 'hi': 'ひ', 'fu': 'ふ', 'he': 'へ', 'ho': 'ほ',
+    'ma': 'ま', 'mi': 'み', 'mu': 'む', 'me': 'め', 'mo': 'も',
+    'ya': 'や', 'yu': 'ゆ', 'yo': 'よ',
+    'ra': 'ら', 'ri': 'り', 'ru': 'る', 're': 'れ', 'ro': 'ろ',
+    'wa': 'わ', 'wo': 'を', 'n': 'ん',
+    'ga': 'が', 'gi': 'ぎ', 'gu': 'ぐ', 'ge': 'げ', 'go': 'ご',
+    'za': 'ざ', 'ji': 'じ', 'zu': 'ず', 'ze': 'ぜ', 'zo': 'ぞ',
+    'da': 'だ', 'de': 'で', 'do': 'ど',
+    'ba': 'ば', 'bi': 'び', 'bu': 'ぶ', 'be': 'べ', 'bo': 'ぼ',
+    'pa': 'ぱ', 'pi': 'ぴ', 'pu': 'ぷ', 'pe': 'ぺ', 'po': 'ぽ',
+    'kya': 'きゃ', 'kyu': 'きゅ', 'kyo': 'きょ',
+    'sha': 'しゃ', 'shu': 'しゅ', 'sho': 'しょ',
+    'cha': 'ちゃ', 'chu': 'ちゅ', 'cho': 'ちょ',
+    'nya': 'にゃ', 'nyu': 'にゅ', 'nyo': 'にょ',
+    'hya': 'ひゃ', 'hyu': 'ひゅ', 'hyo': 'ひょ',
+    'mya': 'みゃ', 'myu': 'みゅ', 'myo': 'みょ',
+    'rya': 'りゃ', 'ryu': 'りゅ', 'ryo': 'りょ',
+    'gya': 'ぎゃ', 'gyu': 'ぎゅ', 'gyo': 'ぎょ',
+    'ja': 'じゃ', 'ju': 'じゅ', 'jo': 'じょ',
+    'bya': 'びゃ', 'byu': 'びゅ', 'byo': 'びょ',
+    'pya': 'ぴゃ', 'pyu': 'ぴゅ', 'pyo': 'ぴょ',
+    '-': 'ー'
+  };
+  
+  // Naive replacement for basic inputs
+  let str = input.toLowerCase();
+  
+  // Double consonants (small tsu)
+  str = str.replace(/([kstnhmyrwgzbpd])\1/g, 'っ$1');
+
+  // Sort keys by length descending to match longest first (e.g., 'shi' before 's')
+  const keys = Object.keys(table).sort((a, b) => b.length - a.length);
+  
+  keys.forEach(key => {
+    const regex = new RegExp(key, 'g');
+    str = str.replace(regex, table[key]);
+  });
+  
+  return str;
+};
+
+// Hook to fetch only learned items
+const useLearnedSubjects = (user: User | null) => {
+  const [items, setItems] = useState<{subject: Subject, assignment: Assignment}[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        // Fetch learned assignments (SRS > 0)
+        // We fetch current level and maybe level - 1 to ensure enough items
+        const levels = [user.level];
+        if (user.level > 1) levels.push(user.level - 1);
+        if (user.level > 2) levels.push(user.level - 2);
+
+        const assignmentsCol = await waniKaniService.getAssignments([], levels, [1,2,3,4,5,6,7,8,9]);
+        
+        if (!assignmentsCol.data || assignmentsCol.data.length === 0) {
+          setItems([]);
+          setLoading(false);
+          return;
+        }
+
+        // Extract Subject IDs
+        const assignmentMap = new Map<number, Assignment>();
+        const subjectIds: number[] = [];
+        assignmentsCol.data.forEach(a => {
+            assignmentMap.set(a.data.subject_id, a.data);
+            subjectIds.push(a.data.subject_id);
+        });
+
+        // Batch fetch subjects (chunking if necessary, but WK API handles up to 1000 usually ok, or we assume small set for mini-games)
+        const subjectsCol = await waniKaniService.getSubjects(subjectIds.slice(0, 100)); // Limit to latest 100 learned for performance in games
+        
+        if (subjectsCol && subjectsCol.data) {
+          const combined = subjectsCol.data.map(s => ({
+            subject: { ...s.data, id: s.id, object: s.object, url: s.url },
+            assignment: assignmentMap.get(s.id)!
+          }));
+          setItems(combined);
+        } else {
+          setItems([]);
+        }
+      } catch (e) {
+        console.error("Failed to load learned items", e);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  return { items, loading };
+};
+
 // --- Pages ---
 
-const Login: React.FC<{ onLogin: (token: string) => void }> = ({ onLogin }) => {
+const Login: React.FC<{ onLogin: (token: string, user: User) => void }> = ({ onLogin }) => {
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,8 +134,8 @@ const Login: React.FC<{ onLogin: (token: string) => void }> = ({ onLogin }) => {
     
     try {
       waniKaniService.setToken(token);
-      await waniKaniService.getUser(); // Validate token
-      onLogin(token);
+      const userRes = await waniKaniService.getUser(); // Validate token
+      onLogin(token, userRes.data);
     } catch (err) {
       setError('Invalid API Token or Network Error');
       waniKaniService.setToken('');
@@ -74,6 +186,7 @@ const Login: React.FC<{ onLogin: (token: string) => void }> = ({ onLogin }) => {
 const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
@@ -128,7 +241,7 @@ const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
           <Button 
             variant={lessonsCount > 0 ? "primary" : "outline"} 
             disabled={lessonsCount === 0}
-            onClick={() => window.location.hash = '/session/lesson'}
+            onClick={() => navigate('/session/lesson')}
           >
             Start Lessons
           </Button>
@@ -143,7 +256,7 @@ const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
           <Button 
             variant={reviewsCount > 0 ? "secondary" : "outline"} 
             disabled={reviewsCount === 0}
-            onClick={() => window.location.hash = '/session/review'}
+            onClick={() => navigate('/session/review')}
           >
             Start Reviews
           </Button>
@@ -153,13 +266,13 @@ const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
           <div className="bg-green-100 p-4 rounded-full mb-4 group-hover:bg-green-200 transition-colors">
             <Icons.Gamepad2 className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Memory Match</h3>
-          <p className="text-gray-500 mb-6">Review with a game</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">Mini Games</h3>
+          <p className="text-gray-500 mb-6">Review while having fun</p>
           <Button 
             variant="outline"
-            onClick={() => window.location.hash = '/session/game'}
+            onClick={() => navigate('/session/games')}
           >
-            Play Game
+            Play Games
           </Button>
         </div>
       </div>
@@ -168,7 +281,7 @@ const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
          <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-gray-900">Current Level Content</h3>
-             <Button variant="ghost" size="sm" onClick={() => window.location.hash = '/browse'}>
+             <Button variant="ghost" size="sm" onClick={() => navigate('/browse')}>
                Browse All <Icons.ChevronRight className="w-4 h-4 ml-1" />
              </Button>
          </div>
@@ -193,10 +306,600 @@ const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
   );
 };
 
+// --- Game Menu ---
+
+const GameMenu: React.FC = () => {
+  const navigate = useNavigate();
+
+  const games = [
+    {
+      id: 'memory',
+      name: 'Memory Match',
+      desc: 'Match characters to their meanings or readings.',
+      icon: Icons.Brain,
+      color: 'bg-purple-100 text-purple-600'
+    },
+    {
+      id: 'quiz',
+      name: 'Quick Quiz',
+      desc: 'Multiple choice speed run of your learned items.',
+      icon: Icons.FileQuestion,
+      color: 'bg-orange-100 text-orange-600'
+    },
+    {
+      id: 'shiritori',
+      name: 'Shiritori Chain',
+      desc: 'Link vocabulary words by their last character.',
+      icon: Icons.Link,
+      color: 'bg-pink-100 text-pink-600'
+    },
+    {
+      id: 'sorting',
+      name: 'Sort & Order',
+      desc: 'Match keys to values by reordering list items.',
+      icon: Icons.ArrowUpDown,
+      color: 'bg-blue-100 text-blue-600'
+    }
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" onClick={() => navigate('/')}><Icons.ChevronLeft /></Button>
+        <h1 className="text-3xl font-bold text-gray-900">Mini Games</h1>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {games.map(game => (
+          <button 
+            key={game.id}
+            onClick={() => navigate(`/session/games/${game.id}`)}
+            className="flex items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all text-left"
+          >
+            <div className={`p-4 rounded-xl mr-6 ${game.color}`}>
+              <game.icon className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">{game.name}</h3>
+              <p className="text-gray-500 mt-1">{game.desc}</p>
+            </div>
+            <Icons.ChevronRight className="ml-auto text-gray-300" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Memory Game ---
+
+interface GameCard {
+  id: string; 
+  subjectId: number;
+  content: string;
+  type: 'character' | 'meaning' | 'reading';
+  isFlipped: boolean;
+  isMatched: boolean;
+  subjectType: string;
+}
+
+const MemoryGame: React.FC<{ user: User | null }> = ({ user }) => {
+  const { items: learnedItems, loading: dataLoading } = useLearnedSubjects(user);
+  const [cards, setCards] = useState<GameCard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
+  const [matches, setMatches] = useState(0);
+  const [timer, setTimer] = useState(300);
+  const [gameOver, setGameOver] = useState(false);
+  const [won, setWon] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (dataLoading) return;
+    if (learnedItems.length < 6) {
+        setLoading(false);
+        return; 
+    }
+    
+    // Pick 6 random subjects
+    const selected = [...learnedItems].sort(() => 0.5 - Math.random()).slice(0, 6);
+    
+    const gameCards: GameCard[] = [];
+    
+    selected.forEach(({ subject: s }) => {
+      const sType = s.object || 'vocabulary';
+      
+      let charContent = s.characters;
+      if (!charContent && s.character_images) {
+        const svg = s.character_images.find(i => i.content_type === 'image/svg+xml');
+        charContent = svg ? svg.url : '?';
+      }
+
+      gameCards.push({
+        id: `${s.id}-char`,
+        subjectId: s.id!,
+        content: charContent || '?',
+        type: 'character',
+        isFlipped: false,
+        isMatched: false,
+        subjectType: sType
+      });
+
+      let pairType: 'meaning' | 'reading' = 'meaning';
+      if (sType !== 'radical') {
+        pairType = Math.random() > 0.5 ? 'reading' : 'meaning';
+      }
+      
+      let pairContent = "";
+      if (pairType === 'meaning') {
+        pairContent = s.meanings.find(m => m.primary)?.meaning || s.meanings[0].meaning;
+      } else {
+         pairContent = s.readings?.find(r => r.primary)?.reading || s.readings?.[0]?.reading || "?";
+      }
+
+      gameCards.push({
+        id: `${s.id}-pair`,
+        subjectId: s.id!,
+        content: pairContent,
+        type: pairType,
+        isFlipped: false,
+        isMatched: false,
+        subjectType: sType
+      });
+    });
+
+    setCards(gameCards.sort(() => 0.5 - Math.random()));
+    setLoading(false);
+    setTimer(300);
+  }, [learnedItems, dataLoading]);
+
+  // Timer
+  useEffect(() => {
+    if (loading || gameOver || won) return;
+    const interval = setInterval(() => {
+      setTimer((t) => {
+        if (t <= 1) {
+          clearInterval(interval);
+          setGameOver(true);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loading, gameOver, won]);
+
+  const handleCardClick = (index: number) => {
+    if (gameOver || won || loading) return;
+    if (cards[index].isFlipped || cards[index].isMatched) return;
+    if (flippedIndices.length >= 2) return;
+
+    const newFlipped = [...flippedIndices, index];
+    setFlippedIndices(newFlipped);
+    
+    const newCards = [...cards];
+    newCards[index].isFlipped = true;
+    setCards(newCards);
+
+    if (newFlipped.length === 2) {
+      const idx1 = newFlipped[0];
+      const idx2 = newFlipped[1];
+      const card1 = cards[idx1];
+      const card2 = cards[idx2];
+
+      if (card1.subjectId === card2.subjectId) {
+        setTimeout(() => {
+          const matchedCards = [...cards];
+          matchedCards[idx1].isMatched = true;
+          matchedCards[idx2].isMatched = true;
+          setCards(matchedCards);
+          setFlippedIndices([]);
+          
+          const newMatchCount = matches + 1;
+          setMatches(newMatchCount);
+          if (newMatchCount === cards.length / 2) {
+            setWon(true);
+          }
+        }, 500);
+      } else {
+        setTimeout(() => {
+          const resetCards = [...cards];
+          resetCards[idx1].isFlipped = false;
+          resetCards[idx2].isFlipped = false;
+          setCards(resetCards);
+          setFlippedIndices([]);
+        }, 1000);
+      }
+    }
+  };
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  if (loading || dataLoading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
+
+  if (learnedItems.length < 6) return <div className="p-8 text-center text-gray-500">Not enough learned items to play. Start some lessons!</div>;
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+            Memory Match
+         </h2>
+         <div className="text-xl font-mono font-bold text-gray-700">
+             {formatTime(timer)}
+         </div>
+      </div>
+
+      {!gameOver && !won ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+          {cards.map((card, idx) => (
+             <div 
+               key={card.id}
+               onClick={() => handleCardClick(idx)}
+               className={`aspect-[3/4] rounded-xl cursor-pointer perspective-1000 transition-all duration-300 ${card.isMatched ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+             >
+                <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}>
+                   <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md border-2 border-indigo-400 flex items-center justify-center">
+                      <Icons.Brain className="text-white/30 w-12 h-12" />
+                   </div>
+                   <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}>
+                      {card.content.startsWith('http') ? (
+                        <img src={card.content} className="w-16 h-16 object-contain" alt="" />
+                      ) : (
+                        <span className={`${card.type === 'character' ? 'text-4xl font-bold' : 'text-lg font-medium'}`}>
+                          {card.content}
+                        </span>
+                      )}
+                   </div>
+                </div>
+             </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+            <h2 className="text-3xl font-bold mb-4">{won ? "You Won!" : "Time's Up!"}</h2>
+            <Button onClick={() => window.location.reload()}>Play Again</Button>
+        </div>
+      )}
+      <style>{`.rotate-y-180 { transform: rotateY(180deg); } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .perspective-1000 { perspective: 1000px; }`}</style>
+    </div>
+  );
+};
+
+// --- Quiz Game ---
+
+const QuizGame: React.FC<{ user: User | null }> = ({ user }) => {
+  const { items, loading } = useLearnedSubjects(user);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [finished, setFinished] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading || items.length < 4) return;
+    
+    // Generate 10 questions
+    const q = Array.from({length: 10}).map(() => {
+       const correctItem = items[Math.floor(Math.random() * items.length)];
+       const type = Math.random() > 0.5 ? 'meaning' : 'reading';
+       // Filter distractors of same type
+       const distractors = items
+         .filter(i => i.subject.id !== correctItem.subject.id && i.subject.object === correctItem.subject.object)
+         .sort(() => 0.5 - Math.random())
+         .slice(0, 3);
+       
+       const correctAns = type === 'meaning' 
+         ? correctItem.subject.meanings[0].meaning 
+         : (correctItem.subject.readings?.[0]?.reading || correctItem.subject.meanings[0].meaning); // fallback if radical
+       
+       const options = [correctItem, ...distractors].map(i => {
+          return type === 'meaning' 
+            ? i.subject.meanings[0].meaning 
+            : (i.subject.readings?.[0]?.reading || i.subject.meanings[0].meaning)
+       }).sort(() => 0.5 - Math.random());
+
+       return {
+         subject: correctItem.subject,
+         type,
+         correctAnswer: correctAns,
+         options
+       };
+    });
+    setQuestions(q);
+  }, [items, loading]);
+
+  const handleAnswer = (ans: string) => {
+    if (ans === questions[currentQuestion].correctAnswer) {
+      setScore(s => s + 1);
+    }
+    if (currentQuestion < 9) {
+      setCurrentQuestion(c => c + 1);
+    } else {
+      setFinished(true);
+    }
+  };
+
+  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
+  if (items.length < 4) return <div className="p-8 text-center text-gray-500">Not enough items.</div>;
+
+  if (finished) return (
+     <div className="max-w-2xl mx-auto p-8 text-center">
+        <Icons.Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Quiz Complete!</h2>
+        <p className="text-xl text-gray-600 mb-8">You scored {score} / 10</p>
+        <div className="flex justify-center gap-4">
+           <Button onClick={() => window.location.reload()}>Play Again</Button>
+           <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>
+        </div>
+     </div>
+  );
+
+  const q = questions[currentQuestion];
+  if (!q) return null;
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+        <span className="font-bold text-gray-500">{currentQuestion + 1} / 10</span>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-8">
+        <div className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-4">
+           Select the Correct {q.type}
+        </div>
+        <div className="text-6xl font-bold text-gray-800 mb-4">
+           {q.subject.characters || <img src={q.subject.character_images[0].url} className="w-16 h-16 mx-auto" alt="" />}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        {q.options.map((opt: string, idx: number) => (
+          <button
+            key={idx}
+            onClick={() => handleAnswer(opt)}
+            className="p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-medium text-lg text-gray-700"
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Shiritori Game ---
+
+const ShiritoriGame: React.FC<{ user: User | null }> = ({ user }) => {
+  const { items, loading } = useLearnedSubjects(user);
+  const [currentWord, setCurrentWord] = useState<Subject | null>(null);
+  const [input, setInput] = useState('');
+  const [history, setHistory] = useState<Subject[]>([]);
+  const [message, setMessage] = useState('Type the reading in Hiragana');
+  const [gameOver, setGameOver] = useState(false);
+  const navigate = useNavigate();
+
+  // Filter vocab only
+  const vocab = items.filter(i => i.subject.object === 'vocabulary').map(i => i.subject);
+
+  useEffect(() => {
+    if (loading || vocab.length === 0) return;
+    // Start with random word
+    const start = vocab[Math.floor(Math.random() * vocab.length)];
+    setCurrentWord(start);
+    setHistory([start]);
+  }, [loading]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentWord || gameOver) return;
+
+    // 1. Check if input matches reading of current word
+    const readings = currentWord.readings?.map(r => r.reading) || [];
+    const normalizedInput = toHiragana(input).trim(); // Basic conversion
+
+    if (!readings.includes(normalizedInput)) {
+      setMessage("Incorrect reading. Try again.");
+      return;
+    }
+
+    // 2. Get last char
+    const lastChar = normalizedInput.slice(-1);
+    
+    // 3. Find next word in user's vocab starting with lastChar
+    // Note: 'ー' implies vowel extension, usually we look at previous char, but simpler to just match exact char for now or ignore 'ー'
+    const nextChar = lastChar === 'ー' ? normalizedInput.slice(-2, -1) : lastChar;
+    
+    const candidates = vocab.filter(v => {
+      const reading = v.readings?.[0]?.reading;
+      return reading && reading.startsWith(nextChar) && !history.find(h => h.id === v.id);
+    });
+
+    if (candidates.length === 0) {
+      setGameOver(true);
+      setMessage("Chain broken! No words found starting with " + nextChar);
+      return;
+    }
+
+    const nextWord = candidates[Math.floor(Math.random() * candidates.length)];
+    setCurrentWord(nextWord);
+    setHistory(h => [...h, nextWord]);
+    setInput('');
+    setMessage(`Good! Next word starts with ${nextChar}`);
+  };
+
+  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
+  if (vocab.length < 10) return <div className="p-8 text-center">Not enough vocabulary to play Shiritori.</div>;
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+         <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+         <h2 className="text-xl font-bold">Shiritori ({history.length} Links)</h2>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center mb-8">
+         {!gameOver ? (
+            <>
+              <div className="text-gray-400 text-sm mb-2">Current Word</div>
+              <div className="text-5xl font-bold text-gray-900 mb-4">{currentWord?.characters}</div>
+              <div className="text-indigo-600 font-medium">{currentWord?.meanings[0].meaning}</div>
+            </>
+         ) : (
+            <div>
+               <Icons.Link className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+               <h3 className="text-2xl font-bold text-gray-900">Chain Broken!</h3>
+               <p className="text-gray-500">You connected {history.length} words.</p>
+               <Button className="mt-4" onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+         )}
+      </div>
+
+      {!gameOver && (
+        <form onSubmit={handleSubmit} className="relative">
+          <input 
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type reading (romaji auto-converts)"
+            className="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-lg text-center font-bold shadow-sm"
+            autoFocus
+          />
+          <p className="text-center mt-3 text-sm text-gray-500 flex items-center justify-center gap-2">
+            {message === 'Incorrect reading. Try again.' ? <Icons.X className="w-4 h-4 text-red-500" /> : <Icons.Sparkles className="w-4 h-4 text-yellow-500" />}
+            {message}
+          </p>
+        </form>
+      )}
+
+      {/* Chain History */}
+      <div className="mt-12">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Chain History</h3>
+        <div className="flex flex-wrap gap-2">
+           {history.slice(0, -1).reverse().map((w, i) => (
+             <span key={i} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+               {w.characters}
+             </span>
+           ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Sorting Game ---
+
+const SortingGame: React.FC<{ user: User | null }> = ({ user }) => {
+  const { items, loading } = useLearnedSubjects(user);
+  const [pairs, setPairs] = useState<{char: string, val: string, id: number}[]>([]);
+  const [rightOrder, setRightOrder] = useState<string[]>([]); // Current state of right side
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [solved, setSolved] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading || items.length < 5) return;
+    // Pick 5
+    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5);
+    const p = selected.map(s => ({
+      id: s.subject.id!,
+      char: s.subject.characters || '?',
+      val: s.subject.meanings[0].meaning
+    }));
+    
+    setPairs(p);
+    // Shuffle right side
+    setRightOrder(p.map(x => x.val).sort(() => 0.5 - Math.random()));
+    setSolved(false);
+  }, [items, loading]);
+
+  const handleRightClick = (idx: number) => {
+    if (solved) return;
+    if (selectedIdx === null) {
+      setSelectedIdx(idx);
+    } else {
+      // Swap
+      const newOrder = [...rightOrder];
+      const temp = newOrder[selectedIdx];
+      newOrder[selectedIdx] = newOrder[idx];
+      newOrder[idx] = temp;
+      setRightOrder(newOrder);
+      setSelectedIdx(null);
+      
+      // Check if solved
+      const isCorrect = newOrder.every((val, i) => val === pairs[i].val);
+      if (isCorrect) setSolved(true);
+    }
+  };
+
+  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
+  if (items.length < 5) return <div className="p-8 text-center">Not enough items to sort.</div>;
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+         <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+         <h2 className="text-xl font-bold">Sort & Match</h2>
+      </div>
+
+      <div className="bg-indigo-50 p-4 rounded-lg mb-6 text-sm text-indigo-800 flex gap-2">
+         <Icons.GripVertical className="w-5 h-5" />
+         Tap two items on the right list to swap them until they match the characters on the left.
+      </div>
+
+      <div className="flex gap-4">
+        {/* Left Col (Fixed) */}
+        <div className="flex-1 space-y-3">
+           {pairs.map((p) => (
+             <div key={p.id} className="h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl font-bold text-2xl shadow-sm">
+               {p.char}
+             </div>
+           ))}
+        </div>
+
+        {/* Right Col (Sortable) */}
+        <div className="flex-1 space-y-3">
+           {rightOrder.map((val, idx) => {
+             const isCorrect = val === pairs[idx].val;
+             return (
+               <button
+                 key={idx}
+                 onClick={() => handleRightClick(idx)}
+                 className={`
+                   w-full h-16 px-2 flex items-center justify-center rounded-xl font-medium text-sm transition-all border-2
+                   ${selectedIdx === idx ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 bg-white shadow-sm'}
+                   ${solved && isCorrect ? 'border-green-500 bg-green-50 text-green-700' : ''}
+                 `}
+               >
+                 {solved && <Icons.CheckCircle className="w-4 h-4 mr-1 text-green-500" />}
+                 {val}
+               </button>
+             );
+           })}
+        </div>
+      </div>
+      
+      {solved && (
+        <div className="mt-8 text-center animate-bounce">
+           <Button size="lg" onClick={() => window.location.reload()}>Next Level <Icons.ChevronRight className="ml-2" /></Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 const Browse: React.FC<{ user: User | null }> = ({ user }) => {
   const [items, setItems] = useState<{subject: Subject, assignment?: Assignment}[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<{subject: Subject, assignment?: Assignment} | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -252,7 +955,7 @@ const Browse: React.FC<{ user: User | null }> = ({ user }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
          <h2 className="text-2xl font-bold text-gray-900">Level {user?.level} Content</h2>
-         <Button variant="outline" size="sm" onClick={() => window.location.hash = '/'}>
+         <Button variant="outline" size="sm" onClick={() => navigate('/')}>
            Back to Dashboard
          </Button>
       </div>
@@ -308,6 +1011,7 @@ const Session: React.FC<{ mode: 'lesson' | 'review', user: User | null }> = ({ m
   const [loading, setLoading] = useState(true);
   const [complete, setComplete] = useState(false);
   const [drillDownStack, setDrillDownStack] = useState<Subject[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -398,7 +1102,7 @@ const Session: React.FC<{ mode: 'lesson' | 'review', user: User | null }> = ({ m
        </div>
        <h2 className="text-3xl font-bold text-gray-900 mb-2">Session Complete!</h2>
        <p className="text-gray-500 mb-8 max-w-md">You've reviewed {items.length} items. Great job keeping up with your studies.</p>
-       <Button onClick={() => window.location.hash = '/'}>Return to Dashboard</Button>
+       <Button onClick={() => navigate('/')}>Return to Dashboard</Button>
     </div>
   );
 
@@ -409,14 +1113,14 @@ const Session: React.FC<{ mode: 'lesson' | 'review', user: User | null }> = ({ m
        </div>
        <h2 className="text-xl font-bold text-gray-900 mb-2">No items found</h2>
        <p className="text-gray-500 mb-6">There are no items available for this session type.</p>
-       <Button variant="outline" onClick={() => window.location.hash = '/'}>Go Back</Button>
+       <Button variant="outline" onClick={() => navigate('/')}>Go Back</Button>
     </div>
   );
 
   // Determine active subject
   const currentItem = items[currentIndex];
   const activeSubject = drillDownStack.length > 0 ? drillDownStack[drillDownStack.length - 1] : currentItem.subject;
-  const activeAssignment = drillDownStack.length > 0 ? undefined : currentItem.assignment; // Don't show assignment for drilled down components usually, or fetch them if needed. simplified here.
+  const activeAssignment = drillDownStack.length > 0 ? undefined : currentItem.assignment; 
   const isDrillDown = drillDownStack.length > 0;
   
   const progress = ((currentIndex + 1) / items.length) * 100;
@@ -478,278 +1182,16 @@ const Session: React.FC<{ mode: 'lesson' | 'review', user: User | null }> = ({ m
   );
 };
 
-// --- Memory Game ---
-
-interface GameCard {
-  id: string; // unique card id for rendering
-  subjectId: number;
-  content: string;
-  type: 'character' | 'meaning' | 'reading';
-  isFlipped: boolean;
-  isMatched: boolean;
-  subjectType: string;
-}
-
-const MemoryGame: React.FC<{ user: User | null }> = ({ user }) => {
-  const [cards, setCards] = useState<GameCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
-  const [matches, setMatches] = useState(0);
-  const [timer, setTimer] = useState(300); // 5 minutes
-  const [gameOver, setGameOver] = useState(false);
-  const [won, setWon] = useState(false);
-  
-  useEffect(() => {
-    const initGame = async () => {
-      setLoading(true);
-      try {
-        const col = await waniKaniService.getLevelSubjects(user?.level || 1);
-        const allSubjects = (col?.data || []).map(r => ({ ...r.data, id: r.id }));
-        
-        // Pick 6 random subjects
-        const selected = allSubjects.sort(() => 0.5 - Math.random()).slice(0, 6);
-        
-        const gameCards: GameCard[] = [];
-        
-        selected.forEach((s) => {
-          if (!s.id) return;
-          const sType = s.object || 'vocabulary';
-          
-          // Card 1: The Character/Image
-          let charContent = s.characters;
-          if (!charContent && s.character_images) {
-            const svg = s.character_images.find(i => i.content_type === 'image/svg+xml');
-            charContent = svg ? svg.url : '?'; // Store URL in content if it's an image
-          }
-
-          gameCards.push({
-            id: `${s.id}-char`,
-            subjectId: s.id,
-            content: charContent || '?',
-            type: 'character',
-            isFlipped: false,
-            isMatched: false,
-            subjectType: sType
-          });
-
-          // Card 2: Meaning or Reading (Randomized based on rules)
-          // Radical -> Meaning (Radicals don't have reading in WK usually)
-          // Kanji/Vocab -> 50/50 Meaning or Reading
-          
-          let pairType: 'meaning' | 'reading' = 'meaning';
-          if (sType !== 'radical') {
-            pairType = Math.random() > 0.5 ? 'reading' : 'meaning';
-          }
-          
-          let pairContent = "";
-          if (pairType === 'meaning') {
-            pairContent = s.meanings.find(m => m.primary)?.meaning || s.meanings[0].meaning;
-          } else {
-             // For reading, use Hiragana/Katakana
-             pairContent = s.readings?.find(r => r.primary)?.reading || s.readings?.[0]?.reading || "?";
-          }
-
-          gameCards.push({
-            id: `${s.id}-pair`,
-            subjectId: s.id,
-            content: pairContent,
-            type: pairType,
-            isFlipped: false,
-            isMatched: false,
-            subjectType: sType
-          });
-        });
-
-        // Shuffle cards
-        setCards(gameCards.sort(() => 0.5 - Math.random()));
-        setTimer(300);
-        setMatches(0);
-        setGameOver(false);
-        setWon(false);
-        setFlippedIndices([]);
-
-      } catch (e) {
-        console.error("Game init failed", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) initGame();
-  }, [user]);
-
-  // Timer
-  useEffect(() => {
-    if (loading || gameOver || won) return;
-    const interval = setInterval(() => {
-      setTimer((t) => {
-        if (t <= 1) {
-          clearInterval(interval);
-          setGameOver(true);
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [loading, gameOver, won]);
-
-  const handleCardClick = (index: number) => {
-    if (gameOver || won || loading) return;
-    if (cards[index].isFlipped || cards[index].isMatched) return;
-    if (flippedIndices.length >= 2) return; // Prevent clicking more than 2
-
-    const newFlipped = [...flippedIndices, index];
-    setFlippedIndices(newFlipped);
-    
-    // Optimistic flip
-    const newCards = [...cards];
-    newCards[index].isFlipped = true;
-    setCards(newCards);
-
-    if (newFlipped.length === 2) {
-      const idx1 = newFlipped[0];
-      const idx2 = newFlipped[1];
-      const card1 = cards[idx1];
-      const card2 = cards[idx2];
-
-      if (card1.subjectId === card2.subjectId) {
-        // Match!
-        setTimeout(() => {
-          const matchedCards = [...cards];
-          matchedCards[idx1].isMatched = true;
-          matchedCards[idx2].isMatched = true;
-          // Keep flipped but visually mark as done
-          matchedCards[idx1].isFlipped = true; 
-          matchedCards[idx2].isFlipped = true;
-          setCards(matchedCards);
-          setFlippedIndices([]);
-          
-          const newMatchCount = matches + 1;
-          setMatches(newMatchCount);
-          if (newMatchCount === cards.length / 2) {
-            setWon(true);
-          }
-        }, 500);
-      } else {
-        // No match
-        setTimeout(() => {
-          const resetCards = [...cards];
-          resetCards[idx1].isFlipped = false;
-          resetCards[idx2].isFlipped = false;
-          setCards(resetCards);
-          setFlippedIndices([]);
-        }, 1000);
-      }
-    }
-  };
-
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const getColor = (type: string) => {
-    if (type === 'radical') return 'text-sky-500 bg-sky-50 border-sky-100';
-    if (type === 'kanji') return 'text-pink-500 bg-pink-50 border-pink-100';
-    return 'text-purple-500 bg-purple-50 border-purple-100';
-  };
-
-  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Icons.Gamepad2 className="text-indigo-600" />
-            Memory Match
-          </h2>
-          <p className="text-gray-500 text-sm">Match characters to their meanings or readings.</p>
-        </div>
-        <div className={`text-2xl font-mono font-bold ${timer < 60 ? 'text-red-500 animate-pulse' : 'text-gray-700'}`}>
-           <div className="flex items-center gap-2">
-             <Icons.Clock className="w-6 h-6" />
-             {formatTime(timer)}
-           </div>
-        </div>
-      </div>
-
-      {!gameOver && !won ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-          {cards.map((card, idx) => (
-             <div 
-               key={card.id}
-               onClick={() => handleCardClick(idx)}
-               className={`
-                 aspect-[3/4] rounded-xl cursor-pointer perspective-1000 transition-all duration-300
-                 ${card.isMatched ? 'opacity-50 grayscale scale-95 pointer-events-none' : ''}
-               `}
-             >
-                <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}>
-                   {/* Back of Card (Hidden side) - Shows standard Pattern */}
-                   <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md border-2 border-indigo-400 flex items-center justify-center">
-                      <Icons.Brain className="text-white/30 w-12 h-12" />
-                   </div>
-
-                   {/* Front of Card (Revealed side) */}
-                   <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center ${getColor(card.subjectType)}`}>
-                      {card.content.startsWith('http') ? (
-                        <img src={card.content} className="w-16 h-16 object-contain" alt="" />
-                      ) : (
-                        <span className={`${card.type === 'character' ? 'text-4xl font-bold' : 'text-lg font-medium'}`}>
-                          {card.content}
-                        </span>
-                      )}
-                      <span className="text-[10px] uppercase tracking-wider opacity-60 mt-2">{card.type}</span>
-                   </div>
-                </div>
-             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-12 bg-white rounded-3xl shadow-lg border border-gray-100 text-center">
-           {won ? (
-             <>
-                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                  <Icons.CheckCircle className="w-12 h-12" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">You Won!</h2>
-                <p className="text-gray-500 mb-8">Completed with {formatTime(timer)} remaining.</p>
-             </>
-           ) : (
-             <>
-                <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
-                  <Icons.X className="w-12 h-12" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Time's Up!</h2>
-                <p className="text-gray-500 mb-8">Good effort. Try again to beat the clock.</p>
-             </>
-           )}
-           <div className="flex gap-4">
-             <Button onClick={() => window.location.reload()}>Play Again</Button>
-             <Button variant="outline" onClick={() => window.location.hash = '/'}>Dashboard</Button>
-           </div>
-        </div>
-      )}
-
-      <style>{`
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .perspective-1000 { perspective: 1000px; }
-      `}</style>
-    </div>
-  );
-};
-
 
 // --- Main App ---
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(()=> {
+window.location.hash = '/'
+  }, [])
 
   // Init Auth
   useEffect(() => {
@@ -762,12 +1204,14 @@ export default function App() {
           if (userData && userData.data) {
              setUser(userData.data);
           } else {
-             localStorage.removeItem('wk_token');
+             // Only clear if specifically unauthorized, otherwise might be network error
+             // But for simplicity in this demo, we keep token if error is not 401
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error("Auth Error", e);
-          // Don't auto-remove token on network error, only on auth fail (401 handled in service?)
-          // For now, let's just fail silently and stay on login if user object isn't set
+          if (e.message.includes("401") || e.message.includes("Invalid")) {
+              localStorage.removeItem('wk_token');
+          }
         }
       }
       setLoading(false);
@@ -775,10 +1219,9 @@ export default function App() {
     init();
   }, []);
 
-  const handleLogin = async (token: string) => {
+  const handleLogin = (token: string, userData: User) => {
     localStorage.setItem('wk_token', token);
-    const userData = await waniKaniService.getUser();
-    setUser(userData.data);
+    setUser(userData);
   };
 
   const handleLogout = () => {
@@ -787,7 +1230,14 @@ export default function App() {
     window.location.hash = '/login';
   };
 
-  if (loading) return null;
+  if (loading) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+       <div className="bg-white p-4 rounded-full shadow-lg mb-4">
+         <Icons.Brain className="w-12 h-12 text-indigo-600 animate-pulse" />
+       </div>
+       <p className="text-gray-500 font-medium">Loading SukiStudy...</p>
+    </div>
+  );
 
   return (
     <Router>
@@ -800,7 +1250,13 @@ export default function App() {
             <Route path="/" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
             <Route path="/session/lesson" element={user ? <Session mode="lesson" user={user} /> : <Navigate to="/login" />} />
             <Route path="/session/review" element={user ? <Session mode="review" user={user} /> : <Navigate to="/login" />} />
-            <Route path="/session/game" element={user ? <MemoryGame user={user} /> : <Navigate to="/login" />} />
+            
+            <Route path="/session/games" element={user ? <GameMenu /> : <Navigate to="/login" />} />
+            <Route path="/session/games/memory" element={user ? <MemoryGame user={user} /> : <Navigate to="/login" />} />
+            <Route path="/session/games/quiz" element={user ? <QuizGame user={user} /> : <Navigate to="/login" />} />
+            <Route path="/session/games/shiritori" element={user ? <ShiritoriGame user={user} /> : <Navigate to="/login" />} />
+            <Route path="/session/games/sorting" element={user ? <SortingGame user={user} /> : <Navigate to="/login" />} />
+
             <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
           </Routes>
         </main>
