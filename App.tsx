@@ -144,9 +144,7 @@ export default function App() {
           )}
 
           <Routes>
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
-
-            <Route element={!user ? <Navigate to="/login" /> : undefined}>
+            <Route element={!user ? <Login onLogin={handleLogin} /> : undefined}>
               <Route path="/" element={<Dashboard user={user} />} />
               <Route path="/session/lesson" element={<Session mode="lesson" user={user} />} />
               <Route path="/session/review" element={<Session mode="review" user={user} />} />
