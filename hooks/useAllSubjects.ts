@@ -1,80 +1,60 @@
-
-import { useState, useEffect } from 'react';
-import { User, Subject, Assignment, GameItem } from '../types';
-import { waniKaniService } from '../services/wanikaniService';
+import { useState, useEffect, useCallback } from 'react';
+import { User, GameItem, Subject } from '../types';
+import { assignments, subjects } from '../services/db';
 
 export const useAllSubjects = (user: User | null, enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([]);
-  const [loading, setLoading] = useState(enabled);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!enabled) {
+  const runQuery = useCallback(() => {
+    if (!user || !enabled) {
+      setItems([]);
+      setLoading(false);
       return;
     }
 
-    const fetchData = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    const allAssignments = assignments.find({}).fetch();
+    
+    if (allAssignments.length === 0) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
 
-      setLoading(true);
+    const subjectIds = allAssignments.map(a => a.subject_id);
+    const relatedSubjects = subjects.find({ id: { $in: subjectIds } }).fetch();
+    const subjectMap = new Map<number, Subject>(relatedSubjects.map(s => [s.id, s]));
 
-      try {
-        // Fetch learned assignments (SRS > 0)
-        // We fetch current level and maybe level - 1 to ensure enough items
-        const levels = [...Array(user.level)].map((_, index) => index + 1); // 1->user.level
+    const now = new Date();
+    const combined: GameItem[] = [];
 
-        const assignmentsCol = await waniKaniService.getAssignments([], levels, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-        if (!assignmentsCol.data || assignmentsCol.data.length === 0) {
-          setItems([]);
-          setLoading(false);
-          return;
+    allAssignments.forEach(a => {
+        const sub = subjectMap.get(a.subject_id);
+        if (sub) {
+            const availableAt = a.available_at ? new Date(a.available_at) : new Date(8640000000000000);
+            combined.push({
+                subject: sub,
+                assignment: a,
+                isReviewable: availableAt < now
+            });
         }
+    });
 
-        // Extract Subject IDs
-        const assignmentMap = new Map<number, Assignment>();
-        const subjectIds: number[] = [];
-        assignmentsCol.data.forEach(a => {
-          assignmentMap.set(a.data.subject_id, { ...a.data, id: a.id });
-          subjectIds.push(a.data.subject_id);
-        });
-
-        const subjectsCol = await waniKaniService.getSubjects(subjectIds);
-
-        if (subjectsCol && subjectsCol.data) {
-          const now = new Date();
-          const combined = subjectsCol.data.map(s => {
-            const assignment = assignmentMap.get(s.id)!;
-            const availableAt = assignment.available_at ? new Date(assignment.available_at) : new Date(8640000000000000);
-            return {
-              subject: { ...s.data, id: s.id, object: s.object, url: s.url },
-              assignment: assignment,
-              isReviewable: availableAt < now
-            };
-          });
-
-          // Sort: Reviewable first, then random
-          combined.sort((a, b) => {
-            if (a.isReviewable && !b.isReviewable) return -1;
-            if (!a.isReviewable && b.isReviewable) return 1;
-            return 0.5 - Math.random();
-          });
-
-          setItems(combined);
-        } else {
-          setItems([]);
-        }
-      } catch (e) {
-        console.error("Failed to load learned items", e);
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    setItems(combined);
+    setLoading(false);
   }, [user, enabled]);
 
-  return { items, loading };
+  useEffect(() => {
+    runQuery();
+    
+    const stop1 = assignments.on('change', runQuery);
+    const stop2 = subjects.on('change', runQuery);
+
+    return () => {
+      stop1();
+      stop2();
+    };
+  }, [runQuery]);
+
+  return { items, loading: enabled && loading };
 };

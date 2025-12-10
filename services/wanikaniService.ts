@@ -1,4 +1,3 @@
-
 import { WKResource, WKCollection, User, Summary, Subject, Assignment, StudyMaterial } from '../types';
 
 const BASE_URL = 'https://api.wanikani.com/v2';
@@ -6,7 +5,7 @@ const BASE_URL = 'https://api.wanikani.com/v2';
 class WaniKaniService {
   private token: string | null = null;
   private requestTimestamps: number[] = [];
-  private readonly MAX_REQUESTS = 25; // Strict limit to avoid 429s
+  private readonly MAX_REQUESTS = 50; // Requests per minute
   private readonly TIME_WINDOW = 60000; // 1 minute in ms
 
   setToken(token: string) {
@@ -15,41 +14,37 @@ class WaniKaniService {
 
   /**
    * Enforces rate limiting by delaying execution if the limit is reached.
-   * Implements a token bucket-style check.
    */
   private async throttle(): Promise<void> {
     const now = Date.now();
-    // Remove timestamps that are older than the time window
     this.requestTimestamps = this.requestTimestamps.filter(t => now - t < this.TIME_WINDOW);
 
     if (this.requestTimestamps.length >= this.MAX_REQUESTS) {
-      // Calculate how long to wait until the oldest request expires
       const oldest = this.requestTimestamps[0];
-      const waitTime = this.TIME_WINDOW - (now - oldest) + 500; // Add 500ms buffer
+      const waitTime = this.TIME_WINDOW - (now - oldest) + 500;
       
       if (waitTime > 0) {
-        console.warn(`[WaniKaniService] Rate limit reached (${this.requestTimestamps.length}/${this.MAX_REQUESTS}). Waiting ${Math.round(waitTime)}ms...`);
+        console.warn(`[WaniKaniService] Rate limit reached. Waiting ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
-        // Recursively check again after waiting to ensure we are safe
         return this.throttle();
       }
     }
-    
-    // Add current timestamp to the queue
     this.requestTimestamps.push(Date.now());
   }
 
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  public async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     if (!this.token) throw new Error("API Token not set");
     
-    // Wait for rate limiter permission
     await this.throttle();
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    // Handle full URLs (for pagination) vs endpoints
+    const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
+
+    const response = await fetch(url, {
       ...options,
       headers: {
         Authorization: `Bearer ${this.token}`,
-        'Wanikani-Revision': '20170710', // Recommended revision
+        'Wanikani-Revision': '20170710',
         'Content-Type': 'application/json',
         ...options?.headers
       },
@@ -57,14 +52,11 @@ class WaniKaniService {
 
     if (!response.ok) {
       if (response.status === 401) throw new Error("Invalid API Key");
-      
-      // Handle 429 explicitly just in case
       if (response.status === 429) {
-          console.warn("[WaniKaniService] Received 429 Too Many Requests. Backing off for 5 seconds...");
+          console.warn("[WaniKaniService] Received 429. Backing off...");
           await new Promise(resolve => setTimeout(resolve, 5000));
           return this.request<T>(endpoint, options);
       }
-
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
@@ -79,6 +71,8 @@ class WaniKaniService {
     return this.request<WKResource<Summary>>('/summary');
   }
 
+  // --- Fetching for UI (Specific IDs) ---
+
   async getSubjects(ids: number[]): Promise<WKCollection<Subject>> {
     if (ids.length === 0) return { object: 'collection', url: '', pages: { per_page: 0, next_url: null, previous_url: null }, total_count: 0, data: [] };
     const idsString = ids.join(',');
@@ -90,16 +84,10 @@ class WaniKaniService {
   }
 
   async getAssignments(subjectIds?: number[], levels?: number[], srsStages?: number[]): Promise<WKCollection<Assignment>> {
-    // Prevent fetching all assignments if an empty array is explicitly passed but meant to filter
-    if (subjectIds && subjectIds.length === 0 && (!levels || levels.length === 0)) {
-       return { object: 'collection', url: '', pages: { per_page: 0, next_url: null, previous_url: null }, total_count: 0, data: [] };
-    }
-
     const params = new URLSearchParams();
     if (subjectIds && subjectIds.length > 0) params.append('subject_ids', subjectIds.join(','));
     if (levels && levels.length > 0) params.append('levels', levels.join(','));
     if (srsStages && srsStages.length > 0) params.append('srs_stages', srsStages.join(','));
-    
     return this.request<WKCollection<Assignment>>(`/assignments?${params.toString()}`);
   }
 
@@ -109,6 +97,28 @@ class WaniKaniService {
     params.append('subject_ids', subjectIds.join(','));
     return this.request<WKCollection<StudyMaterial>>(`/study_materials?${params.toString()}`);
   }
+
+  // --- Fetching for Sync (All/Incremental) ---
+
+  async getSubjectsUpdatedAfter(date?: string): Promise<WKCollection<Subject>> {
+      const params = new URLSearchParams();
+      if (date) params.append('updated_after', date);
+      return this.request<WKCollection<Subject>>(`/subjects?${params.toString()}`);
+  }
+
+  async getAssignmentsUpdatedAfter(date?: string): Promise<WKCollection<Assignment>> {
+      const params = new URLSearchParams();
+      if (date) params.append('updated_after', date);
+      return this.request<WKCollection<Assignment>>(`/assignments?${params.toString()}`);
+  }
+
+  async getStudyMaterialsUpdatedAfter(date?: string): Promise<WKCollection<StudyMaterial>> {
+      const params = new URLSearchParams();
+      if (date) params.append('updated_after', date);
+      return this.request<WKCollection<StudyMaterial>>(`/study_materials?${params.toString()}`);
+  }
+
+  // --- Actions ---
 
   async startAssignment(assignmentId: number) {
     return this.request(`/assignments/${assignmentId}/start`, {

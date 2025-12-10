@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
@@ -67,7 +66,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
             .map(i => i.subject);
 
         // Remove duplicates by ID
-        const unique = Array.from(new Map(matches.map(item => [item.id, item])).values());
+        const unique = Array.from(new Map<number, Subject>(matches.map(item => [item.id!, item])).values());
         setPossibleWords(unique);
     };
 

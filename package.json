@@ -19,7 +19,12 @@
     "@mantine/core": "7.6.1",
     "@mantine/hooks": "7.6.1",
     "clsx": "2.1.0",
-    "@mantine/modals": "7.6.1"
+    "@mantine/modals": "7.6.1",
+    "@maverick-js/signals": "5.11.2",
+    "@signaldb/core": "0.8.2",
+    "@signaldb/indexeddb": "0.8.2",
+    "@signaldb/maverickjs": "0.8.2",
+    "@signaldb/react": "0.8.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -26,6 +26,7 @@ export interface WKCollection<T> {
 }
 
 export interface User {
+  id?: string; // Added for DB compatibility
   username: string;
   level: number;
   started_at: string;
@@ -34,6 +35,7 @@ export interface User {
 }
 
 export interface StudyMaterial {
+  id?: number;
   created_at: string;
   subject_id: number;
   subject_type: string;
@@ -44,7 +46,7 @@ export interface StudyMaterial {
 }
 
 export interface Subject {
-  id?: number;
+  id?: number; // Required for SignalDB matching, though optional in raw API type
   object?: string;
   url?: string;
   created_at: string;

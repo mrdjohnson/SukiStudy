@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { waniKaniService } from './services/wanikaniService';
+import { syncService } from './services/syncService';
+import { users } from './services/db';
 import { User } from './types';
 import { Header } from './components/Header';
 import { Icons } from './components/Icons';
@@ -50,24 +51,47 @@ const Layout: React.FC<{ user: User | null, onLogout: () => void, children: Reac
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Init Auth
+  // Init Auth & Sync
   useEffect(() => {
     const init = async () => {
       const storedToken = localStorage.getItem('wk_token');
       if (storedToken) {
         waniKaniService.setToken(storedToken);
+        
+        // 1. Try to load user from DB first (Offline support)
+        const dbUser = users.findOne({ id: 'current' });
+        if (dbUser) {
+           setUser(dbUser);
+           setLoading(false);
+        }
+
+        // 2. Background Sync
         try {
-          const userData = await waniKaniService.getUser();
-          if (userData && userData.data) {
-             setUser(userData.data);
-          } else {
-             // Only clear if specifically unauthorized
+          // If we didn't find a user locally, we must wait for network
+          if (!dbUser) {
+              const userData = await waniKaniService.getUser();
+              if (userData && userData.data) {
+                  setUser(userData.data);
+                  users.insert({ ...userData.data, id: 'current' });
+              }
           }
+
+          // Trigger Data Sync
+          setIsSyncing(true);
+          await syncService.sync();
+          setIsSyncing(false);
+          
+          // Refresh user from DB to ensure latest
+          const updatedUser = users.findOne({ id: 'current' });
+          if (updatedUser) setUser(updatedUser);
+
         } catch (e: any) {
-          console.error("Auth Error", e);
-          if (e.message.includes("401") || e.message.includes("Invalid")) {
+          console.error("Auth/Sync Error", e);
+          if (e.message && (e.message.includes("401") || e.message.includes("Invalid"))) {
               localStorage.removeItem('wk_token');
+              await syncService.clearData();
           }
         }
       }
@@ -79,10 +103,16 @@ export default function App() {
   const handleLogin = (token: string, userData: User) => {
     localStorage.setItem('wk_token', token);
     setUser(userData);
+    users.insert({ ...userData, id: 'current' });
+    
+    // Trigger initial sync
+    setIsSyncing(true);
+    syncService.sync().then(() => setIsSyncing(false));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('wk_token');
+    await syncService.clearData();
     setUser(null);
   };
 
@@ -99,6 +129,12 @@ export default function App() {
     <SettingsProvider>
       <Router>
         <Layout user={user} onLogout={handleLogout}>
+            {isSyncing && user && (
+                <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
+                    <Icons.RotateCcw className="w-3 h-3 animate-spin" />
+                    Syncing...
+                </div>
+            )}
             <Routes>
               <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
               <Route path="/" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
