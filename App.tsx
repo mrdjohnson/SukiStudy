@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from 'react-router'
 import { waniKaniService } from './services/wanikaniService';
 import { syncService } from './services/syncService';
 import { users } from './services/db';
@@ -28,6 +28,7 @@ import { AudioQuizGame } from './pages/games/AudioQuizGame';
 import { CustomSession } from './pages/games/CustomSession';
 
 const Layout: React.FC<{ user: User | null, onLogout: () => void, children: React.ReactNode }> = ({ user, onLogout, children }) => {
+  console.log('rendering app')
     const location = useLocation();
     const hideHeader = location.pathname === '/login';
 
@@ -127,7 +128,7 @@ export default function App() {
 
   return (
     <SettingsProvider>
-      <Router>
+      <BrowserRouter>
         <Layout user={user} onLogout={handleLogout}>
             {isSyncing && user && (
                 <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
@@ -159,7 +160,7 @@ export default function App() {
               <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
             </Routes>
         </Layout>
-      </Router>
+      </BrowserRouter>
     </SettingsProvider>
   );
 }

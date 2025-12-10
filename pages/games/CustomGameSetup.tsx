@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { User, GameItem, SubjectType } from '../../types';
 import { useAllSubjects } from '../../hooks/useAllSubjects';
 import { Icons } from '../../components/Icons';

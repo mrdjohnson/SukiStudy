@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { User, GameItem, GameResultData } from '../../types';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';

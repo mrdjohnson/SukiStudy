@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { User, Summary } from '../types';
 import { waniKaniService } from '../services/wanikaniService';
 import { Icons } from '../components/Icons';

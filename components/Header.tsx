@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { Icons } from './Icons';
 import { User } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
