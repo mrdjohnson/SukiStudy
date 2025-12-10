@@ -16,7 +16,7 @@ interface RecallGameProps {
     onComplete?: () => void;
 }
 
-export const QuizGame: React.FC<RecallGameProps> = ({ user, items: propItems, onComplete }) => {
+export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, onComplete }) => {
     const { items: fetchedItems, loading } = useAllSubjects(user, !propItems);
     const items = propItems || fetchedItems;
 
