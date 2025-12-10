@@ -22,7 +22,7 @@ async function fetchAllPages<T>(
     console.log(`[Sync] Fetching next page...`);
     response = await waniKaniService.request<WKCollection<T>>(response.pages.next_url);
     if (response.data.length > 0) {
-        await onPage(response.data.map(d => ({ ...d.data, id: d.id })));
+        await onPage(response.data.map(d => ({ ...d.data, object: d.object, url: d.url, id: d.id })));
     }
   }
 }
@@ -56,7 +56,7 @@ export const syncService = {
                     // For Simplicity in v0.8 we often remove then insert or use upsert if available
                     // Here we just remove matches and insert
                     subjects.removeOne({ id: item.id });
-                    subjects.insert(item as any);
+                    subjects.insert(item);
                 });
             }
         );
@@ -69,8 +69,7 @@ export const syncService = {
             () => waniKaniService.getAssignmentsUpdatedAfter(lastAssignSync || undefined),
             async (items) => {
                 items.forEach(item => {
-                    assignments.removeOne({ id: item.id });
-                    assignments.insert(item as any);
+                    assignments.removeOne({ id: item.id });                    assignments.insert(item);
                 });
             }
         );
