@@ -1,6 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useSet } from '@mantine/hooks'
+import _ from 'lodash'
+
 import { User, Subject, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
@@ -10,6 +13,7 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { GameResults } from '../../components/GameResults';
 import { openFlashcardModal } from '../../components/modals/FlashcardModal';
+import { useAllSubjects } from '../../hooks/useAllSubjects'
 
 interface VariationsQuizGameProps {
     user: User;
@@ -17,12 +21,18 @@ interface VariationsQuizGameProps {
     onComplete?: (data?: any) => void;
 }
 
+type Question = {
+   target: GameItem;
+   correctReadings: string[];
+   options: string[];
+}
+
 export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading } = useAllSubjects(user, !propItems);
   const items = propItems || fetchedItems;
 
-  const [question, setQuestion] = useState<any>(null);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [question, setQuestion] = useState<Question | null>(null);
+  const selectedOptions = useSet<string>();
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
@@ -43,8 +53,12 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
     return () => setHelpSteps(null);
   }, []);
 
+   const kanjiItems = useMemo(()=>{
+     return items.filter(i => i.assignment.subject_type === 'kanji' && !_.isEmpty(i.subject.readings))
+   }, [items, history])
+
   const initRound = () => {
-    setSelectedOptions([]);
+    selectedOptions.clear()
     setSubmitted(false);
     
     if (round === 1) {
@@ -53,23 +67,23 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
         startTimeRef.current = Date.now();
     }
 
-    const kanjiItems = items.filter(i => i.subject.object === 'kanji');
-    if (kanjiItems.length === 0) return;
+    if (kanjiItems.length < 5) {
+      setFinished(true)
 
-    kanjiItems.sort((a, b) => a.isReviewable ? -1 : 1);
-    const target = kanjiItems[Math.floor(Math.random() * Math.min(5, kanjiItems.length))];
+      return
+    }
 
-    // Filter to only accepted answers (taught readings)
-    const correctReadings = target.subject.readings
-        ?.filter(r => r.accepted_answer || r.primary)
-        .map(r => r.reading) || [];
+    const previousAnswers = new Set(history.map(item => item.subject. id))
+    const target = _.chain(kanjiItems).filter(item => !previousAnswers.has(item.subject.id)).sample().value()
+    const correctReadings = target.subject.readings.map(r => r.reading)
     
     // Distractors from other kanji
-    const distractors = kanjiItems
-      .filter(i => i.subject.id !== target.subject.id)
-      .flatMap(i => i.subject.readings?.map(r => r.reading) || [])
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 5); 
+    const distractors = _.chain(kanjiItems)
+      .sampleSize(8)
+      .flatMap(i => i.subject.readings.map(r => r.reading))
+      .without(...correctReadings)
+      .sampleSize(6 - target.subject.readings.length)
+      .value()
 
     const options = Array.from(new Set([...correctReadings, ...distractors])).sort(() => 0.5 - Math.random());
 
@@ -86,18 +100,19 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
 
   const toggleOption = (opt: string) => {
     if (submitted) return;
-    setSelectedOptions(prev => 
-       prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
-    );
+    if(selectedOptions.has(opt)) {
+       selectedOptions.delete(opt);
+    } else {
+       selectedOptions.add(opt);
+    }
   };
 
   const handleSubmit = () => {
     setSubmitted(true);
     const correctSet = new Set(question.correctReadings);
-    const selectedSet = new Set(selectedOptions);
     
-    const allCorrectSelected = question.correctReadings.every((r: string) => selectedSet.has(r));
-    const noExtras = selectedOptions.every(o => correctSet.has(o));
+    const allCorrectSelected = question.correctReadings.every((r: string) => selectedOptions.has(r));
+    const noExtras = correctSet.size === selectedOptions.size;
     const isCorrect = allCorrectSelected && noExtras;
     
     setHistory(prev => [...prev, { subject: question.target.subject, correct: isCorrect }]);
@@ -178,12 +193,13 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
          {question.options.map((opt: string) => {
-            const isSelected = selectedOptions.includes(opt);
+            const isSelected = selectedOptions.has(opt);
             const isCorrect = question.correctReadings.includes(opt);
             
             let className = "p-4 rounded-xl border-2 font-bold text-lg transition-all ";
             
             if (submitted) {
+               if(isSelected) className += " opacity-30 "
                if (isCorrect) className += "bg-green-100 border-green-500 text-green-800";
                else if (isSelected && !isCorrect) className += "bg-red-100 border-red-500 text-red-800 opacity-50";
                else className += "bg-gray-50 border-gray-200 text-gray-400";
