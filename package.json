@@ -21,6 +21,7 @@
     "@signaldb/react": "^1.0.1",
     "@tabler/icons-react": "^3.35.0",
     "clsx": "2.1.0",
+    "gh-pages": "^6.3.0",
     "lodash": "^4.17.21",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -31,6 +32,7 @@
     "recharts": "^3.5.1"
   },
   "devDependencies": {
+    "@types/gh-pages": "^6",
     "@types/lodash": "^4",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.7",
