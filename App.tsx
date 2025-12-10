@@ -140,28 +140,32 @@ export default function App() {
                     Syncing...
                 </div>
             )}
-            <Routes>
-              <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
-              <Route path="/" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/lesson" element={user ? <Session mode="lesson" user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/review" element={user ? <Session mode="review" user={user} /> : <Navigate to="/login" />} />
-              
-              <Route path="/session/games" element={user ? <GameMenu /> : <Navigate to="/login" />} />
-              <Route path="/session/games/memory" element={user ? <MemoryGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/quiz" element={user ? <QuizGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/shiritori" element={user ? <ShiritoriGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/sorting" element={user ? <MatchingGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/connect" element={user ? <ConnectGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/variations" element={user ? <VariationsQuizGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/recall" element={user ? <RecallGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/typing" element={user ? <TypingGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/radical-composition" element={user ? <RadicalCompositionGame user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/games/audio-quiz" element={user ? <AudioQuizGame user={user} /> : <Navigate to="/login" />} />
-              
-              <Route path="/session/custom" element={user ? <CustomGameSetup user={user} /> : <Navigate to="/login" />} />
-              <Route path="/session/custom/play" element={user ? <CustomSession user={user} /> : <Navigate to="/login" />} />
 
-              <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
+            <Routes>
+              <Route path="/login" element={<Login onLogin={handleLogin} />} />
+              
+              <Route element={!user ? <Navigate to="/login" /> : undefined}>
+                <Route path="/" element={<Dashboard user={user} />} />
+                <Route path="/session/lesson" element={<Session mode="lesson" user={user} />} />
+                <Route path="/session/review" element={<Session mode="review" user={user} />} />
+                
+                <Route path="/session/games" element={<GameMenu />} />
+                <Route path="/session/games/memory" element={<MemoryGame user={user} />} />
+                <Route path="/session/games/quiz" element={<QuizGame user={user} />} />
+                <Route path="/session/games/shiritori" element={<ShiritoriGame user={user} />} />
+                <Route path="/session/games/sorting" element={<MatchingGame user={user} />} />
+                <Route path="/session/games/connect" element={<ConnectGame user={user} />} />
+                <Route path="/session/games/variations" element={<VariationsQuizGame user={user} />} />
+                <Route path="/session/games/recall" element={<RecallGame user={user} />} />
+                <Route path="/session/games/typing" element={<TypingGame user={user} />} />
+                <Route path="/session/games/radical-composition" element={<RadicalCompositionGame user={user} />} />
+                <Route path="/session/games/audio-quiz" element={<AudioQuizGame user={user} />} />
+                
+                <Route path="/session/custom" element={<CustomGameSetup user={user} />} />
+                <Route path="/session/custom/play" element={<CustomSession user={user} />} />
+
+                <Route path="/browse" element={<Browse user={user} />} />
+              </Route>
             </Routes>
         </Layout>
       </BrowserRouter>
