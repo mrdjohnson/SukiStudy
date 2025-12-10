@@ -8,8 +8,8 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
-import { Flashcard } from '../../components/Flashcard';
 import { GameResults } from '../../components/GameResults';
+import { openFlashcardModal } from '../../components/modals/FlashcardModal';
 
 interface RadicalCompositionGameProps {
   user: User;
@@ -26,6 +26,7 @@ export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({ 
 
   const [question, setQuestion] = useState<{
     kanji: Subject,
+    assignment?: any,
     correctIds: number[],
     options: Subject[]
   } | null>(null);
@@ -33,7 +34,6 @@ export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({ 
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
   const [submitted, setSubmitted] = useState(false);
-  const [showFlashcard, setShowFlashcard] = useState(false);
   const [loadingComponents, setLoadingComponents] = useState(false);
   
   const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
@@ -76,7 +76,8 @@ export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({ 
       return;
     }
 
-    const target = candidates[Math.floor(Math.random() * candidates.length)].subject;
+    const selection = candidates[Math.floor(Math.random() * candidates.length)];
+    const target = selection.subject;
     const correctIds = target.component_subject_ids;
 
     try {
@@ -103,6 +104,7 @@ export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({ 
 
       setQuestion({
         kanji: target,
+        assignment: selection.assignment,
         correctIds,
         options
       });
@@ -191,7 +193,7 @@ export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({ 
       <div className="text-center mb-8">
         <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">Select the radicals</div>
         <div
-          onClick={() => submitted && setShowFlashcard(true)}
+          onClick={() => submitted && openFlashcardModal(question.kanji, question.assignment)}
           className={`text-8xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer hover:scale-105' : 'text-gray-900'}`}
         >
           {question.kanji.characters}
@@ -242,20 +244,6 @@ export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({ 
           <Button size="lg" onClick={handleNext}>Next Kanji</Button>
         )}
       </div>
-
-      {showFlashcard && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setShowFlashcard(false)}>
-          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
-            <Flashcard
-              subject={question.kanji}
-              hasPrev={false}
-              hasNext={false}
-              onPrev={() => setShowFlashcard(false)}
-              onNext={() => setShowFlashcard(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

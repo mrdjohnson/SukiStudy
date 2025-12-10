@@ -10,8 +10,8 @@ interface Step {
 interface SettingsContextType {
   soundEnabled: boolean;
   toggleSound: () => void;
-  romajiEnabled: boolean;
-  toggleRomaji: () => void;
+  romanjiEnabled: boolean;
+  toggleRomanji: () => void;
   helpSteps: Step[] | null;
   setHelpSteps: (steps: Step[] | null) => void;
 }
@@ -24,8 +24,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return saved !== 'false';
   });
 
-  const [romajiEnabled, setRomajiEnabled] = useState(() => {
-    const saved = localStorage.getItem('suki_romaji');
+  const [romanjiEnabled, setRomanjiEnabled] = useState(() => {
+    const saved = localStorage.getItem('suki_romanji');
     return saved !== 'false';
   });
 
@@ -39,16 +39,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     });
   };
 
-  const toggleRomaji = () => {
-    setRomajiEnabled(prev => {
+  const toggleRomanji = () => {
+    setRomanjiEnabled(prev => {
       const newVal = !prev;
-      localStorage.setItem('suki_romaji', String(newVal));
+      localStorage.setItem('suki_romanji', String(newVal));
       return newVal;
     });
   };
 
   return (
-    <SettingsContext.Provider value={{ soundEnabled, toggleSound, romajiEnabled, toggleRomaji, helpSteps, setHelpSteps }}>
+    <SettingsContext.Provider value={{ soundEnabled, toggleSound, romanjiEnabled, toggleRomanji, helpSteps, setHelpSteps }}>
       {children}
     </SettingsContext.Provider>
   );

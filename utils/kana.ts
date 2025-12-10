@@ -44,33 +44,33 @@ export const toHiragana = (input: string): string => {
 
 // Data for Custom Game Generation
 const HIRAGANA_SET = [
-  { char: 'あ', romaji: 'a' }, { char: 'い', romaji: 'i' }, { char: 'う', romaji: 'u' }, { char: 'え', romaji: 'e' }, { char: 'お', romaji: 'o' },
-  { char: 'か', romaji: 'ka' }, { char: 'き', romaji: 'ki' }, { char: 'く', romaji: 'ku' }, { char: 'け', romaji: 'ke' }, { char: 'こ', romaji: 'ko' },
-  { char: 'さ', romaji: 'sa' }, { char: 'し', romaji: 'shi' }, { char: 'す', romaji: 'su' }, { char: 'せ', romaji: 'se' }, { char: 'そ', romaji: 'so' },
-  { char: 'た', romaji: 'ta' }, { char: 'ち', romaji: 'chi' }, { char: 'つ', romaji: 'tsu' }, { char: 'て', romaji: 'te' }, { char: 'と', romaji: 'to' },
-  { char: 'な', romaji: 'na' }, { char: 'に', romaji: 'ni' }, { char: 'ぬ', romaji: 'nu' }, { char: 'ね', romaji: 'ne' }, { char: 'の', romaji: 'no' },
-  { char: 'は', romaji: 'ha' }, { char: 'ひ', romaji: 'hi' }, { char: 'ふ', romaji: 'fu' }, { char: 'へ', romaji: 'he' }, { char: 'ほ', romaji: 'ho' },
-  { char: 'ま', romaji: 'ma' }, { char: 'み', romaji: 'mi' }, { char: 'む', romaji: 'mu' }, { char: 'め', romaji: 'me' }, { char: 'も', romaji: 'mo' },
-  { char: 'や', romaji: 'ya' }, { char: 'ゆ', romaji: 'yu' }, { char: 'よ', romaji: 'yo' },
-  { char: 'ら', romaji: 'ra' }, { char: 'り', romaji: 'ri' }, { char: 'る', romaji: 'ru' }, { char: 'れ', romaji: 're' }, { char: 'ろ', romaji: 'ro' },
-  { char: 'わ', romaji: 'wa' }, { char: 'を', romaji: 'wo' }, { char: 'ん', romaji: 'n' }
+  { char: 'あ', romanji: 'a' }, { char: 'い', romanji: 'i' }, { char: 'う', romanji: 'u' }, { char: 'え', romanji: 'e' }, { char: 'お', romanji: 'o' },
+  { char: 'か', romanji: 'ka' }, { char: 'き', romanji: 'ki' }, { char: 'く', romanji: 'ku' }, { char: 'け', romanji: 'ke' }, { char: 'こ', romanji: 'ko' },
+  { char: 'さ', romanji: 'sa' }, { char: 'し', romanji: 'shi' }, { char: 'す', romanji: 'su' }, { char: 'せ', romanji: 'se' }, { char: 'そ', romanji: 'so' },
+  { char: 'た', romanji: 'ta' }, { char: 'ち', romanji: 'chi' }, { char: 'つ', romanji: 'tsu' }, { char: 'て', romanji: 'te' }, { char: 'と', romanji: 'to' },
+  { char: 'な', romanji: 'na' }, { char: 'に', romanji: 'ni' }, { char: 'ぬ', romanji: 'nu' }, { char: 'ね', romanji: 'ne' }, { char: 'の', romanji: 'no' },
+  { char: 'は', romanji: 'ha' }, { char: 'ひ', romanji: 'hi' }, { char: 'ふ', romanji: 'fu' }, { char: 'へ', romanji: 'he' }, { char: 'ほ', romanji: 'ho' },
+  { char: 'ま', romanji: 'ma' }, { char: 'み', romanji: 'mi' }, { char: 'む', romanji: 'mu' }, { char: 'め', romanji: 'me' }, { char: 'も', romanji: 'mo' },
+  { char: 'や', romanji: 'ya' }, { char: 'ゆ', romanji: 'yu' }, { char: 'よ', romanji: 'yo' },
+  { char: 'ら', romanji: 'ra' }, { char: 'り', romanji: 'ri' }, { char: 'る', romanji: 'ru' }, { char: 'れ', romanji: 're' }, { char: 'ろ', romanji: 'ro' },
+  { char: 'わ', romanji: 'wa' }, { char: 'を', romanji: 'wo' }, { char: 'ん', romanji: 'n' }
 ];
 
 const KATAKANA_SET = [
-  { char: 'ア', romaji: 'a' }, { char: 'イ', romaji: 'i' }, { char: 'ウ', romaji: 'u' }, { char: 'エ', romaji: 'e' }, { char: 'オ', romaji: 'o' },
-  { char: 'カ', romaji: 'ka' }, { char: 'キ', romaji: 'ki' }, { char: 'ク', romaji: 'ku' }, { char: 'ケ', romaji: 'ke' }, { char: 'コ', romaji: 'ko' },
-  { char: 'サ', romaji: 'sa' }, { char: 'シ', romaji: 'shi' }, { char: 'ス', romaji: 'su' }, { char: 'セ', romaji: 'se' }, { char: 'ソ', romaji: 'so' },
-  { char: 'タ', romaji: 'ta' }, { char: 'チ', romaji: 'chi' }, { char: 'ツ', romaji: 'tsu' }, { char: 'テ', romaji: 'te' }, { char: 'ト', romaji: 'to' },
-  { char: 'ナ', romaji: 'na' }, { char: 'ニ', romaji: 'ni' }, { char: 'ヌ', romaji: 'nu' }, { char: 'ネ', romaji: 'ne' }, { char: 'ノ', romaji: 'no' },
-  { char: 'ハ', romaji: 'ha' }, { char: 'ヒ', romaji: 'hi' }, { char: 'フ', romaji: 'fu' }, { char: 'ヘ', romaji: 'he' }, { char: 'ホ', romaji: 'ho' },
-  { char: 'マ', romaji: 'ma' }, { char: 'ミ', romaji: 'mi' }, { char: 'ム', romaji: 'mu' }, { char: 'メ', romaji: 'me' }, { char: 'モ', romaji: 'mo' },
-  { char: 'ヤ', romaji: 'ya' }, { char: 'ユ', romaji: 'yu' }, { char: 'ヨ', romaji: 'yo' },
-  { char: 'ラ', romaji: 'ra' }, { char: 'リ', romaji: 'ri' }, { char: 'ル', romaji: 'ru' }, { char: 'レ', romaji: 're' }, { char: 'ロ', romaji: 'ro' },
-  { char: 'ワ', romaji: 'wa' }, { char: 'ヲ', romaji: 'wo' }, { char: 'ン', romaji: 'n' }
+  { char: 'ア', romanji: 'a' }, { char: 'イ', romanji: 'i' }, { char: 'ウ', romanji: 'u' }, { char: 'エ', romanji: 'e' }, { char: 'オ', romanji: 'o' },
+  { char: 'カ', romanji: 'ka' }, { char: 'キ', romanji: 'ki' }, { char: 'ク', romanji: 'ku' }, { char: 'ケ', romanji: 'ke' }, { char: 'コ', romanji: 'ko' },
+  { char: 'サ', romanji: 'sa' }, { char: 'シ', romanji: 'shi' }, { char: 'ス', romanji: 'su' }, { char: 'セ', romanji: 'se' }, { char: 'ソ', romanji: 'so' },
+  { char: 'タ', romanji: 'ta' }, { char: 'チ', romanji: 'chi' }, { char: 'ツ', romanji: 'tsu' }, { char: 'テ', romanji: 'te' }, { char: 'ト', romanji: 'to' },
+  { char: 'ナ', romanji: 'na' }, { char: 'ニ', romanji: 'ni' }, { char: 'ヌ', romanji: 'nu' }, { char: 'ネ', romanji: 'ne' }, { char: 'ノ', romanji: 'no' },
+  { char: 'ハ', romanji: 'ha' }, { char: 'ヒ', romanji: 'hi' }, { char: 'フ', romanji: 'fu' }, { char: 'ヘ', romanji: 'he' }, { char: 'ホ', romanji: 'ho' },
+  { char: 'マ', romanji: 'ma' }, { char: 'ミ', romanji: 'mi' }, { char: 'ム', romanji: 'mu' }, { char: 'メ', romanji: 'me' }, { char: 'モ', romanji: 'mo' },
+  { char: 'ヤ', romanji: 'ya' }, { char: 'ユ', romanji: 'yu' }, { char: 'ヨ', romanji: 'yo' },
+  { char: 'ラ', romanji: 'ra' }, { char: 'リ', romanji: 'ri' }, { char: 'ル', romanji: 'ru' }, { char: 'レ', romanji: 're' }, { char: 'ロ', romanji: 'ro' },
+  { char: 'ワ', romanji: 'wa' }, { char: 'ヲ', romanji: 'wo' }, { char: 'ン', romanji: 'n' }
 ];
 
 export const generateKanaGameItems = (includeHiragana: boolean, includeKatakana: boolean): GameItem[] => {
-  let list: { char: string, romaji: string }[] = [];
+  let list: { char: string, romanji: string }[] = [];
   if (includeHiragana) list = [...list, ...HIRAGANA_SET];
   if (includeKatakana) list = [...list, ...KATAKANA_SET];
 
@@ -82,18 +82,18 @@ export const generateKanaGameItems = (includeHiragana: boolean, includeKatakana:
       url: '',
       created_at: new Date().toISOString(),
       level: 1,
-      slug: item.romaji,
+      slug: item.romanji,
       hidden_at: null,
       document_url: '',
       characters: item.char,
       character_images: [],
-      meanings: [{ meaning: item.romaji, primary: true, accepted_answer: true }],
+      meanings: [{ meaning: item.romanji, primary: true, accepted_answer: true }],
       auxiliary_meanings: [],
       readings: [{ type: 'kunyomi', primary: true, reading: item.char, accepted_answer: true }],
       component_subject_ids: [],
       amalgamation_subject_ids: [],
       visually_similar_subject_ids: [],
-      meaning_mnemonic: `This is the kana for ${item.romaji}`,
+      meaning_mnemonic: `This is the kana for ${item.romanji}`,
       lesson_position: 0,
       spaced_repetition_system_id: 0
     };

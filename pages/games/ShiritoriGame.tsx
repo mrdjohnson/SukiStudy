@@ -234,7 +234,7 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Type reading (romaji auto-converts)"
+        placeholder="Type reading (romanji auto-converts)"
         className="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-lg text-center font-bold shadow-sm"
         autoFocus
         />
@@ -264,7 +264,7 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
         onClose={() => setShowHelp(false)}
         title="Shiritori Chain"
         steps={[
-          { title: "Read the Word", description: "Type the correct reading for the displayed word in Hiragana (Romaji auto-converts).", icon: Icons.BookOpen },
+          { title: "Read the Word", description: "Type the correct reading for the displayed word in Hiragana (Romanji auto-converts).", icon: Icons.BookOpen },
           { title: "Link the Chain", description: "The next word will start with the last character of the previous word.", icon: Icons.Link },
           { title: "Avoid 'N'", description: "In traditional Shiritori, if a word ends in 'ん' (N), you lose! But here we just try to keep going.", icon: Icons.Check }
         ]}

@@ -8,8 +8,8 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
-import { Flashcard } from '../../components/Flashcard';
 import { GameResults } from '../../components/GameResults';
+import { openFlashcardModal } from '../../components/modals/FlashcardModal';
 
 interface VariationsQuizGameProps {
     user: User;
@@ -27,7 +27,6 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
   const [submitted, setSubmitted] = useState(false);
-  const [showFlashcard, setShowFlashcard] = useState(false);
   
   const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
   const startTimeRef = useRef(Date.now());
@@ -164,7 +163,7 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
          <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">Select ALL correct readings</div>
          
          <div 
-            onClick={() => submitted && setShowFlashcard(true)}
+            onClick={() => submitted && openFlashcardModal(question.target.subject, question.target.assignment)}
             className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-8' : 'text-gray-900'}`}
             title={submitted ? "Click to view flashcard" : ""}
          >
@@ -208,20 +207,6 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
              <Button size="lg" onClick={nextRound}>Next Question</Button>
          )}
       </div>
-
-      {showFlashcard && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setShowFlashcard(false)}>
-            <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
-                <Flashcard 
-                    subject={question.target.subject}
-                    hasPrev={false}
-                    hasNext={false}
-                    onPrev={() => setShowFlashcard(false)}
-                    onNext={() => setShowFlashcard(false)}
-                />
-            </div>
-        </div>
-      )}
     </div>
   );
 };

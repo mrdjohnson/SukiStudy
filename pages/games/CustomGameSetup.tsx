@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, GameItem, SubjectType } from '../../types';
@@ -8,6 +7,23 @@ import { Button } from '../../components/ui/Button';
 import { Flashcard } from '../../components/Flashcard';
 import { generateKanaGameItems } from '../../utils/kana';
 import { games } from '../../utils/games';
+import { 
+    Grid, 
+    Paper, 
+    Title, 
+    Text, 
+    Slider, 
+    Checkbox, 
+    Group, 
+    Chip, 
+    Modal, 
+    SimpleGrid, 
+    UnstyledButton,
+    Card,
+    ThemeIcon,
+    Stack,
+    Box
+} from '@mantine/core';
 
 export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
   const { items: learnedItems, loading } = useAllSubjects(user);
@@ -15,7 +31,7 @@ export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
   const [selectedGames, setSelectedGames] = useState<string[]>(['quiz']);
   const [itemCount, setItemCount] = useState(25);
   const [levels, setLevels] = useState<number[]>([]);
-  const [types, setTypes] = useState<SubjectType[]>([SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL]);
+  const [types, setTypes] = useState<string[]>([SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL]);
   const [manualSelection, setManualSelection] = useState<number[]>([]);
   const [isManualMode, setIsManualMode] = useState(false);
   const [includeHiragana, setIncludeHiragana] = useState(false);
@@ -46,8 +62,7 @@ export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
       if (levels.length > 0 && !levels.includes(item.subject.level)) return false;
 
       // Type Filter
-      const type = item.subject.object as SubjectType;
-      // WaniKani API returns 'radical', 'kanji', 'vocabulary'
+      const type = item.subject.object as string;
       if (!types.includes(type)) return false;
 
       return true;
@@ -81,14 +96,6 @@ export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
     });
   };
 
-  const toggleGame = (id: string) => {
-    setSelectedGames(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
-
-  const toggleType = (t: SubjectType) => {
-    setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
-  };
-
   const toggleManualId = (id: number) => {
     setManualSelection(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
@@ -104,167 +111,177 @@ export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8" onClick={() => setShowLevelSelect(false)}>
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
-        <h1 className="text-3xl font-bold text-gray-900">Custom Session Setup</h1>
-      </div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <Group mb="xl">
+        <Button variant="subtle" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+        <Title order={2}>Custom Session Setup</Title>
+      </Group>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-8">
-          {/* Game Selection */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Icons.Gamepad2 className="w-5 h-5 text-indigo-600" /> Select Games
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {games.map(g => (
-                <button
-                  key={g.id}
-                  onClick={() => toggleGame(g.id)}
-                  className={`p-3 rounded-xl border-2 text-left flex items-center gap-3 transition-all ${selectedGames.includes(g.id) ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-100 hover:border-gray-300'}`}
-                >
-                  <g.icon className="w-5 h-5" /> {g.name}
-                </button>
-              ))}
-            </div>
-          </section>
+      <Grid gutter="lg">
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Stack gap="lg">
+            {/* Game Selection */}
+            <Paper p="md" withBorder radius="md">
+                <Group mb="md">
+                    <Icons.Gamepad2 className="w-5 h-5 text-indigo-600" />
+                    <Title order={4}>Select Games</Title>
+                </Group>
+                
+                <Chip.Group multiple value={selectedGames} onChange={setSelectedGames}>
+                    <Group gap="xs">
+                        {games.map(g => (
+                            <Chip key={g.id} value={g.id} variant="light" radius="sm">
+                                {g.name}
+                            </Chip>
+                        ))}
+                    </Group>
+                </Chip.Group>
+            </Paper>
 
-          {/* Filters */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Icons.Settings className="w-5 h-5 text-indigo-600" /> Filters
-            </h3>
+            {/* Filters */}
+            <Paper p="md" withBorder radius="md">
+                <Group mb="md">
+                    <Icons.Settings className="w-5 h-5 text-indigo-600" />
+                    <Title order={4}>Filters</Title>
+                </Group>
 
-            <div className="space-y-4">
+                <Stack gap="md">
+                    <Box>
+                        <Button variant="light" size="xs" onClick={() => setShowLevelSelect(true)} rightSection={<Icons.ChevronRight size={14} />}>
+                            Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
+                        </Button>
+                    </Box>
+                    
+                    <Box>
+                        <Text size="sm" fw={500} mb="xs">Subject Types</Text>
+                        <Chip.Group multiple value={types} onChange={setTypes}>
+                            <Group gap="xs">
+                                <Chip value={SubjectType.RADICAL} color="cyan" variant="outline" size="xs">Radical</Chip>
+                                <Chip value={SubjectType.KANJI} color="pink" variant="outline" size="xs">Kanji</Chip>
+                                <Chip value={SubjectType.VOCABULARY} color="grape" variant="outline" size="xs">Vocab</Chip>
+                            </Group>
+                        </Chip.Group>
+                    </Box>
 
-              <div className="relative">
-                <Button variant="outline" size="sm" onClick={e => { setShowLevelSelect(!showLevelSelect); e.stopPropagation() }}>
-                  Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
-                  <Icons.ChevronRight className={`ml-2 w-4 h-4 transition-transform ${showLevelSelect ? 'rotate-90' : ''}`} />
-                </Button>
-                {showLevelSelect && (
-                  <div className="absolute top-10 left-0 z-20 bg-white shadow-xl border border-gray-200 rounded-xl p-4 w-72 h-64 overflow-y-auto grid grid-cols-5 gap-2" onClick={e => e.stopPropagation()}>
-                    {Array.from({ length: 60 }, (_, i) => i + 1).map(l => (
-                      <button
-                        key={l}
-                        onClick={() => toggleLevel(l)}
-                        className={`
-                                    w-10 h-10 rounded-lg text-sm font-bold flex items-center justify-center transition-colors
-                                    ${levels.includes(l) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
-                                `}
-                      >
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    <Box>
+                         <Text size="sm" fw={500} mb="xs">Kana Practice</Text>
+                         <Group>
+                            <Checkbox label="Hiragana" checked={includeHiragana} onChange={(e) => setIncludeHiragana(e.currentTarget.checked)} />
+                            <Checkbox label="Katakana" checked={includeKatakana} onChange={(e) => setIncludeKatakana(e.currentTarget.checked)} />
+                         </Group>
+                    </Box>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Types</label>
-                <div className="flex flex-wrap gap-2">
-                  {[SubjectType.RADICAL, SubjectType.KANJI, SubjectType.VOCABULARY].map(t => (
-                    <button
-                      key={t}
-                      onClick={() => toggleType(t)}
-                      className={`px-3 py-1 rounded-full text-sm capitalize border ${types.includes(t) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-300'}`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    <Box>
+                        <Text size="sm" fw={500} mb="xs">Item Count: {itemCount}</Text>
+                        <Slider 
+                            value={itemCount} 
+                            onChange={setItemCount} 
+                            min={5} max={100} step={5} 
+                            marks={[
+                                { value: 25, label: '25' },
+                                { value: 50, label: '50' },
+                                { value: 100, label: '100' },
+                            ]}
+                            mb="lg"
+                        />
+                    </Box>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kana Practice</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" checked={includeHiragana} onChange={e => setIncludeHiragana(e.target.checked)} className="rounded text-indigo-600" />
-                    Hiragana
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" checked={includeKatakana} onChange={e => setIncludeKatakana(e.target.checked)} className="rounded text-indigo-600" />
-                    Katakana
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Item Count: {itemCount}</label>
-                <input
-                  type="range" min="5" max="100" step="5"
-                  value={itemCount}
-                  onChange={e => setItemCount(Number(e.target.value))}
-                  className="w-full accent-indigo-600"
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isManualMode}
-                    onChange={e => setIsManualMode(e.target.checked)}
-                    className="w-5 h-5 rounded text-indigo-600 border-gray-300"
-                  />
-                  <span className="font-medium text-gray-800">Select Items Manually</span>
-                </label>
-              </div>
-            </div>
-          </section>
-        </div>
+                    <Checkbox 
+                        label="Select Items Manually" 
+                        checked={isManualMode} 
+                        onChange={(e) => setIsManualMode(e.currentTarget.checked)} 
+                    />
+                </Stack>
+            </Paper>
+          </Stack>
+        </Grid.Col>
 
         {/* Item Preview / Selection */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[600px]">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold">
-              {isManualMode ? `Selected (${manualSelection.length})` : `Pool Preview (${filteredPool.length})`}
-            </h3>
-            {isManualMode && (
-              <div className="flex gap-2">
-                <button onClick={() => setManualSelection(filteredPool.map(i => i.subject.id!))} className="text-xs text-indigo-600 underline">Select All</button>
-                <button onClick={() => setManualSelection([])} className="text-xs text-red-600 underline">Clear</button>
-              </div>
-            )}
-          </div>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+           <Paper p="md" withBorder radius="md" h={600} style={{ display: 'flex', flexDirection: 'column' }}>
+                <Group justify="space-between" mb="md">
+                    <Title order={4}>
+                        {isManualMode ? `Selected (${manualSelection.length})` : `Pool (${filteredPool.length})`}
+                    </Title>
+                    {isManualMode && (
+                        <Group gap="xs">
+                            <Button variant="subtle" size="xs" onClick={() => setManualSelection(filteredPool.map(i => i.subject.id!))}>All</Button>
+                            <Button variant="subtle" color="red" size="xs" onClick={() => setManualSelection([])}>Clear</Button>
+                        </Group>
+                    )}
+                </Group>
 
-          <div className="flex-1 overflow-y-auto grid grid-cols-5 gap-2 content-start pr-2">
-            {filteredPool.map(item => {
-              const isSelected = isManualMode && manualSelection.includes(item.subject.id!);
-              const isKana = item.subject.id! < 0;
-              return (
-                <button
-                  key={item.subject.id}
-                  onClick={() => isManualMode && toggleManualId(item.subject.id!)}
-                  onContextMenu={(e) => { e.preventDefault(); if (!isKana) setPreviewFlashcard(item); }}
-                  className={`
-                                aspect-square rounded-lg flex items-center justify-center text-xl font-bold border-2 transition-all relative
-                                ${isManualMode
-                      ? isSelected ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-gray-200 text-gray-400 opacity-60'
-                      : 'border-gray-100 text-gray-800'
-                    }
-                            `}
-                >
-                  {item.subject.characters || "?"}
-                </button>
-              )
-            })}
-            {filteredPool.length === 0 && <div className="col-span-5 text-center text-gray-400 py-10">No items match your filters.</div>}
-          </div>
+                <Box style={{ flex: 1, overflowY: 'auto' }} pr="xs">
+                    <SimpleGrid cols={5} spacing="xs">
+                        {filteredPool.map(item => {
+                            const isSelected = isManualMode && manualSelection.includes(item.subject.id!);
+                            const isKana = item.subject.id! < 0;
+                            return (
+                                <UnstyledButton
+                                    key={item.subject.id}
+                                    onClick={() => isManualMode && toggleManualId(item.subject.id!)}
+                                    onContextMenu={(e) => { e.preventDefault(); if (!isKana) setPreviewFlashcard(item); }}
+                                    style={(theme) => ({
+                                        aspectRatio: '1/1',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: theme.radius.sm,
+                                        border: `2px solid ${isManualMode && isSelected ? theme.colors.indigo[6] : theme.colors.gray[2]}`,
+                                        backgroundColor: isManualMode && isSelected ? theme.colors.indigo[0] : 'transparent',
+                                        opacity: isManualMode && !isSelected ? 0.5 : 1,
+                                        fontWeight: 700,
+                                        fontSize: '1.2rem',
+                                        color: theme.colors.gray[8]
+                                    })}
+                                >
+                                    {item.subject.characters || "?"}
+                                </UnstyledButton>
+                            )
+                        })}
+                    </SimpleGrid>
+                    {filteredPool.length === 0 && <Text c="dimmed" ta="center" mt="xl">No items match filters.</Text>}
+                </Box>
 
-          <div className="pt-4 border-t border-gray-100 mt-4">
-            <Button className="w-full" size="lg" onClick={handleStart} disabled={selectedGames.length === 0 || filteredPool.length === 0 || (isManualMode && manualSelection.length === 0)}>
-              Start Custom Session
-            </Button>
-            <p className="text-center text-xs text-gray-400 mt-2">Long press / Right click items to view details</p>
-          </div>
-        </div>
-      </div>
+                <Box pt="md" mt="md" style={{ borderTop: '1px solid #eee' }}>
+                    <Button fullWidth size="md" onClick={handleStart} disabled={selectedGames.length === 0 || filteredPool.length === 0 || (isManualMode && manualSelection.length === 0)}>
+                        Start Session
+                    </Button>
+                    <Text size="xs" c="dimmed" ta="center" mt="xs">Right click items to view details</Text>
+                </Box>
+           </Paper>
+        </Grid.Col>
+      </Grid>
 
-      {previewFlashcard && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setPreviewFlashcard(null)}>
-          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
+      {/* Level Select Modal */}
+      <Modal opened={showLevelSelect} onClose={() => setShowLevelSelect(false)} title="Select Levels" centered scrollAreaComponent={Box}>
+         <SimpleGrid cols={5} spacing="xs">
+             {Array.from({ length: 60 }, (_, i) => i + 1).map(l => (
+                  <Button 
+                    key={l}
+                    onClick={() => toggleLevel(l)}
+                    variant={levels.includes(l) ? 'filled' : 'default'}
+                    size="sm"
+                    p={0}
+                  >
+                      {l}
+                  </Button>
+             ))}
+         </SimpleGrid>
+      </Modal>
+
+      {/* Flashcard Preview Modal */}
+      <Modal 
+         opened={!!previewFlashcard} 
+         onClose={() => setPreviewFlashcard(null)} 
+         size="lg" 
+         centered
+         withCloseButton={false}
+         padding={0}
+         bg="transparent"
+         styles={{ body: { backgroundColor: 'transparent' }, content: { backgroundColor: 'transparent', boxShadow: 'none' } }}
+      >
+        {previewFlashcard && (
             <Flashcard
               subject={previewFlashcard.subject}
               hasPrev={false}
@@ -272,9 +289,8 @@ export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
               onPrev={() => setPreviewFlashcard(null)}
               onNext={() => setPreviewFlashcard(null)}
             />
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

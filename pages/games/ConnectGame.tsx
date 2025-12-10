@@ -18,10 +18,10 @@ const COLS = 5;
 interface Cell {
   id: string; // r-c
   char: string;
-  romaji: string;
+  romanji: string;
   row: number;
   col: number;
-  isRomajiDisplay: boolean; 
+  isRomanjiDisplay: boolean; 
   correct: boolean;
   wrong: boolean;
 }
@@ -53,7 +53,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
   const startTimeRef = useRef(Date.now());
   const [finished, setFinished] = useState(false);
 
-  const { soundEnabled, romajiEnabled, setHelpSteps } = useSettings();
+  const { soundEnabled, romanjiEnabled, setHelpSteps } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -63,7 +63,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
     setHelpSteps([
         { title: "Trace Reading", description: "Connect hiragana to spell the word's reading.", icon: Icons.GridDots },
         { title: "Drag to Connect", description: "Slide across neighbors.", icon: Icons.Link },
-        { title: "Romaji", description: "If enabled, some tiles show as Romanji.", icon: Icons.FileQuestion }
+        { title: "Romanji", description: "If enabled, some tiles show as Romanji.", icon: Icons.FileQuestion }
     ]);
     return () => setHelpSteps(null);
   }, []);
@@ -115,8 +115,8 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
                 row: r,
                 col: c,
                 char: '',
-                romaji: '',
-                isRomajiDisplay: romajiEnabled && Math.random() > 0.8,
+                romanji: '',
+                isRomanjiDisplay: romanjiEnabled && Math.random() > 0.8,
                 correct: false,
                 wrong: false
             });
@@ -127,14 +127,14 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
         const cellIdx = pos.r * COLS + pos.c;
         const char = reading[idx];
         newGrid[cellIdx].char = char;
-        newGrid[cellIdx].romaji = toRomanji(char);
+        newGrid[cellIdx].romanji = toRomanji(char);
     });
 
     newGrid.forEach(cell => {
         if (!cell.char) {
             const char = hiraganaPool[Math.floor(Math.random() * hiraganaPool.length)];
             cell.char = char;
-            cell.romaji = toRomanji(char);
+            cell.romanji = toRomanji(char);
         }
     });
 
@@ -411,7 +411,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
                             ${isHint ? 'ring-4 ring-yellow-400 bg-yellow-50 animate-pulse' : ''}
                         `}
                     >
-                        {cell.isRomajiDisplay ? cell.romaji : cell.char}
+                        {cell.isRomanjiDisplay ? cell.romanji : cell.char}
                         {isPressed && (
                             <div className="absolute -top-10 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-20">
                                 {toRomanji(cell.char)}

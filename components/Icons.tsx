@@ -34,7 +34,8 @@ import {
   IconKeyboard,
   IconAdjustments,
   IconPuzzle,
-  IconMusic
+  IconMusic,
+  IconHome
 } from '@tabler/icons-react';
 
 export const Icons = {
@@ -72,5 +73,6 @@ export const Icons = {
   Keyboard: IconKeyboard,
   Adjustments: IconAdjustments,
   Puzzle: IconPuzzle,
-  Music: IconMusic
+  Music: IconMusic,
+  Home: IconHome
 };

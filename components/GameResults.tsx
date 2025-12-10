@@ -1,10 +1,9 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Subject } from '../types';
 import { Icons } from './Icons';
 import { Button } from './ui/Button';
 import { games } from '../utils/games';
-import { Flashcard } from './Flashcard';
+import { openFlashcardModal } from './modals/FlashcardModal';
 
 interface GameResultsProps {
   gameId: string;
@@ -28,8 +27,6 @@ export const GameResults: React.FC<GameResultsProps> = ({
   onNext,
   isLastGame = false
 }) => {
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-
   const gameInfo = games.find(g => g.id === gameId);
   const Icon = gameInfo ? gameInfo.icon : Icons.Trophy;
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
@@ -69,7 +66,7 @@ export const GameResults: React.FC<GameResultsProps> = ({
           {history.map((item, idx) => (
             <button
               key={`${item.subject.id}-${idx}`}
-              onClick={() => setSelectedSubject(item.subject)}
+              onClick={() => openFlashcardModal(item.subject)}
               className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
             >
               <div className="flex items-center gap-4">
@@ -99,20 +96,6 @@ export const GameResults: React.FC<GameResultsProps> = ({
           <Icons.ChevronRight className="ml-2 w-5 h-5" />
         </Button>
       </div>
-
-      {selectedSubject && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setSelectedSubject(null)}>
-          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
-            <Flashcard
-              subject={selectedSubject}
-              hasPrev={false}
-              hasNext={false}
-              onPrev={() => setSelectedSubject(null)}
-              onNext={() => setSelectedSubject(null)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

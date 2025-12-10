@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Subject, SubjectType, Assignment, StudyMaterial } from '../types';
 import { Icons } from './Icons';
@@ -8,6 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import { Button } from './ui/Button';
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
+import { Modal, Image, ActionIcon } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 
 interface FlashcardProps {
   subject: Subject;
@@ -26,7 +27,7 @@ const failedImages = new Set<string>();
 const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
     if (type === SubjectType.VOCABULARY) {
@@ -60,7 +61,7 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
         className="mt-4 mb-4 relative group cursor-zoom-in inline-block"
         onClick={(e) => {
           e.stopPropagation();
-          setIsOpen(true);
+          open();
         }}
       >
         <img
@@ -75,32 +76,35 @@ const MnemonicImage: React.FC<{ id: string, type: SubjectType }> = ({ id, type }
         <p className="text-xs text-center text-gray-400 mt-1">Community Mnemonic Artwork (Tap to expand)</p>
       </div>
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(false);
-          }}
-        >
-          <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
-            {/* Close button placed fixed to screen to avoid being covered by large images */}
-            <button
-              className="fixed top-4 right-4 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors pointer-events-auto z-[160]"
-              onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+      <Modal 
+        opened={opened} 
+        onClose={close} 
+        fullScreen 
+        withCloseButton={false} 
+        padding={0}
+        styles={{ body: { backgroundColor: 'black' } }}
+        zIndex={300}
+      >
+         <div className="relative w-full h-screen flex items-center justify-center bg-black">
+            <ActionIcon 
+                variant="filled" 
+                color="gray" 
+                size="lg" 
+                radius="xl" 
+                style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}
+                onClick={(e) => { e.stopPropagation(); close(); }}
             >
-              <Icons.X className="w-6 h-6" />
-            </button>
-            <img
-              src={imageUrl}
-              alt="Mnemonic Fullscreen"
-              className="max-w-full max-h-[90vh] object-contain rounded-md shadow-2xl pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
+                <Icons.X size={20} />
+            </ActionIcon>
+            <Image 
+                src={imageUrl} 
+                fit="contain" 
+                h="90vh" 
+                w="auto" 
+                onClick={(e) => e.stopPropagation()} 
             />
-          </div>
-        </div>
-      )}
+         </div>
+      </Modal>
     </>
   );
 };
@@ -265,12 +269,11 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
         {/* Back */}
         <div
           className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
-          onClick={(e) => e.stopPropagation()} /* Prevent flipping back when clicking the content area generally */
+          onClick={(e) => e.stopPropagation()} 
         >
-          {/* Back Header - Redesigned for Vertical Flow */}
+          {/* Back Header */}
           <div className={`p-6 border-b ${borderColors[type]}`}>
             <div className="flex gap-4">
-              {/* Large Origin Character - Click to flip back */}
               <div
                 onClick={() => setIsFlipped(false)}
                 className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
@@ -285,15 +288,12 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
 
               <div className="flex-1 flex flex-col justify-center">
-                {/* Origin Character (Mobile Only) */}
                 <div onClick={() => setIsFlipped(false)} className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">{character}</div>
 
-                {/* Meaning */}
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
                   {primaryMeaning}
                 </h2>
 
-                {/* Reading Row */}
                 {primaryReading && (
                   <div className="flex items-center gap-3">
                     <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
@@ -310,7 +310,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                 )}
               </div>
 
-              {/* Level Badge */}
               <div className="absolute top-4 right-4 bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200">
                 Lv {subject.level}
               </div>
@@ -319,7 +318,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
 
-            {/* User Synonyms / Notes */}
             {studyMaterial && (
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
                 {studyMaterial.meaning_synonyms.length > 0 && (
@@ -337,7 +335,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* Standard Content */}
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Meaning Mnemonic</h3>
               <div
@@ -356,7 +353,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* Readings */}
             {subject.readings && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Readings</h3>
@@ -371,7 +367,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* Context Sentences */}
             {subject.context_sentences && subject.context_sentences.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Context Sentences</h3>
@@ -386,7 +381,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* Visuals */}
             {(type === SubjectType.KANJI || type === SubjectType.RADICAL) && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Visuals</h3>
@@ -394,7 +388,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* Components */}
             {components.length > 0 && (
               <div className="pt-4 border-t border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -434,7 +427,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
               </div>
             )}
 
-            {/* AI Tutor */}
             <div className="pt-4 border-t border-gray-100">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider flex items-center gap-2">
@@ -444,7 +436,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
                 {!aiExplanation && (
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     onClick={handleAiExplain}
                     isLoading={loadingAi}
                   >
@@ -463,11 +455,10 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
         </div>
       </div>
 
-      {/* Controls - Hide if popup mode */}
       {!isPopup && (
         <div className="flex justify-between items-center mt-8 px-4">
           <Button
-            variant="ghost"
+            variant="subtle"
             onClick={(e) => { e.stopPropagation(); onPrev(); }}
             disabled={!hasPrev}
             className="gap-2"
@@ -479,7 +470,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
           <span className="text-sm font-medium text-gray-400">Tap card to flip</span>
 
           <Button
-            variant="ghost"
+            variant="subtle"
             onClick={(e) => { e.stopPropagation(); if (onNext) onNext(); }}
             disabled={!hasNext}
             className={`gap-2 ${!onNext ? 'invisible' : ''}`}
@@ -489,7 +480,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({ subject, assignment, onNex
           </Button>
         </div>
       )}
-
+      
       <style>{`
         .rotate-y-180 {
           transform: rotateY(180deg);

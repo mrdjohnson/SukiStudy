@@ -8,8 +8,8 @@ import { Button } from '../../components/ui/Button';
 import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
 import { toHiragana } from '../../utils/kana';
-import { Flashcard } from '../../components/Flashcard';
 import { GameResults } from '../../components/GameResults';
+import { openFlashcardModal } from '../../components/modals/FlashcardModal';
 
 interface RecallGameProps {
     user: User;
@@ -27,7 +27,6 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
     const [revealedHints, setRevealedHints] = useState<Subject[]>([]);
     const [input, setInput] = useState('');
     const [finished, setFinished] = useState(false);
-    const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
     const [highlightIds, setHighlightIds] = useState<number[]>([]);
     const startTimeRef = useRef(Date.now());
 
@@ -48,7 +47,6 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
         setRevealedHints([]);
         setFinished(false);
         setInput('');
-        setSelectedSubject(null);
         setHighlightIds([]);
         startTimeRef.current = Date.now();
 
@@ -223,12 +221,13 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
                             if(!w) return null;
                             const isHighlight = highlightIds.includes(id);
                             return (
-                                <div 
-                                    key={id} 
-                                    className={`px-3 py-1 rounded-lg text-sm font-bold transition-all duration-300 ${isHighlight ? 'bg-yellow-300 text-yellow-900 scale-110' : 'bg-green-100 text-green-800'}`}
+                                <button 
+                                    key={id}
+                                    onClick={() => openFlashcardModal(w)}
+                                    className={`px-3 py-1 rounded-lg text-sm font-bold transition-all duration-300 ${isHighlight ? 'bg-yellow-300 text-yellow-900 scale-110' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
                                 >
                                     {w.characters}
-                                </div>
+                                </button>
                             )
                         })}
                     </div>
@@ -249,21 +248,6 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
                     <p className="text-xs text-gray-400 mt-2">Press Enter with empty input to finish</p>
                 </div>
             </div>
-
-            {selectedSubject && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setSelectedSubject(null)}>
-                    <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
-                        <Flashcard
-                            subject={selectedSubject}
-                            hasPrev={false}
-                            hasNext={false}
-                            onPrev={() => setSelectedSubject(null)}
-                            onNext={() => setSelectedSubject(null)}
-                            flipped
-                        />
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
+import { Modal, Button, ThemeIcon, Group, Text, Stepper, Stack } from '@mantine/core';
 import { Icons } from './Icons';
-import { Button } from './ui/Button';
 
 interface Step {
   title: string;
@@ -17,79 +16,66 @@ interface HowToPlayModalProps {
 }
 
 export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose, title, steps }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-
-  if (!isOpen) return null;
+  const [active, setActive] = useState(0);
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
+    if (active < steps.length - 1) {
+      setActive(prev => prev + 1);
     } else {
       onClose();
-      setCurrentStep(0);
+      setActive(0);
     }
   };
 
   const handlePrev = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+    if (active > 0) {
+      setActive(prev => prev - 1);
     }
   };
 
-  const StepIcon = steps[currentStep].icon;
+  const currentStep = steps[active];
+  const StepIcon = currentStep.icon;
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden flex flex-col min-h-[400px]">
-        {/* Header */}
-        <div className="bg-indigo-600 p-6 text-white flex justify-between items-center">
-          <h2 className="text-xl font-bold">How to Play</h2>
-          <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded-full transition-colors">
-            <Icons.X className="w-5 h-5" />
-          </button>
-        </div>
+    <Modal 
+      opened={isOpen} 
+      onClose={onClose} 
+      title={<Text fw={700} size="lg">{title}</Text>}
+      centered
+      size="md"
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+    >
+      <Stack align="center" py="md">
+        <ThemeIcon size={80} radius="xl" variant="light" color="indigo">
+          <StepIcon style={{ width: 40, height: 40 }} />
+        </ThemeIcon>
+        
+        <Text size="xl" fw={700} mt="md">{currentStep.title}</Text>
+        <Text ta="center" c="dimmed" style={{ minHeight: 60 }}>
+          {currentStep.description}
+        </Text>
 
-        {/* Content */}
-        <div className="flex-1 p-8 flex flex-col items-center justify-center text-center relative">
-          
-          <div className="bg-indigo-50 p-6 rounded-full mb-6 animate-bounce-slow">
-             <StepIcon className="w-16 h-16 text-indigo-600" />
-          </div>
-
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            {steps[currentStep].title}
-          </h3>
-          
-          <p className="text-gray-600 text-lg leading-relaxed">
-            {steps[currentStep].description}
-          </p>
-
-          {/* Dots Indicator */}
-          <div className="flex gap-2 mt-8">
-            {steps.map((_, idx) => (
-              <div 
-                key={idx} 
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentStep ? 'bg-indigo-600 w-6' : 'bg-gray-300'}`}
-              />
+        <Group mt="xl">
+            {steps.map((_, i) => (
+                <div 
+                    key={i} 
+                    className={`h-2 rounded-full transition-all duration-300 ${i === active ? 'w-8 bg-indigo-600' : 'w-2 bg-gray-200'}`}
+                />
             ))}
-          </div>
-        </div>
+        </Group>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
-           <Button 
-             variant="ghost" 
-             onClick={handlePrev} 
-             disabled={currentStep === 0}
-             className={currentStep === 0 ? 'invisible' : ''}
-           >
-             Back
-           </Button>
-           <Button onClick={handleNext}>
-             {currentStep === steps.length - 1 ? "Let's Play!" : 'Next'}
-           </Button>
-        </div>
-      </div>
-    </div>
+        <Group justify="space-between" w="100%" mt="xl">
+          <Button variant="subtle" onClick={handlePrev} disabled={active === 0}>
+            Back
+          </Button>
+          <Button onClick={handleNext}>
+            {active === steps.length - 1 ? "Let's Play!" : 'Next'}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 };

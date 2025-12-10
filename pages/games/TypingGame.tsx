@@ -10,8 +10,8 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { toHiragana } from '../../utils/kana';
 import { levenshteinDistance } from '../../utils/string';
-import { Flashcard } from '../../components/Flashcard';
 import { GameResults } from '../../components/GameResults';
+import { openFlashcardModal } from '../../components/modals/FlashcardModal';
 
 interface TypingGameProps {
     user: User;
@@ -28,7 +28,6 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [feedback, setFeedback] = useState('');
-  const [showFlashcard, setShowFlashcard] = useState(false);
   const [round, setRound] = useState(1);
   const MAX_ROUNDS = 10;
   
@@ -98,15 +97,8 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
           else if (meaningFuzzy) handleSuccess("Close enough! Watch spelling.", true);
           else if (readingFuzzy) handleSuccess(`Close! (${hiraganaAttempt})`, true);
       } else {
-          // Wrong - we allow retries, so we don't advance yet, but mark history as incorrect
-          // Actually, typing games usually force correctness. Let's mark as incorrect and show answer.
-          // For now, let's just show error feedback
           playSound('error', soundEnabled);
           setFeedback("Incorrect. Try again.");
-          // We only track history once per round, assuming first attempt counts?
-          // Or we track if they eventually got it right? 
-          // Let's assume we mark it incorrect if they fail, but let them retry.
-          // To simplify: if they get it wrong, we don't auto-advance, just give feedback.
       }
   };
 
@@ -167,7 +159,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
 
       <div className="text-center mb-8">
          <div 
-            onClick={() => answered && setShowFlashcard(true)}
+            onClick={() => answered && openFlashcardModal(currentItem.subject, currentItem.assignment)}
             className={`text-7xl font-bold mb-6 inline-block transition-all ${answered ? 'text-indigo-600 cursor-pointer scale-110' : 'text-gray-900'}`}
          >
             {currentItem.subject.characters || "?"}
@@ -208,20 +200,6 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
               )}
           </form>
       </div>
-
-      {showFlashcard && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setShowFlashcard(false)}>
-            <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
-                <Flashcard 
-                    subject={currentItem.subject}
-                    hasPrev={false}
-                    hasNext={false}
-                    onPrev={() => setShowFlashcard(false)}
-                    onNext={() => setShowFlashcard(false)}
-                />
-            </div>
-        </div>
-      )}
     </div>
   );
 };

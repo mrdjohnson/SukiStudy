@@ -1,143 +1,162 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Icons } from './Icons';
 import { User } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import { HowToPlayModal } from './HowToPlayModal';
+import { AppShell, Burger, Group, NavLink, Text, ThemeIcon, ScrollArea, Switch, Button } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { games } from '../utils/games';
 
 interface HeaderProps {
   user: User | null;
   onLogout: () => void;
+  children: React.ReactNode;
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { soundEnabled, toggleSound, romajiEnabled, toggleRomaji, helpSteps } = useSettings();
+export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
+  const [opened, { toggle }] = useDisclosure();
+  const { soundEnabled, toggleSound, romanjiEnabled, toggleRomanji, helpSteps } = useSettings();
   const [showHelp, setShowHelp] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
-    <>
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              {user && (
-                <button 
-                  onClick={() => setSidebarOpen(true)}
-                  className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg lg:hidden"
-                >
-                  <Icons.Menu className="w-6 h-6" />
-                </button>
-              )}
-              <Link to="/" className="flex items-center gap-2">
-                <div className="bg-indigo-600 p-2 rounded-lg">
-                  <Icons.Brain className="h-6 w-6 text-white" />
-                </div>
-                <span className="font-bold text-xl text-gray-900 tracking-tight">SukiStudy</span>
-              </Link>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {user && (
-                <>
-                  <div className="hidden md:flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                    <span className="text-sm font-medium text-gray-600">Level {user.level}</span>
-                    <div className="h-4 w-px bg-gray-300"></div>
-                    <span className="text-sm font-semibold text-indigo-600 truncate max-w-[100px]">{user.username}</span>
-                  </div>
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{
+        width: 300,
+        breakpoint: 'sm',
+        collapsed: { mobile: !opened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            {user && (
+              <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            )}
+            <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
+              <ThemeIcon size="lg" radius="md" color="indigo" variant="filled">
+                <Icons.Brain size={20} />
+              </ThemeIcon>
+              <Text size="xl" fw={700} c="dark">SukiStudy</Text>
+            </Link>
+          </Group>
 
-                  {/* Desktop Actions */}
-                  <div className="hidden lg:flex items-center gap-2">
-                     <button 
-                        onClick={toggleSound} 
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
-                        title={soundEnabled ? "Mute Sound" : "Enable Sound"}
-                     >
-                        {soundEnabled ? <Icons.Volume className="w-5 h-5" /> : <Icons.VolumeOff className="w-5 h-5" />}
-                     </button>
-                  </div>
+          <Group>
+            {user && (
+              <>
+                <Group visibleFrom="sm" gap="xs">
+                  <Text size="sm" fw={500} c="dimmed">Level {user.level}</Text>
+                  <div className="h-4 w-px bg-gray-300"></div>
+                  <Text size="sm" fw={600} c="indigo">{user.username}</Text>
+                </Group>
 
-                  {/* Contextual Help Icon */}
+                <Group gap="xs">
+                  <ThemeIcon
+                    variant="light"
+                    size="lg"
+                    radius="xl"
+                    color="gray"
+                    style={{ cursor: 'pointer' }}
+                    onClick={toggleSound}
+                  >
+                    {soundEnabled ? <Icons.Volume size={18} /> : <Icons.VolumeOff size={18} />}
+                  </ThemeIcon>
+
                   {helpSteps && (
-                     <button 
-                       onClick={() => setShowHelp(true)}
-                       className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors animate-fade-in"
-                       title="How to Play"
-                     >
-                       <Icons.Help className="w-6 h-6" />
-                     </button>
+                    <ThemeIcon
+                      variant="light"
+                      size="lg"
+                      radius="xl"
+                      color="indigo"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setShowHelp(true)}
+                    >
+                      <Icons.Help size={18} />
+                    </ThemeIcon>
                   )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+                </Group>
+              </>
+            )}
+          </Group>
+        </Group>
+      </AppShell.Header>
 
-      {/* Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+      {user && (
+        <AppShell.Navbar p="md">
+          <AppShell.Section grow component={ScrollArea}>
+            <NavLink
+              label="Dashboard"
+              leftSection={<Icons.Home size="1rem" />}
+              onClick={() => { navigate('/'); if (opened) toggle(); }}
+              active={location.pathname === '/'}
+            />
+            <NavLink
+              label="Browse"
+              leftSection={<Icons.BookOpen size="1rem" />}
+              onClick={() => { navigate('/browse'); if (opened) toggle(); }}
+              active={location.pathname.includes('browse')}
+            />
+
+            <NavLink
+              label="Games"
+              leftSection={<Icons.Gamepad2 size="1rem" />}
+              childrenOffset={28}
+              onClick={() => { navigate('/session/games'); if (opened) toggle(); }}
+              active={location.pathname.endsWith('games')}
+              opened
+            >
+              <NavLink label="Custom Session" onClick={() => { navigate('/session/custom'); if (opened) toggle(); }} leftSection={<Icons.Adjustments size="0.8rem" />} />
+              
+              {games.map(g => (
+                <NavLink
+                  key={g.id}
+                  label={g.name}
+                  leftSection={<g.icon />}
+                  onClick={() => { navigate(`/session/games/${g.id}`); if (opened) toggle(); }}
+                  active={location.pathname.includes(`/session/games/${g.id}`)}
+                />
+              ))}
+            </NavLink>
+          </AppShell.Section>
+
+          <AppShell.Section pt="md">
+            <Text size="xs" fw={500} c="dimmed" mb="sm" tt="uppercase">Settings</Text>
+
+            <Group justify="space-between" mb="sm">
+              <Text size="sm">Game Romanji</Text>
+              <Switch checked={romanjiEnabled} onChange={toggleRomanji} />
+            </Group>
+
+            <Button
+              fullWidth
+              variant="light"
+              color="red"
+              onClick={() => { onLogout(); if (opened) toggle(); }}
+              leftSection={<Icons.LogOut size={16} />}
+            >
+              Logout
+            </Button>
+          </AppShell.Section>
+        </AppShell.Navbar>
       )}
 
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-[101] w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">Menu</h2>
-          <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
-            <Icons.X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
-        
-        <div className="p-4 space-y-2">
-           <Link to="/" onClick={() => setSidebarOpen(false)} className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">
-             <Icons.Brain className="w-5 h-5" /> Dashboard
-           </Link>
-           <Link to="/session/games" onClick={() => setSidebarOpen(false)} className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">
-             <Icons.Gamepad2 className="w-5 h-5" /> Games
-           </Link>
-           <Link to="/browse" onClick={() => setSidebarOpen(false)} className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">
-             <Icons.BookOpen className="w-5 h-5" /> Browse
-           </Link>
-        </div>
-
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-gray-50 space-y-4">
-           {/* Sound Toggle */}
-           <div className="flex items-center justify-between px-4">
-             <span className="text-sm font-medium text-gray-600">Sound Effects</span>
-             <button onClick={toggleSound} className="p-2 bg-white rounded-full shadow-sm border border-gray-200">
-                {soundEnabled ? <Icons.Volume className="w-5 h-5 text-indigo-600" /> : <Icons.VolumeOff className="w-5 h-5 text-gray-400" />}
-             </button>
-           </div>
-           
-           {/* Romaji Toggle */}
-           <div className="flex items-center justify-between px-4">
-             <span className="text-sm font-medium text-gray-600">Game Romaji</span>
-             <button 
-                onClick={toggleRomaji} 
-                className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${romajiEnabled ? 'bg-indigo-600' : 'bg-gray-300'}`}
-             >
-                <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ${romajiEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-             </button>
-           </div>
-           
-           <button 
-             onClick={() => { onLogout(); setSidebarOpen(false); }}
-             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-red-100 text-red-600 rounded-lg font-medium hover:bg-red-50"
-           >
-             <Icons.LogOut className="w-5 h-5" /> Logout
-           </button>
-        </div>
-      </div>
+      <AppShell.Main>
+        {children}
+      </AppShell.Main>
 
       {helpSteps && (
-        <HowToPlayModal 
+        <HowToPlayModal
           isOpen={showHelp}
           onClose={() => setShowHelp(false)}
-          title="How to Play"
+          title={helpSteps[0]?.title ? "How to Play" : "Instructions"}
           steps={helpSteps}
         />
       )}
-    </>
+    </AppShell>
   );
 };

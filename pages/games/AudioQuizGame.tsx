@@ -8,8 +8,8 @@ import { Button } from '../../components/ui/Button';
 import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
-import { Flashcard } from '../../components/Flashcard';
 import { GameResults } from '../../components/GameResults';
+import { openFlashcardModal } from '../../components/modals/FlashcardModal';
 
 interface AudioQuizGameProps {
   user: User;
@@ -32,7 +32,6 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ user, items: propI
   const [round, setRound] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [showFlashcard, setShowFlashcard] = useState(false);
   
   const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
   const startTimeRef = useRef(Date.now());
@@ -211,23 +210,9 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ user, items: propI
         <div className="text-center animate-fade-in">
           <Button size="lg" onClick={handleNext} className="mb-4">Next Question</Button>
           <div>
-            <button onClick={() => setShowFlashcard(true)} className="text-indigo-600 text-sm font-medium hover:underline">
+            <button onClick={() => openFlashcardModal(question.target.subject, question.target.assignment)} className="text-indigo-600 text-sm font-medium hover:underline">
               View Flashcard
             </button>
-          </div>
-        </div>
-      )}
-
-      {showFlashcard && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setShowFlashcard(false)}>
-          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
-            <Flashcard
-              subject={question.target.subject}
-              hasPrev={false}
-              hasNext={false}
-              onPrev={() => setShowFlashcard(false)}
-              onNext={() => setShowFlashcard(false)}
-            />
           </div>
         </div>
       )}

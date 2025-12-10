@@ -30,13 +30,20 @@ const Layout: React.FC<{ user: User | null, onLogout: () => void, children: Reac
     const location = useLocation();
     const hideHeader = location.pathname === '/login';
 
+    if (hideHeader) {
+        return (
+            <div className="min-h-screen bg-gray-50 font-sans">
+                <main>
+                    {children}
+                </main>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
-            {!hideHeader && <Header user={user} onLogout={onLogout} />}
-            <main>
-                {children}
-            </main>
-        </div>
+        <Header user={user} onLogout={onLogout}>
+            {children}
+        </Header>
     );
 };
 
