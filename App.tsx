@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter, Route, Routes, Navigate, useLocation } from 'react-router'
+import { Route, Routes, useLocation, HashRouter } from 'react-router'
 import { waniKaniService } from './services/wanikaniService'
 import { syncService } from './services/syncService'
 import { users } from './services/db'
@@ -134,7 +134,7 @@ export default function App() {
 
   return (
     <SettingsProvider>
-      <BrowserRouter basename="/SukiStudy/">
+      <HashRouter>
         <Layout user={user} onLogout={handleLogout}>
           {isSyncing && user && (
             <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
@@ -174,7 +174,7 @@ export default function App() {
             </Route>
           </Routes>
         </Layout>
-      </BrowserRouter>
+      </HashRouter>
     </SettingsProvider>
   )
 }
