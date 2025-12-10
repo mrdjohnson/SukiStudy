@@ -132,7 +132,7 @@ export default function App() {
 
   return (
     <SettingsProvider>
-      <BrowserRouter>
+      <BrowserRouter basename='/SukiStudy/'>
         <Layout user={user} onLogout={handleLogout}>
             {isSyncing && user && (
                 <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
