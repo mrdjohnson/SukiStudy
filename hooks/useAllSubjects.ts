@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, GameItem, Subject } from '../types';
 import { assignments, subjects } from '../services/db';
+import _ from 'lodash'
 
 export const useAllSubjects = (user: User | null, enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
 
   const runQuery = useCallback(() => {
     if (!user || !enabled) {
@@ -23,13 +24,14 @@ export const useAllSubjects = (user: User | null, enabled: boolean = true) => {
 
     const subjectIds = allAssignments.map(a => a.subject_id);
     const relatedSubjects = subjects.find({ id: { $in: subjectIds } }).fetch();
-    const subjectMap = new Map<number, Subject>(relatedSubjects.map(s => [s.id, s]));
+    const subjectMap = _.keyBy(relatedSubjects, 'id');
 
     const now = new Date();
     const combined: GameItem[] = [];
 
     allAssignments.forEach(a => {
-        const sub = subjectMap.get(a.subject_id);
+        const sub = subjectMap[a.subject_id];
+        
         if (sub) {
             const availableAt = a.available_at ? new Date(a.available_at) : new Date(8640000000000000);
             combined.push({
@@ -47,12 +49,12 @@ export const useAllSubjects = (user: User | null, enabled: boolean = true) => {
   useEffect(() => {
     runQuery();
     
-    const stop1 = assignments.on('change', runQuery);
-    const stop2 = subjects.on('change', runQuery);
+    assignments.on('changed', runQuery);
+    subjects.on('changed', runQuery);
 
     return () => {
-      stop1();
-      stop2();
+      assignments.off('changed', runQuery);
+      subjects.off('changed', runQuery);
     };
   }, [runQuery]);
 
