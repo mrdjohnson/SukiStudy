@@ -62,13 +62,17 @@ export const useLearnedSubjects = (user: User | null, enabled: boolean = true) =
 
   useEffect(() => {
     runQuery();
+
     
-    const stop1 = assignments.on('change', runQuery);
-    const stop2 = subjects.on('change', runQuery);
+    assignments.on('changed', runQuery);
+    subjects.on('changed', runQuery);
 
     return () => {
-      stop1();
-      stop2();
+      // assignments.dispose()
+      // subjects.dispose()
+
+      assignments.off('changed', runQuery);
+      subjects.off('changed', runQuery);
     };
   }, [runQuery]);
 

@@ -60,6 +60,8 @@ export default function App() {
       const storedToken = localStorage.getItem('wk_token');
       if (storedToken) {
         waniKaniService.setToken(storedToken);
+
+        await users.isReady()
         
         // 1. Try to load user from DB first (Offline support)
         const dbUser = users.findOne({ id: 'current' });
@@ -67,6 +69,8 @@ export default function App() {
            setUser(dbUser);
            setLoading(false);
         }
+
+        console.log('user found: ', !!dbUser)
 
         // 2. Background Sync
         try {

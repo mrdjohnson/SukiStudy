@@ -18,7 +18,7 @@ async function fetchAllPages<T>(
       await onPage(response.data.map(d => ({ ...d.data, id: d.id })));
   }
 
-  while (response.pages.next_url) {
+  while (response.pages.next_url && response.data.length > 0) {
     console.log(`[Sync] Fetching next page...`);
     response = await waniKaniService.request<WKCollection<T>>(response.pages.next_url);
     if (response.data.length > 0) {
@@ -41,8 +41,8 @@ export const syncService = {
 
     try {
         // 1. Sync User
-        const userRes = await waniKaniService.getUser();
-        users.insert({ ...userRes.data, id: 'current' }); // Upsert by ID usually handled by clean/insert or find
+        const waniUser = await waniKaniService.getUser();
+        users.updateOne({id: 'current'}, { $set: {...waniUser.data, id: 'current'}} ); // Upsert by ID usually handled by clean/insert or find
         
         // 2. Sync Subjects
         const lastSubjectSync = localStorage.getItem(SYNC_KEYS.SUBJECTS);
@@ -97,10 +97,10 @@ export const syncService = {
   },
 
   async clearData() {
-    subjects.remove({});
-    assignments.remove({});
-    studyMaterials.remove({});
-    users.remove({});
+    subjects.removeMany({});
+    assignments.removeMany({});
+    studyMaterials.removeMany({});
+    users.removeMany({});
     localStorage.removeItem(SYNC_KEYS.SUBJECTS);
     localStorage.removeItem(SYNC_KEYS.ASSIGNMENTS);
     localStorage.removeItem(SYNC_KEYS.MATERIALS);
