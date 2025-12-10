@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
 import { useAllSubjects } from '../../hooks/useAllSubjects';
@@ -9,11 +9,12 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
 import { toHiragana } from '../../utils/kana';
 import { Flashcard } from '../../components/Flashcard';
+import { GameResults } from '../../components/GameResults';
 
 interface RecallGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -27,6 +28,8 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
     const [input, setInput] = useState('');
     const [finished, setFinished] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+    const [highlightIds, setHighlightIds] = useState<number[]>([]);
+    const startTimeRef = useRef(Date.now());
 
     const { soundEnabled, setHelpSteps } = useSettings();
     const navigate = useNavigate();
@@ -46,6 +49,8 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
         setFinished(false);
         setInput('');
         setSelectedSubject(null);
+        setHighlightIds([]);
+        startTimeRef.current = Date.now();
 
         const vocab = items.filter(i => i.subject.object === 'vocabulary');
         if (vocab.length === 0) return;
@@ -53,10 +58,8 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
         // Pick random start char from available vocab
         const randomItem = vocab[Math.floor(Math.random() * vocab.length)];
         const reading = randomItem.subject.readings?.[0]?.reading;
-        if (!reading) {
-            // Retry if something is malformed
-            return;
-        }
+        if (!reading) return;
+        
         const char = reading.charAt(0);
         setStartChar(char);
 
@@ -90,17 +93,33 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
         }
 
         const val = toHiragana(input).trim();
-        const match = possibleWords.find(w => w.readings?.[0]?.reading === val);
+        
+        // Find ALL words matching this reading
+        const matches = possibleWords.filter(w => w.readings?.some(r => r.reading === val));
 
-        if (match) {
-            if (!foundWords.includes(match.id!)) {
-                setFoundWords(prev => [...prev, match.id!]);
+        if (matches.length > 0) {
+            // Check which are new
+            const newIds: number[] = [];
+            const alreadyIds: number[] = [];
+            
+            matches.forEach(m => {
+                if (!foundWords.includes(m.id!)) {
+                    newIds.push(m.id!);
+                } else {
+                    alreadyIds.push(m.id!);
+                }
+            });
+
+            if (newIds.length > 0) {
+                setFoundWords(prev => [...prev, ...newIds]);
                 playSound('success', soundEnabled);
                 setInput('');
             } else {
-                // Already found
+                // All matching words already found -> trigger highlight
+                setHighlightIds(alreadyIds);
                 playSound('pop', soundEnabled);
                 setInput('');
+                setTimeout(() => setHighlightIds([]), 1000);
             }
         } else {
             playSound('error', soundEnabled);
@@ -118,20 +137,51 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
 
     const finishGame = () => {
         setFinished(true);
-        if (onComplete) {
-            // Add a slight delay if used in a lesson flow
-            setTimeout(onComplete, 3000);
-        }
     };
+
+    const handleResultsNext = () => {
+        if (onComplete) {
+            const history = possibleWords.map(w => ({
+                subject: w,
+                correct: foundWords.includes(w.id!)
+            }));
+            onComplete({
+                gameId: 'recall',
+                score: foundWords.length,
+                maxScore: possibleWords.length,
+                timeTaken: (Date.now() - startTimeRef.current) / 1000,
+                history: history
+            });
+        }
+    }
 
     if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
     if (items.length === 0) return <div className="p-8 text-center text-gray-500">Not enough vocabulary items.</div>;
+
+    if (finished) {
+        const history = possibleWords.map(w => ({
+            subject: w,
+            correct: foundWords.includes(w.id!)
+        }));
+        
+        return (
+            <GameResults 
+                gameId="recall"
+                score={foundWords.length}
+                maxScore={possibleWords.length}
+                timeTaken={(Date.now() - startTimeRef.current) / 1000}
+                history={history}
+                onNext={handleResultsNext}
+                isLastGame={!propItems}
+            />
+        );
+    }
 
     return (
         <div className="max-w-2xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>
+                    {!propItems && <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>}
                 </div>
                 <h2 className="text-xl font-bold">Word Recall</h2>
             </div>
@@ -140,72 +190,64 @@ export const RecallGame: React.FC<RecallGameProps> = ({ user, items: propItems, 
                 <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Words starting with</div>
                 <div className="text-6xl font-bold text-indigo-600 mb-6">{startChar}</div>
 
-                {!finished ? (
-                    <div className="max-w-md mx-auto">
-                        <form onSubmit={handleSubmit} className="relative mb-4">
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={e => setInput(e.target.value)}
-                                placeholder="Type reading..."
-                                className="w-full px-4 py-3 text-center text-lg border-2 border-gray-300 rounded-xl focus:border-indigo-500 outline-none"
-                                autoFocus
-                            />
-                        </form>
+                <div className="max-w-md mx-auto">
+                    <form onSubmit={handleSubmit} className="relative mb-4">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            placeholder="Type reading..."
+                            className="w-full px-4 py-3 text-center text-lg border-2 border-gray-300 rounded-xl focus:border-indigo-500 outline-none"
+                            autoFocus
+                        />
+                    </form>
 
-                        <div className="flex items-center justify-between text-gray-500 text-sm mb-6 px-2">
-                            <span>Found {foundWords.length} / {possibleWords.length}</span>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={handleHint}
-                                    className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium"
-                                    disabled={foundWords.length + revealedHints.length >= possibleWords.length}
+                    <div className="flex items-center justify-between text-gray-500 text-sm mb-6 px-2">
+                        <span>Found {foundWords.length} / {possibleWords.length}</span>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={handleHint}
+                                className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium"
+                                disabled={foundWords.length + revealedHints.length >= possibleWords.length}
+                            >
+                                <Icons.Lightbulb className="w-4 h-4" /> Hint
+                            </button>
+                        </div>
+                    </div>
+                    
+                        {/* Live Found List */}
+                    <div className="flex flex-wrap gap-2 justify-center mb-6">
+                        {foundWords.map(id => {
+                            const w = possibleWords.find(p => p.id === id);
+                            if(!w) return null;
+                            const isHighlight = highlightIds.includes(id);
+                            return (
+                                <div 
+                                    key={id} 
+                                    className={`px-3 py-1 rounded-lg text-sm font-bold transition-all duration-300 ${isHighlight ? 'bg-yellow-300 text-yellow-900 scale-110' : 'bg-green-100 text-green-800'}`}
                                 >
-                                    <Icons.Lightbulb className="w-4 h-4" /> Hint
-                                </button>
-                            </div>
-                        </div>
-
-                        {revealedHints.length > 0 && (
-                            <div className="mb-6 flex flex-wrap justify-center gap-2">
-                                {revealedHints.map(h => (
-                                    <div key={h.id} className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg text-sm font-bold animate-fade-in">
-                                        {h.characters}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <div className="mt-6">
-                            <Button onClick={finishGame} variant="secondary">I'm Done</Button>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">Press Enter with empty input to finish</p>
+                                    {w.characters}
+                                </div>
+                            )
+                        })}
                     </div>
-                ) : (
-                    <div className="bg-gray-50 p-6 rounded-2xl animate-fade-in">
-                        <h3 className="text-lg font-bold mb-4">Results: {foundWords.length} / {possibleWords.length}</h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-left">
-                            {possibleWords.map(w => {
-                                const isFound = foundWords.includes(w.id!);
-                                return (
-                                    <button
-                                        key={w.id}
-                                        onClick={() => setSelectedSubject(w)}
-                                        className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center justify-center transition-all ${isFound ? 'bg-green-100 border-green-500 text-green-800' : 'bg-white border-gray-200 text-gray-400 opacity-60'}`}
-                                    >
-                                        <span className="text-lg mb-1">{w.characters}</span>
-                                        <span className="font-normal text-xs">{w.readings?.[0]?.reading}</span>
-                                        {!isFound && <span className="text-[10px] text-red-400 font-bold uppercase mt-1">Missed</span>}
-                                    </button>
-                                )
-                            })}
+
+                    {revealedHints.length > 0 && (
+                        <div className="mb-6 flex flex-wrap justify-center gap-2">
+                            {revealedHints.map(h => (
+                                <div key={h.id} className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg text-sm font-bold animate-fade-in">
+                                    {h.characters}
+                                </div>
+                            ))}
                         </div>
-                        <div className="mt-6">
-                            <Button onClick={initGame}>Play Again</Button>
-                        </div>
+                    )}
+
+                    <div className="mt-6">
+                        <Button onClick={finishGame} variant="secondary">I'm Done</Button>
                     </div>
-                )}
+                    <p className="text-xs text-gray-400 mt-2">Press Enter with empty input to finish</p>
+                </div>
             </div>
 
             {selectedSubject && (

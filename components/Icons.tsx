@@ -31,7 +31,10 @@ import {
   IconListCheck,
   IconHelpCircle,
   IconInfoCircle,
-  IconKeyboard
+  IconKeyboard,
+  IconAdjustments,
+  IconPuzzle,
+  IconMusic
 } from '@tabler/icons-react';
 
 export const Icons = {
@@ -66,5 +69,8 @@ export const Icons = {
   ListCheck: IconListCheck,
   Help: IconHelpCircle,
   Info: IconInfoCircle,
-  Keyboard: IconKeyboard
+  Keyboard: IconKeyboard,
+  Adjustments: IconAdjustments,
+  Puzzle: IconPuzzle,
+  Music: IconMusic
 };

@@ -1,30 +1,35 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, GameItem } from '../../types';
+import { User, GameItem, Subject } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
 import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
 import { HowToPlayModal } from '../../components/HowToPlayModal';
+import { GameResults } from '../../components/GameResults';
 
 interface MatchingGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propItems, onComplete }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
   const items = propItems || fetchedItems;
 
-  const [leftItems, setLeftItems] = useState<{char: string, id: number}[]>([]);
+  const [leftItems, setLeftItems] = useState<{char: string, id: number, subject: Subject}[]>([]);
   const [rightItems, setRightItems] = useState<{val: string, id: number}[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null);
   const [matchedIds, setMatchedIds] = useState<number[]>([]);
-  const [showHelp, setShowHelp] = useState(false);
+  
+  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
+  const startTimeRef = useRef(Date.now());
+  const [finished, setFinished] = useState(false);
+
   const { soundEnabled, setHelpSteps } = useSettings();
   const navigate = useNavigate();
 
@@ -32,16 +37,21 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propIte
     setSelectedId(null);
     setSelectedSide(null);
     setMatchedIds([]);
+    setHistory([]);
+    setFinished(false);
+    startTimeRef.current = Date.now();
+
     if (items.length < 5) return;
     
     const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5);
     const base = selected.map(s => ({
       id: s.subject.id!,
       char: s.subject.characters || '?',
-      val: s.subject.meanings[0].meaning
+      val: s.subject.meanings[0].meaning,
+      subject: s.subject
     }));
 
-    setLeftItems(base.map(x => ({ id: x.id, char: x.char })).sort(() => 0.5 - Math.random()));
+    setLeftItems(base.map(x => ({ id: x.id, char: x.char, subject: x.subject })).sort(() => 0.5 - Math.random()));
     setRightItems(base.map(x => ({ id: x.id, val: x.val })).sort(() => 0.5 - Math.random()));
   };
 
@@ -53,9 +63,9 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propIte
 
   useEffect(() => {
     if (matchedIds.length === leftItems.length && leftItems.length > 0) {
-        if (onComplete) setTimeout(onComplete, 2000);
+        setTimeout(() => setFinished(true), 1000);
     }
-  }, [matchedIds, leftItems, onComplete]);
+  }, [matchedIds, leftItems]);
 
   useEffect(() => {
     const steps = [
@@ -99,6 +109,9 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propIte
        setSelectedId(null);
        setSelectedSide(null);
        playSound('success', soundEnabled);
+       
+       const subject = leftItems.find(i => i.id === id)?.subject;
+       if (subject) setHistory(prev => [...prev, { subject, correct: true }]);
     } else {
        // Wrong match
        playSound('error', soundEnabled);
@@ -107,10 +120,32 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propIte
     }
   };
 
+  const handleFinish = () => {
+      if (onComplete) {
+          onComplete({
+              gameId: 'sorting',
+              score: matchedIds.length,
+              maxScore: leftItems.length,
+              timeTaken: (Date.now() - startTimeRef.current) / 1000,
+              history
+          });
+      }
+  };
+
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   if (items.length < 5) return <div className="p-8 text-center">Not enough items to match.</div>;
 
-  const allMatched = matchedIds.length === leftItems.length && leftItems.length > 0;
+  if (finished) return (
+      <GameResults
+         gameId="sorting"
+         score={matchedIds.length}
+         maxScore={leftItems.length}
+         timeTaken={(Date.now() - startTimeRef.current) / 1000}
+         history={history}
+         onNext={handleFinish}
+         isLastGame={!propItems}
+      />
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -166,13 +201,6 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propIte
            })}
         </div>
       </div>
-      
-      {allMatched && (
-        <div className="mt-8 text-center animate-bounce">
-           <h3 className="text-2xl font-bold text-green-600 mb-4">All Matched!</h3>
-           <Button size="lg" onClick={initGame}>Next Level <Icons.ChevronRight className="ml-2" /></Button>
-        </div>
-      )}
     </div>
   );
 };

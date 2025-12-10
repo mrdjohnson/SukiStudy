@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
 import { useAllSubjects } from '../../hooks/useAllSubjects';
@@ -11,11 +11,12 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { HowToPlayModal } from '../../components/HowToPlayModal';
 import { toRomanji } from '../../utils/romanji';
+import { GameResults } from '../../components/GameResults';
 
 interface ShiritoriGameProps {
   user: User;
   items?: GameItem[];
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
 export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -28,6 +29,7 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
   const [message, setMessage] = useState('Type the reading in Hiragana');
   const [gameOver, setGameOver] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const startTimeRef = useRef(Date.now());
 
   const { soundEnabled } = useSettings();
   const navigate = useNavigate();
@@ -54,6 +56,7 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
     setGameOver(false);
     setMessage('Type the reading in Hiragana');
     setInput('');
+    startTimeRef.current = Date.now();
 
     if (vocabItems.length === 0) return;
 
@@ -155,7 +158,6 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
     if (candidates.length === 0) {
       setGameOver(true);
       setMessage(`Chain broken! No learned words found starting with "${lastChar}"`);
-      if (onComplete) setTimeout(onComplete, 2000);
       return;
     }
 
@@ -168,8 +170,32 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
     setMessage(`Good! Next word starts with ${lastChar}`);
   };
 
+  const handleFinish = () => {
+      if (onComplete) {
+          onComplete({
+              gameId: 'shiritori',
+              score: history.length,
+              maxScore: history.length,
+              timeTaken: (Date.now() - startTimeRef.current) / 1000,
+              history: history.map(s => ({ subject: s, correct: true }))
+          });
+      }
+  };
+
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   if (vocabItems.length < 4) return <div className="p-8 text-center text-gray-500">Not enough vocabulary to play Shiritori.</div>;
+
+  if (gameOver) return (
+      <GameResults
+         gameId="shiritori"
+         score={history.length}
+         maxScore={history.length} // Endless chain
+         timeTaken={(Date.now() - startTimeRef.current) / 1000}
+         history={history.map(s => ({ subject: s, correct: true }))}
+         onNext={handleFinish}
+         isLastGame={!propItems}
+      />
+  );
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -184,7 +210,7 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center mb-8">
-        {!gameOver && currentWord ? (
+        {currentWord ? (
           <>
             <div className="text-gray-400 text-sm mb-2">Current Word</div>
             <div className="text-5xl font-bold text-gray-900 mb-4">{currentWord.subject.characters}</div>
@@ -196,32 +222,34 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propI
         ) : (
           <div>
             <Icons.Link className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900">{gameOver ? "Chain Broken!" : "Ready"}</h3>
+            <h3 className="text-2xl font-bold text-gray-900">Ready</h3>
             <p className="text-gray-500">You connected {history.length} words.</p>
             <Button className="mt-4" onClick={initGame}>Try Again</Button>
           </div>
         )}
       </div>
 
-      {!gameOver && (
-        <form onSubmit={handleSubmit} className="relative">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type reading (romaji auto-converts)"
-            className="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-lg text-center font-bold shadow-sm"
-            autoFocus
-          />
-          <p className="text-center mt-3 text-sm text-gray-500 flex items-center justify-center gap-2">
-            {message === 'Incorrect reading. Try again.' ? <Icons.X className="w-4 h-4 text-red-500" /> : <Icons.Sparkles className="w-4 h-4 text-yellow-500" />}
-            {message}
-          </p>
-        </form>
-      )}
+      <form onSubmit={handleSubmit} className="relative">
+        <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Type reading (romaji auto-converts)"
+        className="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-lg text-center font-bold shadow-sm"
+        autoFocus
+        />
+        <p className="text-center mt-3 text-sm text-gray-500 flex items-center justify-center gap-2">
+        {message === 'Incorrect reading. Try again.' ? <Icons.X className="w-4 h-4 text-red-500" /> : <Icons.Sparkles className="w-4 h-4 text-yellow-500" />}
+        {message}
+        </p>
+      </form>
 
       <div className="mt-8">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Chain History</h3>
+        <div className="flex items-center justify-between mb-4">
+             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Chain History</h3>
+             <Button variant="outline" size="sm" onClick={() => setGameOver(true)}>End Game</Button>
+        </div>
+        
         <div className="flex flex-wrap gap-2">
           {history.slice(0, -1).reverse().map((w, i) => (
             <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-sm font-medium">

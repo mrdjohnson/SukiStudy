@@ -1,15 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, GameItem } from '../../types';
+import { User, GameItem, Subject } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
 import { Icons } from '../../components/Icons';
 import { Button } from '../../components/ui/Button';
 import { HowToPlayModal } from '../../components/HowToPlayModal';
+import { GameResults } from '../../components/GameResults';
 
 interface GameCard {
   id: string; 
   subjectId: number;
+  subject: Subject;
   content: string;
   type: 'character' | 'meaning' | 'reading';
   isFlipped: boolean;
@@ -20,7 +22,7 @@ interface GameCard {
 interface MemoryGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -34,6 +36,10 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  
+  const startTimeRef = useRef(Date.now());
+  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
+  
   const navigate = useNavigate();
 
   const initGame = () => {
@@ -42,6 +48,8 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
     setGameOver(false);
     setWon(false);
     setTimer(300);
+    setHistory([]);
+    startTimeRef.current = Date.now();
 
     if (items.length < 6) {
         return; 
@@ -61,6 +69,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
       gameCards.push({
         id: `${s.id}-char`,
         subjectId: s.id!,
+        subject: s,
         content: charContent || '?',
         type: 'character',
         isFlipped: false,
@@ -83,6 +92,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
       gameCards.push({
         id: `${s.id}-pair`,
         subjectId: s.id!,
+        subject: s,
         content: pairContent,
         type: pairType,
         isFlipped: false,
@@ -115,11 +125,17 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
     return () => clearInterval(interval);
   }, [loading, gameOver, won, showHelp]);
 
-  useEffect(() => {
-    if (won && onComplete) {
-      setTimeout(onComplete, 2000);
-    }
-  }, [won, onComplete]);
+  const handleFinish = () => {
+      if (onComplete) {
+          onComplete({
+              gameId: 'memory',
+              score: matches,
+              maxScore: 6,
+              timeTaken: (Date.now() - startTimeRef.current) / 1000,
+              history: history
+          });
+      }
+  };
 
   const handleCardClick = (index: number) => {
     if (gameOver || won || loading) return;
@@ -147,6 +163,8 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
           setCards(matchedCards);
           setFlippedIndices([]);
           
+          setHistory(prev => [...prev, { subject: card1.subject, correct: true }]);
+
           const newMatchCount = matches + 1;
           setMatches(newMatchCount);
           if (newMatchCount === cards.length / 2) {
@@ -175,6 +193,20 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
 
   if (items.length < 6) return <div className="p-8 text-center text-gray-500">Not enough items to play.</div>;
 
+  if (gameOver || won) {
+      return (
+          <GameResults
+             gameId="memory"
+             score={matches}
+             maxScore={6}
+             timeTaken={(Date.now() - startTimeRef.current) / 1000}
+             history={history}
+             onNext={handleFinish}
+             isLastGame={!propItems}
+          />
+      )
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -190,37 +222,31 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, 
          </div>
       </div>
 
-      {!gameOver && !won ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-          {cards.map((card, idx) => (
-             <div 
-               key={card.id}
-               onClick={() => handleCardClick(idx)}
-               className={`aspect-[3/4] rounded-xl cursor-pointer perspective-1000 transition-all duration-300 ${card.isMatched ? 'opacity-50 grayscale pointer-events-none' : ''}`}
-             >
-                <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}>
-                   <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md border-2 border-indigo-400 flex items-center justify-center">
-                      <Icons.Brain className="text-white/30 w-12 h-12" />
-                   </div>
-                   <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}>
-                      {card.content.startsWith('http') ? (
-                        <img src={card.content} className="w-16 h-16 object-contain" alt="" />
-                      ) : (
-                        <span className={`${card.type === 'character' ? 'text-4xl font-bold' : 'text-lg font-medium'}`}>
-                          {card.content}
-                        </span>
-                      )}
-                   </div>
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+        {cards.map((card, idx) => (
+            <div 
+            key={card.id}
+            onClick={() => handleCardClick(idx)}
+            className={`aspect-[3/4] rounded-xl cursor-pointer perspective-1000 transition-all duration-300 ${card.isMatched ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+            >
+            <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}>
+                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md border-2 border-indigo-400 flex items-center justify-center">
+                    <Icons.Brain className="text-white/30 w-12 h-12" />
                 </div>
-             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-            <h2 className="text-3xl font-bold mb-4">{won ? "You Won!" : "Time's Up!"}</h2>
-            <Button onClick={initGame}>Play Again</Button>
-        </div>
-      )}
+                <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}>
+                    {card.content.startsWith('http') ? (
+                    <img src={card.content} className="w-16 h-16 object-contain" alt="" />
+                    ) : (
+                    <span className={`${card.type === 'character' ? 'text-4xl font-bold' : 'text-lg font-medium'}`}>
+                        {card.content}
+                    </span>
+                    )}
+                </div>
+            </div>
+            </div>
+        ))}
+      </div>
+      
       <style>{`.rotate-y-180 { transform: rotateY(180deg); } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .perspective-1000 { perspective: 1000px; }`}</style>
       
       <HowToPlayModal 

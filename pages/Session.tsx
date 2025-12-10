@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Subject, Assignment, GameItem } from '../types';
+import { User, Subject, Assignment, GameItem, GameResultData } from '../types';
 import { waniKaniService } from '../services/wanikaniService';
 import { Icons } from '../components/Icons';
 import { Button } from '../components/ui/Button';
@@ -143,7 +143,7 @@ export const Session: React.FC<{ mode: 'lesson' | 'review', user: User }> = ({ m
      }
   };
 
-  const handleGameComplete = async () => {
+  const handleGameComplete = async (data?: GameResultData) => {
       const nextIdx = gameQueue.indexOf(currentGame!) + 1;
       if (nextIdx < gameQueue.length) {
           setCurrentGame(gameQueue[nextIdx]);

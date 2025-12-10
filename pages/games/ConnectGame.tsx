@@ -9,6 +9,7 @@ import { waniKaniService } from '../../services/wanikaniService';
 import { useSettings } from '../../contexts/SettingsContext';
 import { playSound } from '../../utils/sound';
 import { toRomanji } from '../../utils/romanji';
+import { GameResults } from '../../components/GameResults';
 
 // Grid size
 const ROWS = 5;
@@ -28,7 +29,7 @@ interface Cell {
 interface ConnectGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -47,6 +48,10 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
   const [found, setFound] = useState(false);
   const [hintCellId, setHintCellId] = useState<string | null>(null);
   const [pressedCell, setPressedCell] = useState<string | null>(null);
+  
+  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
+  const startTimeRef = useRef(Date.now());
+  const [finished, setFinished] = useState(false);
 
   const { soundEnabled, romajiEnabled, setHelpSteps } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,6 +81,12 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
     setMessage('');
     setHintCellId(null);
     setPressedCell(null);
+    
+    // Stop after 5 successes for standardized session
+    if (score >= 5) {
+        setFinished(true);
+        return;
+    }
     
     let candidates = items.filter(i => {
        const reading = i.subject.readings?.[0]?.reading;
@@ -165,6 +176,11 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
 
   useEffect(() => {
     if (!loading && items.length > 0) {
+        // Reset state on mount
+        setScore(0);
+        setHistory([]);
+        startTimeRef.current = Date.now();
+        setFinished(false);
         initLevel();
     }
   }, [loading, items]);
@@ -223,6 +239,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
           return grid[r * COLS + c].char;
       }).join('');
       const correctReading = currentSubject?.readings?.[0]?.reading;
+      
       if (selectedChars === correctReading) {
           setScore(s => s + 1);
           setFound(true);
@@ -230,11 +247,14 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
           setGrid(prev => prev.map(cell => 
              selectedCells.includes(cell.id) ? {...cell, correct: true} : cell
           ));
+          
+          if(currentSubject) setHistory(prev => [...prev, { subject: currentSubject, correct: true }]);
+
           playSound('success', soundEnabled);
           if (currentAssignment && currentAssignment.id && new Date(currentAssignment.available_at!) < new Date()) {
             waniKaniService.createReview(currentAssignment.id, 0, 0).catch(e => console.error(e));
           }
-          if (onComplete && score % 5 === 0 && score > 0) onComplete();
+          
           setTimeout(initLevel, 1500);
       } else {
           if (selectedCells.length > 1) playSound('error', soundEnabled);
@@ -277,8 +297,32 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems
       return { x, y };
   };
 
+  const handleFinish = () => {
+      if (onComplete) {
+          onComplete({
+              gameId: 'connect',
+              score: score,
+              maxScore: score, // Connect is endless, so score is max
+              timeTaken: (Date.now() - startTimeRef.current) / 1000,
+              history: history
+          });
+      }
+  };
+
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   if (items.length < 5) return <div className="p-8 text-center text-gray-500">Not enough vocabulary.</div>;
+
+  if (finished) return (
+      <GameResults
+         gameId="connect"
+         score={score}
+         maxScore={score}
+         timeTaken={(Date.now() - startTimeRef.current) / 1000}
+         history={history}
+         onNext={handleFinish}
+         isLastGame={!propItems}
+      />
+  );
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 select-none overscroll-none touch-none">

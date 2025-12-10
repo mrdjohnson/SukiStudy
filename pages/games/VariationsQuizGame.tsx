@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
@@ -9,11 +9,12 @@ import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { Flashcard } from '../../components/Flashcard';
+import { GameResults } from '../../components/GameResults';
 
 interface VariationsQuizGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -28,6 +29,9 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
   const [submitted, setSubmitted] = useState(false);
   const [showFlashcard, setShowFlashcard] = useState(false);
   
+  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
+  const startTimeRef = useRef(Date.now());
+
   const { soundEnabled, setHelpSteps } = useSettings();
   const navigate = useNavigate();
 
@@ -44,6 +48,12 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
     setSelectedOptions([]);
     setSubmitted(false);
     
+    if (round === 1) {
+        setHistory([]);
+        setScore(0);
+        startTimeRef.current = Date.now();
+    }
+
     const kanjiItems = items.filter(i => i.subject.object === 'kanji');
     if (kanjiItems.length === 0) return;
 
@@ -89,8 +99,11 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
     
     const allCorrectSelected = question.correctReadings.every((r: string) => selectedSet.has(r));
     const noExtras = selectedOptions.every(o => correctSet.has(o));
+    const isCorrect = allCorrectSelected && noExtras;
     
-    if (allCorrectSelected && noExtras) {
+    setHistory(prev => [...prev, { subject: question.target.subject, correct: isCorrect }]);
+
+    if (isCorrect) {
        playSound('success', soundEnabled);
        setScore(s => s + 1);
        if (question.target.isReviewable && question.target.assignment.id) {
@@ -104,25 +117,36 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, it
   const nextRound = () => {
     if (round >= 5) {
       setFinished(true);
-      if (onComplete) setTimeout(onComplete, 1000);
     } else {
       setRound(r => r + 1);
       initRound();
     }
   };
 
+  const handleFinish = () => {
+      if (onComplete) {
+          onComplete({
+              gameId: 'variations',
+              score: score,
+              maxScore: 5,
+              timeTaken: (Date.now() - startTimeRef.current) / 1000,
+              history: history
+          });
+      }
+  };
+
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   
   if (finished) return (
-     <div className="max-w-2xl mx-auto p-8 text-center">
-        <Icons.Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Game Over!</h2>
-        <p className="text-xl text-gray-600 mb-8">Score: {score} / 5</p>
-        <div className="flex justify-center gap-4">
-            <Button onClick={() => { setRound(1); setScore(0); setFinished(false); initRound(); }}>Play Again</Button>
-            {!propItems && <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>}
-        </div>
-     </div>
+     <GameResults
+         gameId="variations"
+         score={score}
+         maxScore={5}
+         timeTaken={(Date.now() - startTimeRef.current) / 1000}
+         history={history}
+         onNext={handleFinish}
+         isLastGame={!propItems}
+      />
   );
 
   if (!question) return <div className="p-8 text-center">Not enough Kanji items loaded.</div>;

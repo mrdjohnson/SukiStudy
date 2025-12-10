@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { waniKaniService } from './services/wanikaniService';
 import { User } from './types';
 import { Header } from './components/Header';
@@ -21,6 +21,24 @@ import { ConnectGame } from './pages/games/ConnectGame';
 import { VariationsQuizGame } from './pages/games/VariationsQuizGame';
 import { RecallGame } from './pages/games/RecallGame';
 import { TypingGame } from './pages/games/TypingGame';
+import { CustomGameSetup } from './pages/games/CustomGameSetup';
+import { RadicalCompositionGame } from './pages/games/RadicalCompositionGame';
+import { AudioQuizGame } from './pages/games/AudioQuizGame';
+import { CustomSession } from './pages/games/CustomSession';
+
+const Layout: React.FC<{ user: User | null, onLogout: () => void, children: React.ReactNode }> = ({ user, onLogout, children }) => {
+    const location = useLocation();
+    const hideHeader = location.pathname === '/login';
+
+    return (
+        <div className="min-h-screen bg-gray-50 font-sans">
+            {!hideHeader && <Header user={user} onLogout={onLogout} />}
+            <main>
+                {children}
+            </main>
+        </div>
+    );
+};
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -73,10 +91,7 @@ export default function App() {
   return (
     <SettingsProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 font-sans">
-          <Header user={user} onLogout={handleLogout} />
-          
-          <main>
+        <Layout user={user} onLogout={handleLogout}>
             <Routes>
               <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
               <Route path="/" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
@@ -92,11 +107,15 @@ export default function App() {
               <Route path="/session/games/variations" element={user ? <VariationsQuizGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/recall" element={user ? <RecallGame user={user} /> : <Navigate to="/login" />} />
               <Route path="/session/games/typing" element={user ? <TypingGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/radical-composition" element={user ? <RadicalCompositionGame user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/games/audio-quiz" element={user ? <AudioQuizGame user={user} /> : <Navigate to="/login" />} />
+              
+              <Route path="/session/custom" element={user ? <CustomGameSetup user={user} /> : <Navigate to="/login" />} />
+              <Route path="/session/custom/play" element={user ? <CustomSession user={user} /> : <Navigate to="/login" />} />
 
               <Route path="/browse" element={user ? <Browse user={user} /> : <Navigate to="/login" />} />
             </Routes>
-          </main>
-        </div>
+        </Layout>
       </Router>
     </SettingsProvider>
   );

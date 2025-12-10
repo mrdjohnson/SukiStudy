@@ -135,4 +135,15 @@ export interface GameItem {
   isReviewable: boolean;
 }
 
+export interface GameResultData {
+  gameId: string;
+  score: number;
+  maxScore: number;
+  timeTaken: number; // in seconds
+  history: {
+    subject: Subject;
+    correct: boolean;
+  }[];
+}
+
 export type FlashcardMode = 'lesson' | 'review' | 'browse';

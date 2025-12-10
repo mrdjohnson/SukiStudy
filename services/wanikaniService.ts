@@ -5,14 +5,46 @@ const BASE_URL = 'https://api.wanikani.com/v2';
 
 class WaniKaniService {
   private token: string | null = null;
+  private requestTimestamps: number[] = [];
+  private readonly MAX_REQUESTS = 25; // Strict limit to avoid 429s
+  private readonly TIME_WINDOW = 60000; // 1 minute in ms
 
   setToken(token: string) {
     this.token = token;
   }
 
+  /**
+   * Enforces rate limiting by delaying execution if the limit is reached.
+   * Implements a token bucket-style check.
+   */
+  private async throttle(): Promise<void> {
+    const now = Date.now();
+    // Remove timestamps that are older than the time window
+    this.requestTimestamps = this.requestTimestamps.filter(t => now - t < this.TIME_WINDOW);
+
+    if (this.requestTimestamps.length >= this.MAX_REQUESTS) {
+      // Calculate how long to wait until the oldest request expires
+      const oldest = this.requestTimestamps[0];
+      const waitTime = this.TIME_WINDOW - (now - oldest) + 500; // Add 500ms buffer
+      
+      if (waitTime > 0) {
+        console.warn(`[WaniKaniService] Rate limit reached (${this.requestTimestamps.length}/${this.MAX_REQUESTS}). Waiting ${Math.round(waitTime)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        // Recursively check again after waiting to ensure we are safe
+        return this.throttle();
+      }
+    }
+    
+    // Add current timestamp to the queue
+    this.requestTimestamps.push(Date.now());
+  }
+
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     if (!this.token) throw new Error("API Token not set");
     
+    // Wait for rate limiter permission
+    await this.throttle();
+
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers: {
@@ -25,7 +57,15 @@ class WaniKaniService {
 
     if (!response.ok) {
       if (response.status === 401) throw new Error("Invalid API Key");
-      throw new Error(`API Error: ${response.statusText}`);
+      
+      // Handle 429 explicitly just in case
+      if (response.status === 429) {
+          console.warn("[WaniKaniService] Received 429 Too Many Requests. Backing off for 5 seconds...");
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          return this.request<T>(endpoint, options);
+      }
+
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();

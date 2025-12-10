@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
@@ -9,11 +9,12 @@ import { playSound } from '../../utils/sound';
 import { useSettings } from '../../contexts/SettingsContext';
 import { waniKaniService } from '../../services/wanikaniService';
 import { HowToPlayModal } from '../../components/HowToPlayModal';
+import { GameResults } from '../../components/GameResults';
 
 interface QuizGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -26,7 +27,10 @@ export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onCo
   const [finished, setFinished] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [incorrectItems, setIncorrectItems] = useState<{subject: Subject, correctAnswer: string, type: string}[]>([]);
+  
+  // History Tracking
+  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
+  const startTimeRef = useRef(Date.now());
   const [showHelp, setShowHelp] = useState(false);
   
   const { soundEnabled } = useSettings();
@@ -36,9 +40,10 @@ export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onCo
     setFinished(false);
     setCurrentQuestion(0);
     setScore(0);
-    setIncorrectItems([]);
+    setHistory([]);
     setSelectedAnswer(null);
     setFeedback(null);
+    startTimeRef.current = Date.now();
     
     if (items.length < 4) return;
     
@@ -86,6 +91,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onCo
     setSelectedAnswer(ans);
     const q = questions[currentQuestion];
     const isCorrect = ans === q.correctAnswer;
+    
+    // Track history
+    setHistory(prev => [...prev, { subject: q.subject, correct: isCorrect }]);
 
     if (isCorrect) {
       setScore(s => s + 1);
@@ -97,7 +105,6 @@ export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onCo
     } else {
       setFeedback('wrong');
       playSound('error', soundEnabled);
-      setIncorrectItems(prev => [...prev, { subject: q.subject, correctAnswer: q.correctAnswer, type: q.type }]);
     }
 
     setTimeout(() => {
@@ -107,42 +114,35 @@ export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onCo
             setCurrentQuestion(c => c + 1);
         } else {
             setFinished(true);
-            if (onComplete) setTimeout(onComplete, 1000);
         }
     }, 1500);
+  };
+
+  const handleFinish = () => {
+    if (onComplete) {
+        onComplete({
+            gameId: 'quiz',
+            score,
+            maxScore: questions.length,
+            timeTaken: (Date.now() - startTimeRef.current) / 1000,
+            history
+        });
+    }
   };
 
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   if (items.length < 4) return <div className="p-8 text-center text-gray-500">Not enough items.</div>;
 
   if (finished) return (
-     <div className="max-w-2xl mx-auto p-8 text-center">
-        <Icons.Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Quiz Complete!</h2>
-        <p className="text-xl text-gray-600 mb-8">You scored {score} / {questions.length}</p>
-        
-        {incorrectItems.length > 0 && (
-            <div className="bg-red-50 border border-red-100 rounded-xl p-6 mb-8 text-left">
-                <h3 className="font-bold text-red-800 mb-4">Review missed items:</h3>
-                <div className="space-y-3">
-                    {incorrectItems.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between border-b border-red-100 last:border-0 pb-2">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl font-bold text-gray-800">{item.subject.characters}</span>
-                                <span className="text-xs uppercase bg-gray-200 px-2 py-0.5 rounded text-gray-600">{item.type}</span>
-                            </div>
-                            <span className="font-medium text-red-600">{item.correctAnswer}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )}
-
-        <div className="flex justify-center gap-4">
-           <Button onClick={initGame}>Play Again</Button>
-           {!propItems && <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>}
-        </div>
-     </div>
+     <GameResults 
+        gameId="quiz"
+        score={score}
+        maxScore={questions.length}
+        timeTaken={(Date.now() - startTimeRef.current) / 1000}
+        history={history}
+        onNext={handleFinish}
+        isLastGame={!propItems} // Standard mode implies last game, propItems usually implies custom/lesson queue
+     />
   );
 
   const q = questions[currentQuestion];

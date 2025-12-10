@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Subject, GameItem } from '../../types';
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
@@ -11,11 +11,12 @@ import { waniKaniService } from '../../services/wanikaniService';
 import { toHiragana } from '../../utils/kana';
 import { levenshteinDistance } from '../../utils/string';
 import { Flashcard } from '../../components/Flashcard';
+import { GameResults } from '../../components/GameResults';
 
 interface TypingGameProps {
     user: User;
     items?: GameItem[];
-    onComplete?: () => void;
+    onComplete?: (data?: any) => void;
 }
 
 export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, onComplete }) => {
@@ -31,6 +32,10 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
   const [round, setRound] = useState(1);
   const MAX_ROUNDS = 10;
   
+  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
+  const startTimeRef = useRef(Date.now());
+  const [finished, setFinished] = useState(false);
+
   const { soundEnabled, setHelpSteps } = useSettings();
   const navigate = useNavigate();
 
@@ -45,7 +50,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
 
   const nextRound = () => {
     if (round > MAX_ROUNDS) {
-        if (onComplete) onComplete();
+        setFinished(true);
         return;
     }
     
@@ -60,7 +65,10 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
   };
 
   useEffect(() => {
-    if (!loading && items.length > 0) nextRound();
+    if (!loading && items.length > 0) {
+        startTimeRef.current = Date.now();
+        nextRound();
+    }
   }, [loading, items]);
 
   const checkAnswer = (e: React.FormEvent) => {
@@ -83,17 +91,22 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
       const readingExact = readings.includes(hiraganaAttempt);
       const readingFuzzy = readings.some(r => levenshteinDistance(r, hiraganaAttempt) <= 1);
 
-      if (meaningExact || readingExact) {
-          handleSuccess("Correct!", true);
-      } else if (meaningFuzzy) {
-          handleSuccess("Close enough! Watch spelling.", true);
-      } else if (readingFuzzy) {
-          handleSuccess(`Close! (${hiraganaAttempt})`, true);
+      const isCorrect = meaningExact || readingExact || meaningFuzzy || readingFuzzy;
+      
+      if (isCorrect) {
+          if (meaningExact || readingExact) handleSuccess("Correct!", true);
+          else if (meaningFuzzy) handleSuccess("Close enough! Watch spelling.", true);
+          else if (readingFuzzy) handleSuccess(`Close! (${hiraganaAttempt})`, true);
       } else {
-          // Wrong
+          // Wrong - we allow retries, so we don't advance yet, but mark history as incorrect
+          // Actually, typing games usually force correctness. Let's mark as incorrect and show answer.
+          // For now, let's just show error feedback
           playSound('error', soundEnabled);
           setFeedback("Incorrect. Try again.");
-          // Shake effect could go here
+          // We only track history once per round, assuming first attempt counts?
+          // Or we track if they eventually got it right? 
+          // Let's assume we mark it incorrect if they fail, but let them retry.
+          // To simplify: if they get it wrong, we don't auto-advance, just give feedback.
       }
   };
 
@@ -102,6 +115,8 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
       setFeedback(msg);
       playSound('success', soundEnabled);
       setScore(s => s + 1);
+      
+      if(currentItem) setHistory(prev => [...prev, { subject: currentItem.subject, correct: true }]);
 
       if (currentItem?.isReviewable && currentItem.assignment?.id) {
           waniKaniService.createReview(currentItem.assignment.id, 0, 0);
@@ -113,18 +128,30 @@ export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, 
       nextRound();
   };
 
+  const handleFinish = () => {
+      if (onComplete) {
+          onComplete({
+              gameId: 'typing',
+              score: score,
+              maxScore: MAX_ROUNDS,
+              timeTaken: (Date.now() - startTimeRef.current) / 1000,
+              history: history
+          });
+      }
+  }
+
   if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
   
-  if (round > MAX_ROUNDS) return (
-     <div className="max-w-md mx-auto p-8 text-center mt-20">
-        <Icons.Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Practice Complete!</h2>
-        <p className="text-xl text-gray-600 mb-8">Score: {score} / {MAX_ROUNDS}</p>
-        <div className="flex justify-center gap-4">
-            <Button onClick={() => { setRound(1); setScore(0); nextRound(); }}>Play Again</Button>
-            {!propItems && <Button variant="outline" onClick={() => navigate('/session/games')}>Back to Menu</Button>}
-        </div>
-     </div>
+  if (finished) return (
+      <GameResults
+         gameId="typing"
+         score={score}
+         maxScore={MAX_ROUNDS}
+         timeTaken={(Date.now() - startTimeRef.current) / 1000}
+         history={history}
+         onNext={handleFinish}
+         isLastGame={!propItems}
+      />
   );
 
   if (!currentItem) return null;

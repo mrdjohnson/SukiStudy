@@ -1,0 +1,118 @@
+
+import React, { useState } from 'react';
+import { Subject } from '../types';
+import { Icons } from './Icons';
+import { Button } from './ui/Button';
+import { games } from '../utils/games';
+import { Flashcard } from './Flashcard';
+
+interface GameResultsProps {
+  gameId: string;
+  score: number;
+  maxScore: number;
+  timeTaken: number;
+  history: {
+    subject: Subject;
+    correct: boolean;
+  }[];
+  onNext: () => void;
+  isLastGame?: boolean;
+}
+
+export const GameResults: React.FC<GameResultsProps> = ({
+  gameId,
+  score,
+  maxScore,
+  timeTaken,
+  history,
+  onNext,
+  isLastGame = false
+}) => {
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+
+  const gameInfo = games.find(g => g.id === gameId);
+  const Icon = gameInfo ? gameInfo.icon : Icons.Trophy;
+  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 animate-fade-in">
+      <div className="text-center mb-8">
+        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${gameInfo?.color || 'bg-indigo-100 text-indigo-600'}`}>
+          <Icon className="w-12 h-12" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">{gameInfo?.name || 'Game'} Complete!</h2>
+        <div className="flex justify-center gap-6 mt-4 text-gray-600">
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-bold text-indigo-600">{percentage}%</span>
+            <span className="text-xs uppercase font-bold text-gray-400">Accuracy</span>
+          </div>
+          <div className="w-px bg-gray-200 h-10"></div>
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-bold text-gray-800">{formatTime(timeTaken)}</span>
+            <span className="text-xs uppercase font-bold text-gray-400">Time</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="font-bold text-gray-700">Review Summary</h3>
+          <span className="text-sm text-gray-500">{history.length} items</span>
+        </div>
+        <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+          {history.map((item, idx) => (
+            <button
+              key={`${item.subject.id}-${idx}`}
+              onClick={() => setSelectedSubject(item.subject)}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-xl font-bold shadow-sm">
+                  {item.subject.characters || (
+                     <div className="w-6 h-6">
+                        <img src={item.subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} className="w-full h-full" alt="" />
+                     </div>
+                  )}
+                </div>
+                <div>
+                  <div className="font-medium text-gray-900">{item.subject.meanings[0].meaning}</div>
+                  <div className="text-xs text-gray-500">{item.subject.readings?.[0]?.reading}</div>
+                </div>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-xs font-bold ${item.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {item.correct ? 'Correct' : 'Missed'}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center">
+        <Button size="lg" onClick={onNext} className="w-full sm:w-auto min-w-[200px]">
+          {isLastGame ? 'Finish Session' : 'Next Game'}
+          <Icons.ChevronRight className="ml-2 w-5 h-5" />
+        </Button>
+      </div>
+
+      {selectedSubject && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setSelectedSubject(null)}>
+          <div className="w-full max-w-2xl h-full flex items-center" onClick={e => e.stopPropagation()}>
+            <Flashcard
+              subject={selectedSubject}
+              hasPrev={false}
+              hasNext={false}
+              onPrev={() => setSelectedSubject(null)}
+              onNext={() => setSelectedSubject(null)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
