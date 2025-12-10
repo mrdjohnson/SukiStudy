@@ -5,11 +5,10 @@ import { waniKaniService } from '../services/wanikaniService';
 
 export const useAllSubjects = (user: User | null, enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
 
   useEffect(() => {
     if (!enabled) {
-      setLoading(false);
       return;
     }
 

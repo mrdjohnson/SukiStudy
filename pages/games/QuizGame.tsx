@@ -17,9 +17,8 @@ interface QuizGameProps {
 }
 
 export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
   const items = propItems || fetchedItems;
-  const loading = propItems ? false : fetchLoading;
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);

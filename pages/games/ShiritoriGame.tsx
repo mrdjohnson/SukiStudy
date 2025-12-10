@@ -19,9 +19,8 @@ interface ShiritoriGameProps {
 }
 
 export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useAllSubjects(user, !propItems);
-  const items = propItems || fetchedItems;
-  const loading = propItems ? false : fetchLoading;
+    const { items: fetchedItems, loading } = useAllSubjects(user, !propItems);
+    const items = propItems || fetchedItems;
 
   const [currentWord, setCurrentWord] = useState<{ subject: Subject, assignment?: any } | null>(null);
   const [input, setInput] = useState('');

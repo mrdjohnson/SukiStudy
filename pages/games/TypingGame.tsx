@@ -19,9 +19,8 @@ interface TypingGameProps {
 }
 
 export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
   const items = propItems || fetchedItems;
-  const loading = propItems ? false : fetchLoading;
 
   const [currentItem, setCurrentItem] = useState<GameItem | null>(null);
   const [input, setInput] = useState('');

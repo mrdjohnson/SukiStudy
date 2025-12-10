@@ -17,9 +17,8 @@ interface VariationsQuizGameProps {
 }
 
 export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
   const items = propItems || fetchedItems;
-  const loading = propItems ? false : fetchLoading;
 
   const [question, setQuestion] = useState<any>(null);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);

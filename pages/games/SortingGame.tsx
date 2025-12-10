@@ -16,9 +16,8 @@ interface MatchingGameProps {
 }
 
 export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
   const items = propItems || fetchedItems;
-  const loading = propItems ? false : fetchLoading;
 
   const [leftItems, setLeftItems] = useState<{char: string, id: number}[]>([]);
   const [rightItems, setRightItems] = useState<{val: string, id: number}[]>([]);

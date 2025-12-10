@@ -24,9 +24,8 @@ interface MemoryGameProps {
 }
 
 export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading: fetchLoading } = useLearnedSubjects(user, !propItems);
+  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
   const items = propItems || fetchedItems;
-  const loading = propItems ? false : fetchLoading;
 
   const [cards, setCards] = useState<GameCard[]>([]);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
