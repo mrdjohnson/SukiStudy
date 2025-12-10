@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
       header={{ height: 60 }}
       navbar={{
         width: 300,
-        breakpoint: 'sm',
+        breakpoint: 'md',
         collapsed: { mobile: !opened },
       }}
       padding="md"
@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
         <Group h="100%" px="md" justify="space-between">
           <Group>
             {user && (
-              <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+              <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
             )}
             <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
               <ThemeIcon size="lg" radius="md" color="indigo" variant="filled">
