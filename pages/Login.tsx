@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Icons } from '../components/Icons';
-import { Button } from '../components/ui/Button';
-import { waniKaniService } from '../services/wanikaniService';
-import { User } from '../types';
+import React, { useState } from 'react'
+import { Icons } from '../components/Icons'
+import { Button } from '../components/ui/Button'
+import { waniKaniService } from '../services/wanikaniService'
+import { User } from '../types'
 import {
   TextInput,
   Paper,
@@ -12,35 +12,35 @@ import {
   Alert,
   Collapse,
   ThemeIcon,
-  Card
-} from '@mantine/core';
+  Card,
+} from '@mantine/core'
 
 interface LoginProps {
-  onLogin: (token: string, user: User) => void;
+  onLogin: (token: string, user: User) => void
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [token, setToken] = useState(localStorage.getItem('wk_token') || '');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('wk_token') || '')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
     try {
-      waniKaniService.setToken(token);
-      const userRes = await waniKaniService.getUser(); // Validate token
-      onLogin(token, userRes.data);
+      waniKaniService.setToken(token)
+      const userRes = await waniKaniService.getUser() // Validate token
+      onLogin(token, userRes.data)
     } catch (err) {
-      setError('Invalid API Token or Network Error');
-      waniKaniService.setToken('');
+      setError('Invalid API Token or Network Error')
+      waniKaniService.setToken('')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -62,7 +62,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               placeholder="Ex: 8a4c9b..."
               required
               value={token}
-              onChange={(e) => setToken(e.target.value)}
+              onChange={e => setToken(e.target.value)}
               mb="md"
               size="lg"
             />
@@ -79,13 +79,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </form>
 
           <Stack mt="xl" align="center" gap="xs">
-            <Button variant="subtle" size="xs" onClick={() => setShowHelp(!showHelp)} leftSection={<Icons.Info size={14} />}>
+            <Button
+              variant="subtle"
+              size="xs"
+              onClick={() => setShowHelp(!showHelp)}
+              leftSection={<Icons.Info size={14} />}
+            >
               How do I connect?
             </Button>
 
             <Collapse in={showHelp}>
               <Paper bg="gray.0" p="md" radius="sm">
-                <Text size="sm" mb="xs">To use SukiStudy, you need a valid WaniKani account.</Text>
+                <Text size="sm" mb="xs">
+                  To use SukiStudy, you need a valid WaniKani account.
+                </Text>
                 <ol className="list-decimal pl-4 space-y-1 text-sm text-gray-700">
                   <li>Log in to WaniKani.</li>
                   <li>Go to Settings {'>'} API Tokens.</li>
@@ -109,5 +116,5 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </Paper>
       </Card>
     </div>
-  );
-};
+  )
+}

@@ -1,26 +1,35 @@
-
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router';
-import { Icons } from './Icons';
-import { User } from '../types';
-import { useSettings } from '../contexts/SettingsContext';
-import { HowToPlayModal } from './HowToPlayModal';
-import { AppShell, Burger, Group, NavLink, Text, ThemeIcon, ScrollArea, Switch, Button } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { games } from '../utils/games';
+import React, { useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router'
+import { Icons } from './Icons'
+import { User } from '../types'
+import { useSettings } from '../contexts/SettingsContext'
+import { HowToPlayModal } from './HowToPlayModal'
+import {
+  AppShell,
+  Burger,
+  Group,
+  NavLink,
+  Text,
+  ThemeIcon,
+  ScrollArea,
+  Switch,
+  Button,
+} from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { games } from '../utils/games'
 
 interface HeaderProps {
-  user: User | null;
-  onLogout: () => void;
-  children: React.ReactNode;
+  user: User | null
+  onLogout: () => void
+  children: React.ReactNode
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
-  const [opened, { toggle }] = useDisclosure();
-  const { soundEnabled, toggleSound, romanjiEnabled, toggleRomanji, helpSteps } = useSettings();
-  const [showHelp, setShowHelp] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [opened, { toggle }] = useDisclosure()
+  const { soundEnabled, toggleSound, romanjiEnabled, toggleRomanji, helpSteps } = useSettings()
+  const [showHelp, setShowHelp] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <AppShell
@@ -35,14 +44,14 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group>
-            {user && (
-              <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
-            )}
+            {user && <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />}
             <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
               <ThemeIcon size="lg" radius="md" color="indigo" variant="filled">
                 <Icons.Brain size={20} />
               </ThemeIcon>
-              <Text size="xl" fw={700} c="dark">SukiStudy</Text>
+              <Text size="xl" fw={700} c="dark">
+                SukiStudy
+              </Text>
             </Link>
           </Group>
 
@@ -50,9 +59,13 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
             {user && (
               <>
                 <Group visibleFrom="sm" gap="xs">
-                  <Text size="sm" fw={500} c="dimmed">Level {user.level}</Text>
+                  <Text size="sm" fw={500} c="dimmed">
+                    Level {user.level}
+                  </Text>
                   <div className="h-4 w-px bg-gray-300"></div>
-                  <Text size="sm" fw={600} c="indigo">{user.username}</Text>
+                  <Text size="sm" fw={600} c="indigo">
+                    {user.username}
+                  </Text>
                 </Group>
 
                 <Group gap="xs">
@@ -92,13 +105,19 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
             <NavLink
               label="Dashboard"
               leftSection={<Icons.Home size="1rem" />}
-              onClick={() => { navigate('/'); if (opened) toggle(); }}
+              onClick={() => {
+                navigate('/')
+                if (opened) toggle()
+              }}
               active={location.pathname === '/'}
             />
             <NavLink
               label="Browse"
               leftSection={<Icons.BookOpen size="1rem" />}
-              onClick={() => { navigate('/browse'); if (opened) toggle(); }}
+              onClick={() => {
+                navigate('/browse')
+                if (opened) toggle()
+              }}
               active={location.pathname.includes('browse')}
             />
 
@@ -106,18 +125,31 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
               label="Games"
               leftSection={<Icons.Gamepad2 size="1rem" />}
               childrenOffset={28}
-              onClick={() => { navigate('/session/games'); if (opened) toggle(); }}
+              onClick={() => {
+                navigate('/session/games')
+                if (opened) toggle()
+              }}
               active={location.pathname.endsWith('games')}
               opened
             >
-              <NavLink label="Custom Session" onClick={() => { navigate('/session/custom'); if (opened) toggle(); }} leftSection={<Icons.Adjustments size="0.8rem" />} />
-              
+              <NavLink
+                label="Custom Session"
+                onClick={() => {
+                  navigate('/session/custom')
+                  if (opened) toggle()
+                }}
+                leftSection={<Icons.Adjustments size="0.8rem" />}
+              />
+
               {games.map(g => (
                 <NavLink
                   key={g.id}
                   label={g.name}
                   leftSection={<g.icon />}
-                  onClick={() => { navigate(`/session/games/${g.id}`); if (opened) toggle(); }}
+                  onClick={() => {
+                    navigate(`/session/games/${g.id}`)
+                    if (opened) toggle()
+                  }}
                   active={location.pathname.includes(`/session/games/${g.id}`)}
                 />
               ))}
@@ -125,7 +157,9 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
           </AppShell.Section>
 
           <AppShell.Section pt="md">
-            <Text size="xs" fw={500} c="dimmed" mb="sm" tt="uppercase">Settings</Text>
+            <Text size="xs" fw={500} c="dimmed" mb="sm" tt="uppercase">
+              Settings
+            </Text>
 
             <Group justify="space-between" mb="sm">
               <Text size="sm">Game Romanji</Text>
@@ -136,7 +170,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
               fullWidth
               variant="light"
               color="red"
-              onClick={() => { onLogout(); if (opened) toggle(); }}
+              onClick={() => {
+                onLogout()
+                if (opened) toggle()
+              }}
               leftSection={<Icons.LogOut size={16} />}
             >
               Logout
@@ -145,18 +182,16 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
         </AppShell.Navbar>
       )}
 
-      <AppShell.Main>
-        {children}
-      </AppShell.Main>
+      <AppShell.Main>{children}</AppShell.Main>
 
       {helpSteps && (
         <HowToPlayModal
           isOpen={showHelp}
           onClose={() => setShowHelp(false)}
-          title={helpSteps[0]?.title ? "How to Play" : "Instructions"}
+          title={helpSteps[0]?.title ? 'How to Play' : 'Instructions'}
           steps={helpSteps}
         />
       )}
     </AppShell>
-  );
-};
+  )
+}

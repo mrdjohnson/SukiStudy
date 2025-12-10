@@ -1,207 +1,238 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
-import { User, GameItem, Subject } from '../../types';
-import { useLearnedSubjects } from '../../hooks/useLearnedSubjects';
-import { Icons } from '../../components/Icons';
-import { Button } from '../../components/ui/Button';
-import { useSettings } from '../../contexts/SettingsContext';
-import { playSound } from '../../utils/sound';
-import { HowToPlayModal } from '../../components/HowToPlayModal';
-import { GameResults } from '../../components/GameResults';
+import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router'
+import { User, GameItem, Subject } from '../../types'
+import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
+import { Icons } from '../../components/Icons'
+import { Button } from '../../components/ui/Button'
+import { useSettings } from '../../contexts/SettingsContext'
+import { playSound } from '../../utils/sound'
+import { HowToPlayModal } from '../../components/HowToPlayModal'
+import { GameResults } from '../../components/GameResults'
 
 interface MatchingGameProps {
-    user: User;
-    items?: GameItem[];
-    onComplete?: (data?: any) => void;
+  user: User
+  items?: GameItem[]
+  onComplete?: (data?: any) => void
 }
 
-export const MatchingGame: React.FC<MatchingGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems);
-  const items = propItems || fetchedItems;
+export const MatchingGame: React.FC<MatchingGameProps> = ({
+  user,
+  items: propItems,
+  onComplete,
+}) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+  const items = propItems || fetchedItems
 
-  const [leftItems, setLeftItems] = useState<{char: string, id: number, subject: Subject}[]>([]);
-  const [rightItems, setRightItems] = useState<{val: string, id: number}[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null);
-  const [matchedIds, setMatchedIds] = useState<number[]>([]);
-  
-  const [history, setHistory] = useState<{subject: Subject, correct: boolean}[]>([]);
-  const startTimeRef = useRef(Date.now());
-  const [finished, setFinished] = useState(false);
+  const [leftItems, setLeftItems] = useState<{ char: string; id: number; subject: Subject }[]>([])
+  const [rightItems, setRightItems] = useState<{ val: string; id: number }[]>([])
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null)
+  const [matchedIds, setMatchedIds] = useState<number[]>([])
 
-  const { soundEnabled, setHelpSteps } = useSettings();
-  const navigate = useNavigate();
+  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
+  const startTimeRef = useRef(Date.now())
+  const [finished, setFinished] = useState(false)
+
+  const { soundEnabled, setHelpSteps } = useSettings()
+  const navigate = useNavigate()
 
   const initGame = () => {
-    setSelectedId(null);
-    setSelectedSide(null);
-    setMatchedIds([]);
-    setHistory([]);
-    setFinished(false);
-    startTimeRef.current = Date.now();
+    setSelectedId(null)
+    setSelectedSide(null)
+    setMatchedIds([])
+    setHistory([])
+    setFinished(false)
+    startTimeRef.current = Date.now()
 
-    if (items.length < 5) return;
-    
-    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5);
+    if (items.length < 5) return
+
+    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5)
     const base = selected.map(s => ({
       id: s.subject.id!,
       char: s.subject.characters || '?',
       val: s.subject.meanings[0].meaning,
-      subject: s.subject
-    }));
+      subject: s.subject,
+    }))
 
-    setLeftItems(base.map(x => ({ id: x.id, char: x.char, subject: x.subject })).sort(() => 0.5 - Math.random()));
-    setRightItems(base.map(x => ({ id: x.id, val: x.val })).sort(() => 0.5 - Math.random()));
-  };
+    setLeftItems(
+      base
+        .map(x => ({ id: x.id, char: x.char, subject: x.subject }))
+        .sort(() => 0.5 - Math.random()),
+    )
+    setRightItems(base.map(x => ({ id: x.id, val: x.val })).sort(() => 0.5 - Math.random()))
+  }
 
   useEffect(() => {
     if (!loading && items.length >= 5) {
-       initGame();
+      initGame()
     }
-  }, [items, loading]);
+  }, [items, loading])
 
   useEffect(() => {
     if (matchedIds.length === leftItems.length && leftItems.length > 0) {
-        setTimeout(() => setFinished(true), 1000);
+      setTimeout(() => setFinished(true), 1000)
     }
-  }, [matchedIds, leftItems]);
+  }, [matchedIds, leftItems])
 
   useEffect(() => {
     const steps = [
-        { title: "Select Item", description: "Tap any item on the left or right.", icon: Icons.GripVertical },
-        { title: "Find Match", description: "Tap the corresponding matching pair on the other side.", icon: Icons.Shuffle },
-        { title: "Clear Board", description: "Match all pairs to win! Matched pairs stay visible but fade out.", icon: Icons.CheckCircle }
-    ];
-    setHelpSteps(steps);
-    return () => setHelpSteps(null);
-  }, []);
+      {
+        title: 'Select Item',
+        description: 'Tap any item on the left or right.',
+        icon: Icons.GripVertical,
+      },
+      {
+        title: 'Find Match',
+        description: 'Tap the corresponding matching pair on the other side.',
+        icon: Icons.Shuffle,
+      },
+      {
+        title: 'Clear Board',
+        description: 'Match all pairs to win! Matched pairs stay visible but fade out.',
+        icon: Icons.CheckCircle,
+      },
+    ]
+    setHelpSteps(steps)
+    return () => setHelpSteps(null)
+  }, [])
 
   const handleSelection = (id: number, side: 'left' | 'right') => {
-    if (matchedIds.includes(id)) return;
+    if (matchedIds.includes(id)) return
 
     // First selection
     if (selectedId === null) {
-      setSelectedId(id);
-      setSelectedSide(side);
-      playSound('pop', soundEnabled);
-      return;
+      setSelectedId(id)
+      setSelectedSide(side)
+      playSound('pop', soundEnabled)
+      return
     }
 
     // Deselect if same item clicked
     if (selectedId === id && selectedSide === side) {
-      setSelectedId(null);
-      setSelectedSide(null);
-      return;
+      setSelectedId(null)
+      setSelectedSide(null)
+      return
     }
 
     // Switch selection if same side clicked
     if (selectedSide === side) {
-      setSelectedId(id);
-      playSound('pop', soundEnabled);
-      return;
+      setSelectedId(id)
+      playSound('pop', soundEnabled)
+      return
     }
 
     // Check match
     if (selectedId === id) {
-       // Match found
-       setMatchedIds(prev => [...prev, id]);
-       setSelectedId(null);
-       setSelectedSide(null);
-       playSound('success', soundEnabled);
-       
-       const subject = leftItems.find(i => i.id === id)?.subject;
-       if (subject) setHistory(prev => [...prev, { subject, correct: true }]);
+      // Match found
+      setMatchedIds(prev => [...prev, id])
+      setSelectedId(null)
+      setSelectedSide(null)
+      playSound('success', soundEnabled)
+
+      const subject = leftItems.find(i => i.id === id)?.subject
+      if (subject) setHistory(prev => [...prev, { subject, correct: true }])
     } else {
-       // Wrong match
-       playSound('error', soundEnabled);
-       setSelectedId(null);
-       setSelectedSide(null);
+      // Wrong match
+      playSound('error', soundEnabled)
+      setSelectedId(null)
+      setSelectedSide(null)
     }
-  };
+  }
 
   const handleFinish = () => {
-      if (onComplete) {
-          onComplete({
-              gameId: 'sorting',
-              score: matchedIds.length,
-              maxScore: leftItems.length,
-              timeTaken: (Date.now() - startTimeRef.current) / 1000,
-              history
-          });
-      }
-  };
+    if (onComplete) {
+      onComplete({
+        gameId: 'sorting',
+        score: matchedIds.length,
+        maxScore: leftItems.length,
+        timeTaken: (Date.now() - startTimeRef.current) / 1000,
+        history,
+      })
+    }
+  }
 
-  if (loading) return <div className="flex h-[80vh] items-center justify-center"><div className="animate-spin text-indigo-600"><Icons.RotateCcw /></div></div>;
-  if (items.length < 5) return <div className="p-8 text-center">Not enough items to match.</div>;
+  if (loading)
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="animate-spin text-indigo-600">
+          <Icons.RotateCcw />
+        </div>
+      </div>
+    )
+  if (items.length < 5) return <div className="p-8 text-center">Not enough items to match.</div>
 
-  if (finished) return (
+  if (finished)
+    return (
       <GameResults
-         gameId="sorting"
-         score={matchedIds.length}
-         maxScore={leftItems.length}
-         timeTaken={(Date.now() - startTimeRef.current) / 1000}
-         history={history}
-         onNext={handleFinish}
-         isLastGame={!propItems}
+        gameId="sorting"
+        score={matchedIds.length}
+        maxScore={leftItems.length}
+        timeTaken={(Date.now() - startTimeRef.current) / 1000}
+        history={history}
+        onNext={handleFinish}
+        isLastGame={!propItems}
       />
-  );
+    )
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-         <div className="flex items-center gap-2">
-            {!propItems && <Button variant="ghost" onClick={() => navigate('/session/games')}><Icons.ChevronLeft /></Button>}
-         </div>
-         <h2 className="text-xl font-bold">Matching Pairs</h2>
+        <div className="flex items-center gap-2">
+          {!propItems && (
+            <Button variant="ghost" onClick={() => navigate('/session/games')}>
+              <Icons.ChevronLeft />
+            </Button>
+          )}
+        </div>
+        <h2 className="text-xl font-bold">Matching Pairs</h2>
       </div>
 
       <div className="flex gap-8 justify-center">
         {/* Left Column */}
         <div className="flex-1 space-y-4">
-           {leftItems.map((item) => {
-             const isMatched = matchedIds.includes(item.id);
-             const isSelected = selectedId === item.id && selectedSide === 'left';
-             return (
-               <button
-                 key={item.id}
-                 onClick={() => handleSelection(item.id, 'left')}
-                 disabled={isMatched}
-                 className={`
+          {leftItems.map(item => {
+            const isMatched = matchedIds.includes(item.id)
+            const isSelected = selectedId === item.id && selectedSide === 'left'
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleSelection(item.id, 'left')}
+                disabled={isMatched}
+                className={`
                    w-full h-20 flex items-center justify-center bg-white border-2 rounded-xl font-bold text-3xl shadow-sm transition-all
                    ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
                    ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}
                  `}
-               >
-                 {item.char}
-               </button>
-             );
-           })}
+              >
+                {item.char}
+              </button>
+            )
+          })}
         </div>
 
         {/* Right Column */}
         <div className="flex-1 space-y-4">
-           {rightItems.map((item) => {
-             const isMatched = matchedIds.includes(item.id);
-             const isSelected = selectedId === item.id && selectedSide === 'right';
-             return (
-               <button
-                 key={item.id}
-                 onClick={() => handleSelection(item.id, 'right')}
-                 disabled={isMatched}
-                 className={`
+          {rightItems.map(item => {
+            const isMatched = matchedIds.includes(item.id)
+            const isSelected = selectedId === item.id && selectedSide === 'right'
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleSelection(item.id, 'right')}
+                disabled={isMatched}
+                className={`
                    w-full h-20 px-2 flex items-center justify-center rounded-xl font-medium text-sm transition-all border-2
                    ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
                    ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 bg-gray-50 hover:bg-white'}
                  `}
-               >
-                 {item.val}
-               </button>
-             );
-           })}
+              >
+                {item.val}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
-  );
-};
-export { MatchingGame as SortingGame };
+  )
+}
+export { MatchingGame as SortingGame }

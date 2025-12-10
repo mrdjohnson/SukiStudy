@@ -1,21 +1,21 @@
-import React from 'react';
-import { Subject } from '../types';
-import { Icons } from './Icons';
-import { Button } from './ui/Button';
-import { games } from '../utils/games';
-import { openFlashcardModal } from './modals/FlashcardModal';
+import React from 'react'
+import { Subject } from '../types'
+import { Icons } from './Icons'
+import { Button } from './ui/Button'
+import { games } from '../utils/games'
+import { openFlashcardModal } from './modals/FlashcardModal'
 
 interface GameResultsProps {
-  gameId: string;
-  score: number;
-  maxScore: number;
-  timeTaken: number;
+  gameId: string
+  score: number
+  maxScore: number
+  timeTaken: number
   history: {
-    subject: Subject;
-    correct: boolean;
-  }[];
-  onNext: () => void;
-  isLastGame?: boolean;
+    subject: Subject
+    correct: boolean
+  }[]
+  onNext: () => void
+  isLastGame?: boolean
 }
 
 export const GameResults: React.FC<GameResultsProps> = ({
@@ -25,25 +25,29 @@ export const GameResults: React.FC<GameResultsProps> = ({
   timeTaken,
   history,
   onNext,
-  isLastGame = false
+  isLastGame = false,
 }) => {
-  const gameInfo = games.find(g => g.id === gameId);
-  const Icon = gameInfo ? gameInfo.icon : Icons.Trophy;
-  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+  const gameInfo = games.find(g => g.id === gameId)
+  const Icon = gameInfo ? gameInfo.icon : Icons.Trophy
+  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
 
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <div className="text-center mb-8">
-        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${gameInfo?.color || 'bg-indigo-100 text-indigo-600'}`}>
+        <div
+          className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${gameInfo?.color || 'bg-indigo-100 text-indigo-600'}`}
+        >
           <Icon className="w-12 h-12" />
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">{gameInfo?.name || 'Game'} Complete!</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          {gameInfo?.name || 'Game'} Complete!
+        </h2>
         <div className="flex justify-center gap-6 mt-4 text-gray-600">
           <div className="flex flex-col items-center">
             <span className="text-2xl font-bold text-indigo-600">{percentage}%</span>
@@ -72,17 +76,29 @@ export const GameResults: React.FC<GameResultsProps> = ({
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-xl font-bold shadow-sm">
                   {item.subject.characters || (
-                     <div className="w-6 h-6">
-                        <img src={item.subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url} className="w-full h-full" alt="" />
-                     </div>
+                    <div className="w-6 h-6">
+                      <img
+                        src={
+                          item.subject.character_images?.find(
+                            i => i.content_type === 'image/svg+xml',
+                          )?.url
+                        }
+                        className="w-full h-full"
+                        alt=""
+                      />
+                    </div>
                   )}
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">{item.subject.meanings[0].meaning}</div>
+                  <div className="font-medium text-gray-900">
+                    {item.subject.meanings[0].meaning}
+                  </div>
                   <div className="text-xs text-gray-500">{item.subject.readings?.[0]?.reading}</div>
                 </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-xs font-bold ${item.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-bold ${item.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+              >
                 {item.correct ? 'Correct' : 'Missed'}
               </div>
             </button>
@@ -97,5 +113,5 @@ export const GameResults: React.FC<GameResultsProps> = ({
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}

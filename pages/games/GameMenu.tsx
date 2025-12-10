@@ -1,17 +1,18 @@
-
-import React from 'react';
-import { useNavigate } from 'react-router';
-import { Icons } from '../../components/Icons';
-import { Button } from '../../components/ui/Button';
+import React from 'react'
+import { useNavigate } from 'react-router'
+import { Icons } from '../../components/Icons'
+import { Button } from '../../components/ui/Button'
 import { games } from '../../utils/games'
 
 export const GameMenu: React.FC = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate('/')}><Icons.ChevronLeft /></Button>
+        <Button variant="ghost" onClick={() => navigate('/')}>
+          <Icons.ChevronLeft />
+        </Button>
         <h1 className="text-3xl font-bold text-gray-900">Mini Games</h1>
       </div>
 
@@ -41,7 +42,9 @@ export const GameMenu: React.FC = () => {
             onClick={() => navigate(`/session/games/${game.id}`)}
             className="flex items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all text-left group"
           >
-            <div className={`p-4 rounded-xl mr-6 ${game.color} group-hover:scale-110 transition-transform`}>
+            <div
+              className={`p-4 rounded-xl mr-6 ${game.color} group-hover:scale-110 transition-transform`}
+            >
               <game.icon className="w-8 h-8" />
             </div>
             <div className="flex-1">
@@ -53,5 +56,5 @@ export const GameMenu: React.FC = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}

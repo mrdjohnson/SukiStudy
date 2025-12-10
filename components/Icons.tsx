@@ -1,12 +1,11 @@
-
-import { 
-  IconBook, 
-  IconBrain, 
-  IconChevronRight, 
-  IconChevronLeft, 
-  IconLoader2, 
-  IconSparkles, 
-  IconSettings, 
+import {
+  IconBook,
+  IconBrain,
+  IconChevronRight,
+  IconChevronLeft,
+  IconLoader2,
+  IconSparkles,
+  IconSettings,
   IconLogout,
   IconStack2,
   IconCircleCheck,
@@ -35,15 +34,15 @@ import {
   IconAdjustments,
   IconPuzzle,
   IconMusic,
-  IconHome
-} from '@tabler/icons-react';
+  IconHome,
+} from '@tabler/icons-react'
 
 export const Icons = {
   BookOpen: IconBook,
   Brain: IconBrain,
   ChevronRight: IconChevronRight,
   ChevronLeft: IconChevronLeft,
-  RotateCcw: IconLoader2, 
+  RotateCcw: IconLoader2,
   Sparkles: IconSparkles,
   Settings: IconSettings,
   LogOut: IconLogout,
@@ -74,5 +73,5 @@ export const Icons = {
   Adjustments: IconAdjustments,
   Puzzle: IconPuzzle,
   Music: IconMusic,
-  Home: IconHome
-};
+  Home: IconHome,
+}

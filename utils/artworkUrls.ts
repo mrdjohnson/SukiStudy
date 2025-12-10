@@ -1,5 +1,5 @@
 // DO NOT CHANGE
-const COMMON_URL = "https://global.discourse-cdn.com/wanikanicommunity/original/4X/";
+const COMMON_URL = 'https://global.discourse-cdn.com/wanikanicommunity/original/4X/'
 
 export const ARTWORK_URLS: Record<number, string> = {
   6: `${COMMON_URL}5/6/f/56f448502c1e93a871d9c6c47bb1f9a23950b531.png`,
@@ -471,4 +471,4 @@ export const ARTWORK_URLS: Record<number, string> = {
   200: `${COMMON_URL}1/7/9/17988fb04f7d4bc43a072be4bbc52d635ea222dc.png`,
   179: `${COMMON_URL}1/3/1/1315e5857ace7fbabc95768dc524a4be47df7683.png`,
   240: `${COMMON_URL}c/7/d/c7d387bdbc6142d8c7bcd8059bb6c76e32812364.png`,
-};
+}
