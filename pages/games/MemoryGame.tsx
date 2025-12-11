@@ -75,27 +75,18 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       return
     }
 
-    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 6)
+    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 20)
     const gameCards: GameCard[] = []
 
-    selected.forEach(({ subject: s }) => {
+    for (const { subject: s } of selected) {
+      if (gameCards.length === 12) break
+
       const sType = s.object || 'vocabulary'
       let charContent = s.characters
       if (!charContent && s.character_images) {
         const svg = s.character_images.find(i => i.content_type === 'image/svg+xml')
         charContent = svg ? svg.url : '?'
       }
-
-      gameCards.push({
-        id: `${s.id}-char`,
-        subjectId: s.id!,
-        subject: s,
-        content: charContent || '?',
-        type: 'character',
-        isFlipped: false,
-        isMatched: false,
-        subjectType: sType,
-      })
 
       let pairType: 'meaning' | 'reading' = 'meaning'
       if (sType !== 'radical') {
@@ -109,6 +100,19 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
         pairContent = s.readings?.find(r => r.primary)?.reading || s.readings?.[0]?.reading || '?'
       }
 
+      if (pairContent === '?') continue
+
+      gameCards.push({
+        id: `${s.id}-char`,
+        subjectId: s.id!,
+        subject: s,
+        content: charContent || '?',
+        type: 'character',
+        isFlipped: false,
+        isMatched: false,
+        subjectType: sType,
+      })
+
       gameCards.push({
         id: `${s.id}-pair`,
         subjectId: s.id!,
@@ -119,7 +123,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
         isMatched: false,
         subjectType: sType,
       })
-    })
+    }
 
     setCards(gameCards.sort(() => 0.5 - Math.random()))
   }
@@ -143,6 +147,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
   }
 
   const handleCardClick = (index: number) => {
+    debugger
     if (gameOver || won || loading) return
     if (cards[index].isFlipped || cards[index].isMatched) return
     if (flippedIndices.length >= 2) return
@@ -245,7 +250,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}
             >
               <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
-                <img src={logo} className='size-12 opacity-40' />
+                <img src={logo} className="size-12 opacity-40" />
               </div>
 
               <div
