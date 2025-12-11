@@ -152,7 +152,7 @@ export const generateKanaGameItems = (
       object: type,
       url: '',
       created_at: new Date().toISOString(),
-      level: 1,
+      level: 0,
       slug: romanji,
       hidden_at: null,
       document_url: '',
