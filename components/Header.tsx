@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 navigate('/session/custom')
                 if (opened) toggle()
               }}
-              leftSection={<Icons.Adjustments size="0.8rem" />}
+              leftSection={<Icons.Adjustments />}
             />
 
             {availableGames.map(g => (
