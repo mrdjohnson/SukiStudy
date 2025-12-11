@@ -6,7 +6,7 @@ import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useUser } from '../contexts/UserContext'
-import { SimpleGrid } from '@mantine/core'
+import { SimpleGrid, useMatches } from '@mantine/core'
 import { games } from '../utils/games'
 import _ from 'lodash'
 
@@ -15,6 +15,10 @@ export const Dashboard: React.FC = () => {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const gridWidth = useMatches({
+    base: 1,
+    sm: 3
+  })
 
   useEffect(() => {
     if (isGuest) {
@@ -81,7 +85,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Action Cards */}
-      <SimpleGrid cols={user ? 3 : 1}>
+      <SimpleGrid cols={user ? gridWidth : 1}>
         {user && (
           <>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group">
