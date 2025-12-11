@@ -21,8 +21,10 @@ import {
   UnstyledButton,
   Stack,
   Box,
+  Input,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
+import { SubjectColor } from '../../utils/subject'
 
 export const CustomGameSetup: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -177,27 +179,30 @@ export const CustomGameSetup: React.FC = () => {
                       </Button>
                     </Box>
                     <Box>
-                      <Text size="sm" fw={500} mb="xs">
-                        Subject Types
-                      </Text>
+                      <Input.Label>Subject Types</Input.Label>
+
                       <Chip.Group multiple value={types} onChange={setTypes}>
                         <Group gap="xs">
                           <Chip
                             value={SubjectType.RADICAL}
-                            color="cyan"
+                            color={SubjectColor[SubjectType.RADICAL]}
                             variant="outline"
-                            size="xs"
                           >
                             Radical
                           </Chip>
-                          <Chip value={SubjectType.KANJI} color="pink" variant="outline" size="xs">
+                          
+                          <Chip
+                            value={SubjectType.KANJI}
+                            color={SubjectColor[SubjectType.KANJI]}
+                            variant="outline"
+                          >
                             Kanji
                           </Chip>
+
                           <Chip
                             value={SubjectType.VOCABULARY}
-                            color="grape"
+                            color={SubjectColor[SubjectType.VOCABULARY]}
                             variant="outline"
-                            size="xs"
                           >
                             Vocab
                           </Chip>
@@ -208,20 +213,26 @@ export const CustomGameSetup: React.FC = () => {
                 )}
 
                 <Box>
-                  <Text size="sm" fw={500} mb="xs">
-                    Kana Practice
-                  </Text>
+                  <Input.Label>Kana Practice</Input.Label>
+
                   <Group>
-                    <Checkbox
-                      label="Hiragana"
+                    <Chip
                       checked={includeHiragana}
-                      onChange={e => setIncludeHiragana(e.currentTarget.checked)}
-                    />
-                    <Checkbox
-                      label="Katakana"
+                      color={SubjectColor[SubjectType.HIRAGANA]}
+                      variant="outline"
+                      onChange={() => setIncludeHiragana(!includeHiragana)}
+                    >
+                      Hiragana
+                    </Chip>
+
+                    <Chip
                       checked={includeKatakana}
-                      onChange={e => setIncludeKatakana(e.currentTarget.checked)}
-                    />
+                      color={SubjectColor[SubjectType.KATAKANA]}
+                      variant="outline"
+                      onChange={() => setIncludeKatakana(!includeKatakana)}
+                    >
+                      Katakana
+                    </Chip>
                   </Group>
                 </Box>
 
@@ -389,11 +400,7 @@ export const CustomGameSetup: React.FC = () => {
         }}
       >
         {previewFlashcard && (
-          <Flashcard
-            subject={previewFlashcard.subject}
-            hasPrev={false}
-            hasNext={false}
-          />
+          <Flashcard subject={previewFlashcard.subject} hasPrev={false} hasNext={false} />
         )}
       </Modal>
     </div>
