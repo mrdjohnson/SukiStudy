@@ -3823,6 +3823,7 @@ __metadata:
     recharts: "npm:^3.5.1"
     typescript: "npm:~5.8.2"
     vite: "npm:^6.2.0"
+    wanakana: "npm:^5.3.1"
   languageName: unknown
   linkType: soft
 
@@ -4210,6 +4211,13 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10/ea2083b6b1d1c9e85a13d6797ae989aa1dbc27a5c054319c71141934bf3f8dba8d54b510618040f95751148da63787f28f043df7458a194c81f8b6d8a2d32844
+  languageName: node
+  linkType: hard
+
+"wanakana@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "wanakana@npm:5.3.1"
+  checksum: 10/401c46ac51135d7a97315750af1b95cf7e1a8c6612b28c9c26d86983f967ca5f2c59def77a6ccfa85028dae383a92b4897c905b581cceb1f22928f4986d8db6c
   languageName: node
   linkType: hard
 
