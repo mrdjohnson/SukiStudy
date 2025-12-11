@@ -3,18 +3,31 @@ import { User, GameItem, Subject } from '../types'
 import { assignments, subjects } from '../services/db'
 import _ from 'lodash'
 import { useUser } from '../contexts/UserContext'
+import { generateKanaGameItems } from '../utils/kana'
 
 export const useAllSubjects = (enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(enabled)
-  const { user } = useUser()
+  const { user, isGuest } = useUser()
 
   const runQuery = useCallback(() => {
-    if (!user || !enabled) {
-      setItems([])
-      setLoading(false)
-      return
-    }
+      if (!enabled) {
+        setItems([])
+        setLoading(false)
+        return
+      }
+  
+      // GUEST MODE
+      if (isGuest) {
+        setItems(generateKanaGameItems(true, true))
+        setLoading(false)
+        return
+      }
+  
+      if (!user) {
+        setLoading(false)
+        return
+      }
 
     const allAssignments = assignments.find({}).fetch()
 

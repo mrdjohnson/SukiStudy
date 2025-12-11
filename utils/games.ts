@@ -1,12 +1,22 @@
 import { Icons } from '../components/Icons'
 
-export const games = [
+export interface GameDefinition {
+  id: string
+  name: string
+  desc: string
+  icon: any
+  color: string
+  guestFriendly?: boolean
+}
+
+export const games: GameDefinition[] = [
   {
     id: 'memory',
     name: 'Memory Match',
     desc: 'Match characters to their meanings or readings.',
     icon: Icons.Brain,
     color: 'bg-purple-100 text-purple-600',
+    guestFriendly: true,
   },
   {
     id: 'quiz',
@@ -14,13 +24,23 @@ export const games = [
     desc: 'Multiple choice speed run of your learned items.',
     icon: Icons.FileQuestion,
     color: 'bg-orange-100 text-orange-600',
+    guestFriendly: true,
   },
   {
     id: 'sorting',
     name: 'Matching Pairs',
-    desc: 'Find matching pairs of Kanji and Meanings.',
+    desc: 'Find matching pairs of Kanji/Kana and Meanings.',
     icon: Icons.Shuffle,
     color: 'bg-blue-100 text-blue-600',
+    guestFriendly: true,
+  },
+  {
+    id: 'typing',
+    name: 'Typing Practice',
+    desc: 'Type the correct reading or meaning.',
+    icon: Icons.Keyboard,
+    color: 'bg-emerald-100 text-emerald-600',
+    guestFriendly: true,
   },
   {
     id: 'connect',
@@ -44,11 +64,11 @@ export const games = [
     color: 'bg-indigo-100 text-indigo-600',
   },
   {
-    id: 'typing',
-    name: 'Typing Practice',
-    desc: 'Type the correct reading or meaning.',
-    icon: Icons.Keyboard,
-    color: 'bg-emerald-100 text-emerald-600',
+    id: 'shiritori',
+    name: 'Shiritori',
+    desc: 'Connect words by their last character.',
+    icon: Icons.Link,
+    color: 'bg-yellow-100 text-yellow-600',
   },
   {
     id: 'radical-composition',

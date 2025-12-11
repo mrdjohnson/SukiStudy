@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route, Routes, useLocation, HashRouter } from 'react-router'
+import { Route, Routes, useLocation, HashRouter, Navigate } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { SettingsProvider } from './contexts/SettingsContext'
@@ -23,10 +23,11 @@ import { CustomGameSetup } from './pages/games/CustomGameSetup'
 import { RadicalCompositionGame } from './pages/games/RadicalCompositionGame'
 import { AudioQuizGame } from './pages/games/AudioQuizGame'
 import { CustomSession } from './pages/games/CustomSession'
+import { Landing } from './pages/Landing'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation()
-  const hideHeader = location.pathname === '/login'
+  const hideHeader = location.pathname === '/login' || location.pathname === '/landing'
 
   if (hideHeader) {
     return (
@@ -40,7 +41,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 }
 
 export default function App() {
-  const { user, loading, isSyncing, login } = useUser()
+  const { user, isGuest, loading, isSyncing, login } = useUser()
 
   if (loading) {
     return (
@@ -52,6 +53,10 @@ export default function App() {
       </div>
     )
   }
+
+  let ProtectedRoute
+
+  if (!user && !isGuest) ProtectedRoute = <Navigate to="/landing" />
 
   return (
     <SettingsProvider>
@@ -65,7 +70,9 @@ export default function App() {
           )}
 
           <Routes>
-            <Route element={!user ? <Login onLogin={login} /> : undefined}>
+            <Route path="/landing" element={<Landing />} />
+
+            <Route element={ProtectedRoute}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/session/lesson" element={<Session mode="lesson" />} />
               <Route path="/session/review" element={<Session mode="review" />} />

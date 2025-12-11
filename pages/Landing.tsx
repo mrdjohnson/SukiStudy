@@ -1,0 +1,115 @@
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '../components/ui/Button'
+import { Icons } from '../components/Icons'
+import { useUser } from '../contexts/UserContext'
+import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper } from '@mantine/core'
+
+export const Landing: React.FC = () => {
+  const navigate = useNavigate()
+  const { loginAsGuest } = useUser()
+
+  const handleGuest = () => {
+    loginAsGuest()
+    navigate('/') // Redirects to Dashboard in Guest Mode
+  }
+
+  const features = [
+    {
+      icon: Icons.Brain,
+      title: 'SRS Integration',
+      desc: 'Seamlessly syncs with your WaniKani progress to prioritize what you need to review.',
+    },
+    {
+      icon: Icons.Gamepad2,
+      title: 'Gamified Learning',
+      desc: 'Break the monotony of reviews with Memory Match, Shiritori, Typing games, and more.',
+    },
+    {
+      icon: Icons.Sparkles,
+      title: 'AI Tutor',
+      desc: 'Stuck on a mnemonic? Get instant, custom etymologies and mnemonics powered by AI.',
+    },
+    {
+      icon: Icons.GridDots,
+      title: 'Hiragana/Katakana',
+      desc: 'Just starting? Use Guest Mode to practice your basic kana without an account.',
+    },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex flex-col">
+      <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-2">
+          <ThemeIcon size="lg" radius="md" color="indigo" variant="filled">
+            <Icons.Brain size={20} />
+          </ThemeIcon>
+          <Text size="xl" fw={700} c="indigo">
+            SukiStudy
+          </Text>
+        </div>
+        <Button variant="ghost" onClick={() => navigate('/')}>
+          Login
+        </Button>
+      </header>
+
+      <main className="flex-1">
+        <Container size="lg" py={60}>
+          <div className="text-center mb-16">
+            <Title className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
+              Master Japanese <br />
+              <span className="text-indigo-600">The Fun Way</span>
+            </Title>
+            <Text size="xl" c="dimmed" maw={600} mx="auto" mb="xl">
+              A powerful companion app for WaniKani users. Turn your reviews into engaging
+              mini-games and gain deeper insights with AI assistance.
+            </Text>
+
+            <Group justify="center" gap="md">
+              <Button
+                size="xl"
+                onClick={() => navigate('/')}
+                leftSection={<Icons.BookOpen size={20} />}
+                className="shadow-xl shadow-indigo-200"
+              >
+                Connect WaniKani
+              </Button>
+              <Button size="xl" variant="outline" onClick={handleGuest} color="gray">
+                Try Guest Mode
+              </Button>
+            </Group>
+            <Text size="xs" c="dimmed" mt="sm">
+              Guest mode supports Hiragana & Katakana practice only.
+            </Text>
+          </div>
+
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={40} py={40}>
+            {features.map((f, i) => (
+              <Paper
+                key={i}
+                p="xl"
+                radius="md"
+                withBorder
+                className="hover:shadow-md transition-shadow"
+              >
+                <ThemeIcon size={48} radius="md" variant="light" color="indigo" mb="md">
+                  <f.icon size={28} />
+                </ThemeIcon>
+                <Title order={3} mb="sm">
+                  {f.title}
+                </Title>
+                <Text c="dimmed">{f.desc}</Text>
+              </Paper>
+            ))}
+          </SimpleGrid>
+        </Container>
+      </main>
+
+      <footer className="bg-white border-t border-gray-100 py-8">
+        <Container size="lg" className="text-center text-gray-400 text-sm">
+          <p>SukiStudy is a third-party app and not affiliated with WaniKani.</p>
+        </Container>
+      </footer>
+    </div>
+  )
+}

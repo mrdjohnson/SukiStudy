@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { GameItem, SubjectType } from '../../types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
@@ -25,8 +25,8 @@ import {
 import { useUser } from '../../contexts/UserContext'
 
 export const CustomGameSetup: React.FC = () => {
-  const { user } = useUser()
-  const { items: learnedItems, loading } = useAllSubjects()
+  const { user, isGuest } = useUser()
+  const { items: learnedItems, loading } = useAllSubjects(true)
 
   const [selectedGames, setSelectedGames] = useState<string[]>(['quiz'])
   const [itemCount, setItemCount] = useState(25)
@@ -38,12 +38,16 @@ export const CustomGameSetup: React.FC = () => {
   ])
   const [manualSelection, setManualSelection] = useState<number[]>([])
   const [isManualMode, setIsManualMode] = useState(false)
-  const [includeHiragana, setIncludeHiragana] = useState(false)
-  const [includeKatakana, setIncludeKatakana] = useState(false)
+  const [includeHiragana, setIncludeHiragana] = useState(isGuest)
+  const [includeKatakana, setIncludeKatakana] = useState(isGuest)
   const [previewFlashcard, setPreviewFlashcard] = useState<GameItem | null>(null)
   const [showLevelSelect, setShowLevelSelect] = useState(false)
 
   const navigate = useNavigate()
+
+  const availableGames = useMemo(() => {
+    return games.filter(g => !isGuest || g.guestFriendly)
+  }, [isGuest])
 
   // Initialize levels to current level
   useEffect(() => {
@@ -142,7 +146,7 @@ export const CustomGameSetup: React.FC = () => {
 
               <Chip.Group multiple value={selectedGames} onChange={setSelectedGames}>
                 <Group gap="xs">
-                  {games.map(g => (
+                  {availableGames.map(g => (
                     <Chip key={g.id} value={g.id} variant="light" radius="sm">
                       {g.name}
                     </Chip>
@@ -159,40 +163,49 @@ export const CustomGameSetup: React.FC = () => {
               </Group>
 
               <Stack gap="md">
-                <Box>
-                  <Button
-                    variant="light"
-                    size="xs"
-                    onClick={() => setShowLevelSelect(true)}
-                    rightSection={<Icons.ChevronRight size={14} />}
-                  >
-                    Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
-                  </Button>
-                </Box>
-
-                <Box>
-                  <Text size="sm" fw={500} mb="xs">
-                    Subject Types
-                  </Text>
-                  <Chip.Group multiple value={types} onChange={setTypes}>
-                    <Group gap="xs">
-                      <Chip value={SubjectType.RADICAL} color="cyan" variant="outline" size="xs">
-                        Radical
-                      </Chip>
-                      <Chip value={SubjectType.KANJI} color="pink" variant="outline" size="xs">
-                        Kanji
-                      </Chip>
-                      <Chip
-                        value={SubjectType.VOCABULARY}
-                        color="grape"
-                        variant="outline"
+                {user && (
+                  <>
+                    <Box>
+                      <Button
+                        variant="light"
                         size="xs"
+                        onClick={() => setShowLevelSelect(true)}
+                        rightSection={<Icons.ChevronRight size={14} />}
                       >
-                        Vocab
-                      </Chip>
-                    </Group>
-                  </Chip.Group>
-                </Box>
+                        Levels:{' '}
+                        {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
+                      </Button>
+                    </Box>
+                    <Box>
+                      <Text size="sm" fw={500} mb="xs">
+                        Subject Types
+                      </Text>
+                      <Chip.Group multiple value={types} onChange={setTypes}>
+                        <Group gap="xs">
+                          <Chip
+                            value={SubjectType.RADICAL}
+                            color="cyan"
+                            variant="outline"
+                            size="xs"
+                          >
+                            Radical
+                          </Chip>
+                          <Chip value={SubjectType.KANJI} color="pink" variant="outline" size="xs">
+                            Kanji
+                          </Chip>
+                          <Chip
+                            value={SubjectType.VOCABULARY}
+                            color="grape"
+                            variant="outline"
+                            size="xs"
+                          >
+                            Vocab
+                          </Chip>
+                        </Group>
+                      </Chip.Group>
+                    </Box>
+                  </>
+                )}
 
                 <Box>
                   <Text size="sm" fw={500} mb="xs">

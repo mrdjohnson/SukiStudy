@@ -6,16 +6,19 @@ import { User } from '../types'
 
 interface UserContextType {
   user: User | null
+  isGuest: boolean
   loading: boolean
   isSyncing: boolean
   login: (token: string, userData: User) => void
   logout: () => void
+  loginAsGuest: () => void
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
+  const [isGuest, setIsGuest] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
 
@@ -72,12 +75,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const logout = async () => {
+    if (isGuest) {
+      setIsGuest(false)
+
+      return
+    }
+
     localStorage.removeItem('wk_token')
     await syncService.clearData()
     setUser(null)
   }
 
-  const value = { user, loading, isSyncing, login, logout }
+  const loginAsGuest = () => {
+    setIsGuest(true)
+    setUser(null)
+  }
+
+  const value = { user, isGuest, loading, isSyncing, login, logout, loginAsGuest }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }

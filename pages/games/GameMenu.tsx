@@ -1,11 +1,17 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { games } from '../../utils/games'
+import { useUser } from '../../contexts/UserContext'
 
 export const GameMenu: React.FC = () => {
   const navigate = useNavigate()
+  const { isGuest } = useUser()
+
+  const availableGames = useMemo(() => {
+    return games.filter(g => !isGuest || g.guestFriendly)
+  }, [isGuest])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -36,7 +42,7 @@ export const GameMenu: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {games.map(game => (
+        {availableGames.map(game => (
           <button
             key={game.id}
             onClick={() => navigate(`/session/games/${game.id}`)}

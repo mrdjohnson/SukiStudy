@@ -2,15 +2,28 @@ import { useState, useEffect, useCallback } from 'react'
 import { User, GameItem, Subject } from '../types'
 import { assignments, subjects } from '../services/db'
 import { useUser } from '../contexts/UserContext'
+import { generateKanaGameItems } from '../utils/kana'
 
 export const useLearnedSubjects = (enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
-  const { user } = useUser()
+  const { user, isGuest } = useUser()
 
   const runQuery = useCallback(() => {
-    if (!user || !enabled) {
+    if (!enabled) {
       setItems([])
+      setLoading(false)
+      return
+    }
+
+    // GUEST MODE
+    if (isGuest) {
+      setItems(generateKanaGameItems(true, true))
+      setLoading(false)
+      return
+    }
+
+    if (!user) {
       setLoading(false)
       return
     }

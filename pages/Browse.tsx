@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { Subject, Assignment } from '../types'
+import { Subject, Assignment, GameItem } from '../types'
 import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
-import { toHiragana } from '../utils/kana'
+import { generateKanaGameItems, toHiragana } from '../utils/kana'
 import { openFlashcardModal } from '../components/modals/FlashcardModal'
 import {
   TextInput,
@@ -19,12 +19,14 @@ import {
   UnstyledButton,
   Badge,
   Stack,
+  Checkbox,
+  Input,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 
 export const Browse: React.FC = () => {
-  const { user } = useUser()
-  const [items, setItems] = useState<{ subject: Subject; assignment?: Assignment }[]>([])
+  const { user, isGuest } = useUser()
+  const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
 
   // Filters
@@ -33,11 +35,20 @@ export const Browse: React.FC = () => {
   const [srsFilter, setSrsFilter] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [showLevelSelect, setShowLevelSelect] = useState(false)
+  const [includeHiragana, setIncludeHiragana] = useState(isGuest)
+  const [includeKatakana, setIncludeKatakana] = useState(isGuest)
 
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!user) return
+    const baseItems = generateKanaGameItems(includeHiragana, includeKatakana)
+
+    if (!user || isGuest) {
+      setItems(baseItems)
+      setLoading(false)
+      return
+    }
+
     const fetchData = async () => {
       setLoading(true)
       try {
@@ -71,10 +82,13 @@ export const Browse: React.FC = () => {
         }
 
         setItems(
-          allSubjects.map(s => ({
-            subject: s,
-            assignment: s.id ? assignments[s.id] : undefined,
-          })),
+          baseItems.concat(
+            allSubjects.map(s => ({
+              subject: s,
+              assignment: s.id ? assignments[s.id] : undefined,
+              isReviewable: false,
+            })),
+          ),
         )
       } catch (err) {
         console.error('Browse Fetch Error:', err)
@@ -83,7 +97,7 @@ export const Browse: React.FC = () => {
       }
     }
     fetchData()
-  }, [user, levels.join(',')])
+  }, [user, levels.join(','), includeHiragana, includeKatakana])
 
   const toggleLevel = (l: number) => {
     if (levels.includes(l)) {
@@ -189,14 +203,16 @@ export const Browse: React.FC = () => {
         <Group justify="space-between" mb="md">
           <Group>
             <Title order={2}>Browse</Title>
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={() => setShowLevelSelect(true)}
-              rightSection={<Icons.ChevronRight size={14} />}
-            >
-              Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
-            </Button>
+            {user && (
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={() => setShowLevelSelect(true)}
+                rightSection={<Icons.ChevronRight size={14} />}
+              >
+                Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
+              </Button>
+            )}
           </Group>
           <Button variant="subtle" size="sm" onClick={() => navigate('/')}>
             Dashboard
@@ -211,21 +227,39 @@ export const Browse: React.FC = () => {
             onChange={e => setSearchQuery(e.currentTarget.value)}
           />
 
-          <Group>
-            <Chip checked={onlyLearned} onChange={setOnlyLearned} variant="outline" size="xs">
-              Learned Only
-            </Chip>
-            <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
-            <Chip.Group multiple value={srsFilter} onChange={setSrsFilter}>
-              <Group gap="xs">
-                {SRS_GROUPS.map(label => (
-                  <Chip key={label} value={label} variant="light" size="xs">
-                    {label}
-                  </Chip>
-                ))}
-              </Group>
-            </Chip.Group>
-          </Group>
+          {user && (
+            <Group>
+              <Chip checked={onlyLearned} onChange={setOnlyLearned} variant="outline" size="xs">
+                Learned Only
+              </Chip>
+              <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
+              <Chip.Group multiple value={srsFilter} onChange={setSrsFilter}>
+                <Group gap="xs">
+                  {SRS_GROUPS.map(label => (
+                    <Chip key={label} value={label} variant="light" size="xs">
+                      {label}
+                    </Chip>
+                  ))}
+                </Group>
+              </Chip.Group>
+            </Group>
+          )}
+
+          <Box>
+            <Input.Label mb="xs">Kana </Input.Label>
+            <Group>
+              <Checkbox
+                label="Hiragana"
+                checked={includeHiragana}
+                onChange={e => setIncludeHiragana(e.currentTarget.checked)}
+              />
+              <Checkbox
+                label="Katakana"
+                checked={includeKatakana}
+                onChange={e => setIncludeKatakana(e.currentTarget.checked)}
+              />
+            </Group>
+          </Box>
         </Stack>
       </Paper>
 
