@@ -67,9 +67,9 @@ export default function App() {
 
           <Routes>
             <Route path="/landing" element={<Landing />} />
-            <Route path="/login" element={<Login onLogin={login} />} />
+            <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={login} />} />
 
-            <Route element={(!user && !isGuest) && <Navigate to="/landing" />}>
+            <Route element={!user && !isGuest && <Navigate to="/landing" />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/session/lesson" element={<Session mode="lesson" />} />
               <Route path="/session/review" element={<Session mode="review" />} />
