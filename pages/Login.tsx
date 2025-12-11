@@ -13,7 +13,9 @@ import {
   Collapse,
   ThemeIcon,
   Card,
+  LoadingOverlay,
 } from '@mantine/core'
+import clsx from 'clsx'
 
 interface LoginProps {
   onLogin: (token: string, user: User) => void
@@ -43,16 +45,21 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card py={40} shadow="lg" radius="lg">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
+      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+
+      <Card
+        py={40}
+        shadow="lg"
+        radius="lg"
+        withBorder
+        className={clsx(loading && '!border-blue-500')}
+      >
         <Stack align="center" mb={30}>
           <ThemeIcon size={64} radius="md" color="indigo" variant="filled">
             <Icons.Brain size={32} />
           </ThemeIcon>
           <Title ta="center">SukiStudy</Title>
-          <Text c="dimmed" size="sm" ta="center">
-            Enter your WaniKani Personal Access Token V2
-          </Text>
         </Stack>
 
         <Paper shadow="none" className="py-4">
@@ -60,6 +67,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <TextInput
               label="API Token"
               placeholder="Ex: 8a4c9b..."
+              description="Enter your WaniKani Personal Access Token V2"
               required
               value={token}
               onChange={e => setToken(e.target.value)}
@@ -73,7 +81,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </Alert>
             )}
 
-            <Button fullWidth type="submit" size="md" isLoading={loading}>
+            <Button fullWidth type="submit" size="md">
               Connect Account
             </Button>
           </form>
