@@ -7,6 +7,8 @@ import { Button } from '../../components/ui/Button'
 import { GameResults } from '../../components/GameResults'
 import { useSettings } from '../../contexts/SettingsContext'
 
+import logo from '/assets/apple-touch-icon.png'
+
 interface GameCard {
   id: string
   subjectId: number
@@ -242,9 +244,10 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
             <div
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}
             >
-              <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md border-2 border-indigo-400 flex items-center justify-center">
-                <Icons.Brain className="text-white/30 w-12 h-12" />
+              <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
+                <img src={logo} className='size-12 opacity-40' />
               </div>
+
               <div
                 className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
               >
