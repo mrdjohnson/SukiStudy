@@ -48,7 +48,7 @@ export const Landing: React.FC = () => {
             SukiStudy
           </Text>
         </div>
-        <Button variant="ghost" onClick={() => navigate('/')}>
+        <Button variant="ghost" onClick={() => navigate('/login')}>
           Login
         </Button>
       </header>
@@ -68,7 +68,7 @@ export const Landing: React.FC = () => {
             <Group justify="center" gap="md">
               <Button
                 size="xl"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/login')}
                 leftSection={<Icons.BookOpen size={20} />}
                 className="shadow-xl shadow-indigo-200"
               >

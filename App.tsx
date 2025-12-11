@@ -54,10 +54,6 @@ export default function App() {
     )
   }
 
-  let ProtectedRoute
-
-  if (!user && !isGuest) ProtectedRoute = <Navigate to="/landing" />
-
   return (
     <SettingsProvider>
       <HashRouter>
@@ -71,8 +67,9 @@ export default function App() {
 
           <Routes>
             <Route path="/landing" element={<Landing />} />
+            <Route path="/login" element={<Login onLogin={login} />} />
 
-            <Route element={ProtectedRoute}>
+            <Route element={(!user && !isGuest) && <Navigate to="/landing" />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/session/lesson" element={<Session mode="lesson" />} />
               <Route path="/session/review" element={<Session mode="review" />} />
