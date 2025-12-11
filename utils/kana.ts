@@ -90,7 +90,7 @@ const HIRAGANA_LIST = [
   // 'っ',
 
   // combinations
-  'きゃ:',
+  'きゃ',
   'きゅ',
   'きょ',
   'しゃ',
@@ -139,7 +139,7 @@ export const generateKanaGameItems = (
 
   return list.map((item, index) => {
     const romanji = toRomanji(item)
-    const itemIsHiragana = isHiragana(item)
+    const itemIsHiragana = isHiragana(item.trim())
     const alternate = itemIsHiragana ? toKatakana(item) : toHiragana(item)
 
     const versions = [toRomanji, toHiragana, toKatakana].map(f => f(item))
