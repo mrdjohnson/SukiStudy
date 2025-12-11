@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button'
 import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
 import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper } from '@mantine/core'
+import logo from '/assets/apple-touch-icon.png'
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate()
@@ -26,11 +27,6 @@ export const Landing: React.FC = () => {
       desc: 'Break the monotony of reviews with Memory Match, Shiritori, Typing games, and more.',
     },
     {
-      icon: Icons.Sparkles,
-      title: 'AI Tutor',
-      desc: 'Stuck on a mnemonic? Get instant, custom etymologies and mnemonics powered by AI.',
-    },
-    {
       icon: Icons.GridDots,
       title: 'Hiragana/Katakana',
       desc: 'Just starting? Use Guest Mode to practice your basic kana without an account.',
@@ -41,8 +37,8 @@ export const Landing: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex flex-col">
       <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <ThemeIcon size="lg" radius="md" color="indigo" variant="filled">
-            <Icons.Brain size={20} />
+          <ThemeIcon size="lg" radius="xl" color="#ff0000" variant="filled">
+            <img src={logo} />
           </ThemeIcon>
           <Text size="xl" fw={700} c="indigo">
             SukiStudy
@@ -61,8 +57,7 @@ export const Landing: React.FC = () => {
               <span className="text-indigo-600">The Fun Way</span>
             </Title>
             <Text size="xl" c="dimmed" maw={600} mx="auto" mb="xl">
-              A powerful companion app for WaniKani users. Turn your reviews into engaging
-              mini-games and gain deeper insights with AI assistance.
+              A playful companion app for WaniKani users.
             </Text>
 
             <Group justify="center" gap="md">
@@ -74,7 +69,7 @@ export const Landing: React.FC = () => {
               >
                 Connect WaniKani
               </Button>
-              <Button size="xl" variant="outline" onClick={handleGuest} color="gray">
+              <Button size="xl" variant="outline" onClick={handleGuest}>
                 Try Guest Mode
               </Button>
             </Group>
