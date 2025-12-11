@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { Subject, Assignment, GameItem } from '../types'
+import { Subject, Assignment, GameItem, SubjectType } from '../types'
 import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
@@ -145,9 +145,15 @@ export const Browse: React.FC = () => {
   }
 
   const getTypeColor = (object: string) => {
-    if (object === 'radical') return 'cyan'
-    if (object === 'kanji') return 'pink'
-    return 'grape' // vocab
+    return (
+      {
+        [SubjectType.RADICAL]: '!bg-sky-600 !text-white',
+        [SubjectType.KANJI]: '!bg-pink-600 !text-white',
+        [SubjectType.HIRAGANA]: '!bg-teal-600 !text-white',
+        [SubjectType.KATAKANA]: '!bg-amber-600 !text-white',
+        [SubjectType.VOCABULARY]: '!bg-purple-600 !text-white',
+      }[object] || '!bg-purple-600 !text-white'
+    )
   }
 
   const getSRSBadge = (stage?: number) => {
@@ -284,11 +290,11 @@ export const Browse: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderRadius: theme.radius.md,
-                  backgroundColor: theme.colors[color][6],
                   color: 'white',
                   transition: 'transform 0.2s',
                   '&:hover': { transform: 'scale(1.05)' },
                 })}
+                className={color}
               >
                 {getSRSBadge(assignment?.srs_stage)}
                 <Text size="xl" fw={700}>
