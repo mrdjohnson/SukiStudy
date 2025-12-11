@@ -14,10 +14,13 @@ import {
   Switch,
   Button,
   Badge,
+  ActionIcon,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { games } from '../utils/games'
 import { useUser } from '../contexts/UserContext'
+
+import logo from '/assets/apple-touch-icon.png'
 
 interface HeaderProps {
   children: React.ReactNode
@@ -50,9 +53,9 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
           <Group>
             {user && <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />}
             <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
-              <ThemeIcon size="lg" radius="md" color="indigo" variant="filled">
-                <Icons.Brain size={20} />
-              </ThemeIcon>
+              <ActionIcon size="lg" radius="xl" color="#ff0000" variant="filled">
+                <img src={logo} />
+              </ActionIcon>
               <Text size="xl" fw={700} c="dark">
                 SukiStudy
               </Text>

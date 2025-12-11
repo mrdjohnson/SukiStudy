@@ -14,8 +14,10 @@ import {
   ThemeIcon,
   Card,
   LoadingOverlay,
+  ActionIcon,
 } from '@mantine/core'
 import clsx from 'clsx'
+import logo from '/assets/apple-touch-icon.png'
 
 interface LoginProps {
   onLogin: (token: string, user: User) => void
@@ -56,9 +58,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         className={clsx(loading && '!border-blue-500')}
       >
         <Stack align="center" mb={30}>
-          <ThemeIcon size={64} radius="md" color="indigo" variant="filled">
-            <Icons.Brain size={32} />
-          </ThemeIcon>
+          <ActionIcon size={64} radius="xl" color="#ff0000" variant="filled">
+            <img src={logo} />
+          </ActionIcon>
+
           <Title ta="center">SukiStudy</Title>
         </Stack>
 
