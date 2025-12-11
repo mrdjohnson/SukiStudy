@@ -393,8 +393,6 @@ export const CustomGameSetup: React.FC = () => {
             subject={previewFlashcard.subject}
             hasPrev={false}
             hasNext={false}
-            onPrev={() => setPreviewFlashcard(null)}
-            onNext={() => setPreviewFlashcard(null)}
           />
         )}
       </Modal>

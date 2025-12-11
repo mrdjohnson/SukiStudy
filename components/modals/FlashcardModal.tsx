@@ -19,11 +19,8 @@ export const openFlashcardModal = (subject: Subject, assignment?: Assignment) =>
         <Flashcard
           subject={subject}
           assignment={assignment}
-          onPrev={() => modals.closeAll()}
-          onNext={() => modals.closeAll()}
           hasPrev={false}
           hasNext={false}
-          flipped
         />
       </div>
     ),

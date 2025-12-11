@@ -373,7 +373,7 @@ export const Session: React.FC<{ mode: 'lesson' | 'review' }> = ({ mode }) => {
         <Flashcard
           subject={activeSubject}
           assignment={activeAssignment}
-          onNext={isDrillDown ? undefined : handleReviewNext}
+          onNext={handleReviewNext}
           onPrev={handleReviewPrev}
           hasPrev={isDrillDown || currentIndex > 0}
           hasNext={!isDrillDown}

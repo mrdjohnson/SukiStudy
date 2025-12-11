@@ -7,18 +7,18 @@ import ReactMarkdown from 'react-markdown'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
-import { Modal, Image, ActionIcon } from '@mantine/core'
+import { Modal, Image, ActionIcon, Stack, Badge, Group } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import clsx from 'clsx'
 
 interface FlashcardProps {
   subject: Subject
   assignment?: Assignment
   onNext?: () => void
-  onPrev: () => void
+  onPrev?: () => void
   hasPrev: boolean
   hasNext: boolean
   onDrillDown?: (subject: Subject) => void
-  flipped?: boolean
 }
 
 // Global cache for failed image URLs to prevent flickering/re-checking in same session
@@ -116,15 +116,12 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType }> = ({ id, type }
 
 export const Flashcard: React.FC<FlashcardProps> = ({
   subject,
-  assignment,
   onNext,
   onPrev,
   hasPrev,
   hasNext,
   onDrillDown,
-  flipped,
 }) => {
-  const [isFlipped, setIsFlipped] = useState(flipped)
   const [aiExplanation, setAiExplanation] = useState<string | null>(null)
   const [loadingAi, setLoadingAi] = useState(false)
   const [components, setComponents] = useState<Subject[]>([])
@@ -133,7 +130,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
-    setIsFlipped(flipped)
     setAiExplanation(null)
     setLoadingAi(false)
     setAudioIndex(0)
@@ -171,20 +167,26 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const getSubjectType = (s: Subject): SubjectType => {
     if (s.object === 'radical') return SubjectType.RADICAL
     if (s.object === 'kanji') return SubjectType.KANJI
+    if (s.object === 'hiragana') return SubjectType.HIRAGANA
+    if (s.object === 'katakana') return SubjectType.KATAKANA
     return SubjectType.VOCABULARY
   }
 
   const type = getSubjectType(subject)
 
   const colors = {
-    [SubjectType.RADICAL]: 'bg-sky-500 text-white',
-    [SubjectType.KANJI]: 'bg-pink-500 text-white',
-    [SubjectType.VOCABULARY]: 'bg-purple-500 text-white',
+    [SubjectType.RADICAL]: '!bg-sky-600 text-white',
+    [SubjectType.KANJI]: '!bg-pink-600 text-white',
+    [SubjectType.HIRAGANA]: '!bg-teal-600 text-white',
+    [SubjectType.KATAKANA]: '!bg-amber-600 text-white',
+    [SubjectType.VOCABULARY]: '!bg-purple-600 text-white',
   }
 
   const borderColors = {
     [SubjectType.RADICAL]: 'border-sky-200 bg-sky-50',
     [SubjectType.KANJI]: 'border-pink-200 bg-pink-50',
+    [SubjectType.HIRAGANA]: 'border-teal-200 bg-teal-50',
+    [SubjectType.KATAKANA]: 'border-amber-200 bg-amber-50',
     [SubjectType.VOCABULARY]: 'border-purple-200 bg-purple-50',
   }
 
@@ -219,27 +221,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const primaryReading = subject.readings?.find(r => r.primary)?.reading
   const character = subject.characters
 
-  const renderCharacter = (className: string) => {
-    if (character) {
-      return <span className={className}>{character}</span>
-    } else {
-      const imageUrl = subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url
-      return (
-        <div className="w-full h-full p-2">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt="radical"
-              className={`w-full h-full ${className.includes('text-white') ? 'brightness-0 invert' : ''}`}
-            />
-          ) : (
-            <span>?</span>
-          )}
-        </div>
-      )
-    }
-  }
-
   const renderInteractiveSentence = (jaSentence: string) => {
     const parts = jaSentence.split(/([一-龯]+)/)
     return (
@@ -268,260 +249,221 @@ export const Flashcard: React.FC<FlashcardProps> = ({
       onClick={e => e.stopPropagation()}
     >
       <div
-        className={`relative w-full ${isPopup ? 'min-h-[60vh]' : 'aspect-[4/5] md:aspect-[16/10]'} transition-all duration-500 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
-        onClick={() => setIsFlipped(!isFlipped)}
+        className={`rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
+        onClick={e => e.stopPropagation()}
       >
-        {/* Front */}
-        <div
-          className={`absolute inset-0 backface-hidden rounded-2xl shadow-xl flex flex-col items-center justify-center overflow-hidden border border-gray-100 bg-white`}
-        >
-          <div
-            className={`absolute top-0 w-full py-2 flex justify-between px-4 items-center ${colors[type]}`}
-          >
-            <span className="text-xs font-bold uppercase tracking-widest">{type}</span>
-            <span className="text-xs font-bold uppercase bg-white/20 px-2 py-0.5 rounded">
-              Level {subject.level}
-            </span>
-          </div>
-
-          <div className="flex-1 flex flex-col items-center justify-center p-8 w-full text-center">
-            {/* Character Display */}
-            {character ? (
-              <div
-                className={`font-bold text-gray-800 mb-8 break-all leading-tight ${character.length > 3 ? 'text-5xl md:text-7xl' : 'text-8xl md:text-9xl'}`}
-              >
-                {character}
-              </div>
-            ) : (
-              <div className="w-32 h-32 mb-8">{renderCharacter('')}</div>
-            )}
-            <p className="text-gray-400 text-sm font-medium animate-pulse">Tap to reveal</p>
-          </div>
-        </div>
-
-        {/* Back */}
-        <div
-          className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
-          onClick={e => e.stopPropagation()}
-        >
-          {/* Back Header */}
-          <div className={`p-6 border-b ${borderColors[type]}`}>
-            <div className="flex gap-4">
-              <div
-                onClick={() => setIsFlipped(false)}
-                className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
-              >
-                {character || (
-                  <div className="w-12 h-12">
-                    {subject.character_images?.find(i => i.content_type === 'image/svg+xml')
-                      ?.url && (
-                      <img
-                        src={
-                          subject.character_images?.find(i => i.content_type === 'image/svg+xml')
-                            ?.url
-                        }
-                        alt=""
-                        className="w-full h-full brightness-0 invert"
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 flex flex-col justify-center">
-                <div
-                  onClick={() => setIsFlipped(false)}
-                  className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer"
-                >
-                  {character}
-                </div>
-
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
-                  {primaryMeaning}
-                </h2>
-
-                {primaryReading && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
-                    {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
-                      <button
-                        onClick={playAudio}
-                        className="p-2 bg-white/50 hover:bg-white rounded-full text-indigo-600 transition-colors shadow-sm"
-                        title="Play Audio"
-                      >
-                        <Icons.Volume className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="absolute top-4 right-4 bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200">
-                Lv {subject.level}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
-            {studyMaterial && (
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
-                {studyMaterial.meaning_synonyms.length > 0 && (
-                  <div>
-                    <span className="text-xs font-bold text-yellow-600 uppercase">
-                      Your Synonyms:{' '}
-                    </span>
-                    <span className="text-sm font-medium text-gray-800">
-                      {studyMaterial.meaning_synonyms.join(', ')}
-                    </span>
-                  </div>
-                )}
-                {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
-                  <div className="space-y-2 pt-1">
-                    {studyMaterial.meaning_note && (
-                      <p className="text-sm text-gray-700">
-                        <strong>Meaning Note:</strong> {studyMaterial.meaning_note}
-                      </p>
-                    )}
-                    {studyMaterial.reading_note && (
-                      <p className="text-sm text-gray-700">
-                        <strong>Reading Note:</strong> {studyMaterial.reading_note}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Meaning Mnemonic
-              </h3>
-              <div
-                className="text-gray-700 leading-relaxed text-sm md:text-base"
-                dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
-              />
-            </div>
-
-            {subject.reading_mnemonic && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Reading Mnemonic
-                </h3>
-                <div
-                  className="text-gray-700 leading-relaxed text-sm md:text-base"
-                  dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }}
-                />
-              </div>
-            )}
-
-            {subject.readings && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Readings
-                </h3>
-
-                <div className="space-y-3">
-                  {subject.readings.map(reading => (
-                    <div key={reading.reading}>
-                      {reading.reading}, {toRomanji(reading.reading)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {subject.context_sentences && subject.context_sentences.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Context Sentences
-                </h3>
-                <div className="space-y-3">
-                  {subject.context_sentences.slice(0, 3).map((s, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
-                      <p className="text-base mb-1 font-medium text-gray-800">
-                        {renderInteractiveSentence(s.ja)}
-                      </p>
-                      <p className="text-gray-500 text-xs">{s.en}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {(type === SubjectType.KANJI || type === SubjectType.RADICAL) && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Visuals
-                </h3>
-                <MnemonicImage id={String(subject.id)} type={type} />
-              </div>
-            )}
-
-            {components.length > 0 && (
-              <div className="pt-4 border-t border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                  {type === SubjectType.VOCABULARY ? 'Kanji Composition' : 'Radicals'}
-                </h3>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                  {components.map(comp => {
-                    const compType = getSubjectType(comp)
-                    const compChar = comp.characters
-                    const compImg = comp.character_images?.find(
-                      i => i.content_type === 'image/svg+xml',
-                    )?.url
-                    return (
-                      <div
-                        key={comp.id}
-                        onClick={e => {
-                          e.stopPropagation()
-                          if (onDrillDown) onDrillDown(comp)
-                        }}
-                        className={`
-                          p-2 rounded-lg border text-center cursor-pointer transition-all hover:shadow-md active:scale-95
-                          ${compType === SubjectType.RADICAL ? 'bg-sky-50 border-sky-100 hover:border-sky-300' : 'bg-pink-50 border-pink-100 hover:border-pink-300'}
-                        `}
-                      >
-                        <div className="text-2xl font-bold text-gray-800 mb-1">
-                          {compChar || (
-                            <div className="w-8 h-8 mx-auto">
-                              {compImg && <img src={compImg} alt="" className="w-full h-full" />}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-[10px] leading-tight text-gray-600 truncate px-1">
-                          {comp.meanings[0].meaning}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider flex items-center gap-2">
-                  <Icons.Sparkles className="w-4 h-4" />
-                  AI Tutor
-                </h3>
-                {!aiExplanation && (
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={handleAiExplain}
-                    isLoading={loadingAi}
-                  >
-                    Ask Gemini
-                  </Button>
-                )}
-              </div>
-
-              {aiExplanation && (
-                <div className="bg-indigo-50 rounded-lg p-4 text-sm text-gray-700 prose prose-indigo max-w-none">
-                  <ReactMarkdown>{aiExplanation}</ReactMarkdown>
+        {/* Back Header */}
+        <div className={`p-6 border-b ${borderColors[type]} relative`}>
+          <div className="flex gap-4">
+            <div
+              className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
+            >
+              {character || (
+                <div className="w-12 h-12">
+                  {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
+                    <img
+                      src={
+                        subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url
+                      }
+                      alt=""
+                      className="w-full h-full brightness-0 invert"
+                    />
+                  )}
                 </div>
               )}
             </div>
+
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">
+                {character}
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
+                {primaryMeaning}
+              </h2>
+
+              {primaryReading && (
+                <div className="flex items-center gap-3">
+                  <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
+                  {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
+                    <button
+                      onClick={playAudio}
+                      className="p-2 bg-white/50 hover:bg-white rounded-full text-indigo-600 transition-colors shadow-sm"
+                      title="Play Audio"
+                    >
+                      <Icons.Volume className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <Stack className="absolute top-2 right-2" gap="xs">
+              <Badge className={colors[type]}>{type}</Badge>
+
+              {subject.level > 0 && (
+                <div className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200 w-fit ml-auto">
+                  Lv {subject.level}
+                </div>
+              )}
+            </Stack>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
+          {studyMaterial && (
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
+              {studyMaterial.meaning_synonyms.length > 0 && (
+                <div>
+                  <span className="text-xs font-bold text-yellow-600 uppercase">
+                    Your Synonyms:{' '}
+                  </span>
+                  <span className="text-sm font-medium text-gray-800">
+                    {studyMaterial.meaning_synonyms.join(', ')}
+                  </span>
+                </div>
+              )}
+              {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
+                <div className="space-y-2 pt-1">
+                  {studyMaterial.meaning_note && (
+                    <p className="text-sm text-gray-700">
+                      <strong>Meaning Note:</strong> {studyMaterial.meaning_note}
+                    </p>
+                  )}
+                  {studyMaterial.reading_note && (
+                    <p className="text-sm text-gray-700">
+                      <strong>Reading Note:</strong> {studyMaterial.reading_note}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              Meaning Mnemonic
+            </h3>
+            <div
+              className="text-gray-700 leading-relaxed text-sm md:text-base"
+              dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
+            />
+          </div>
+
+          {subject.reading_mnemonic && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Reading Mnemonic
+              </h3>
+              <div
+                className="text-gray-700 leading-relaxed text-sm md:text-base"
+                dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }}
+              />
+            </div>
+          )}
+
+          {subject.readings && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Readings
+              </h3>
+
+              <div className="space-y-3">
+                {subject.readings.map(reading => (
+                  <div key={reading.reading}>
+                    {reading.reading}, {toRomanji(reading.reading)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {subject.context_sentences && subject.context_sentences.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Context Sentences
+              </h3>
+              <div className="space-y-3">
+                {subject.context_sentences.slice(0, 3).map((s, i) => (
+                  <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
+                    <p className="text-base mb-1 font-medium text-gray-800">
+                      {renderInteractiveSentence(s.ja)}
+                    </p>
+                    <p className="text-gray-500 text-xs">{s.en}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(type === SubjectType.KANJI || type === SubjectType.RADICAL) && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Visuals
+              </h3>
+              <MnemonicImage id={String(subject.id)} type={type} />
+            </div>
+          )}
+
+          {components.length > 0 && (
+            <div className="pt-4 border-t border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                {type === SubjectType.VOCABULARY ? 'Kanji Composition' : 'Radicals'}
+              </h3>
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                {components.map(comp => {
+                  const compType = getSubjectType(comp)
+                  const compChar = comp.characters
+                  const compImg = comp.character_images?.find(
+                    i => i.content_type === 'image/svg+xml',
+                  )?.url
+                  return (
+                    <div
+                      key={comp.id}
+                      onClick={e => {
+                        e.stopPropagation()
+                        if (onDrillDown) onDrillDown(comp)
+                      }}
+                      className={`
+                          p-2 rounded-lg border text-center cursor-pointer transition-all hover:shadow-md active:scale-95
+                          ${compType === SubjectType.RADICAL ? 'bg-sky-50 border-sky-100 hover:border-sky-300' : 'bg-pink-50 border-pink-100 hover:border-pink-300'}
+                        `}
+                    >
+                      <div className="text-2xl font-bold text-gray-800 mb-1">
+                        {compChar || (
+                          <div className="w-8 h-8 mx-auto">
+                            {compImg && <img src={compImg} alt="" className="w-full h-full" />}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-[10px] leading-tight text-gray-600 truncate px-1">
+                        {comp.meanings[0].meaning}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                <Icons.Sparkles className="w-4 h-4" />
+                AI Tutor
+              </h3>
+              {!aiExplanation && (
+                <Button variant="outline" size="xs" onClick={handleAiExplain} isLoading={loadingAi}>
+                  Ask Gemini
+                </Button>
+              )}
+            </div>
+
+            {aiExplanation && (
+              <div className="bg-indigo-50 rounded-lg p-4 text-sm text-gray-700 prose prose-indigo max-w-none">
+                <ReactMarkdown>{aiExplanation}</ReactMarkdown>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -534,14 +476,12 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               e.stopPropagation()
               onPrev()
             }}
+            leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
             disabled={!hasPrev}
-            className="gap-2"
+            className={clsx('ml-auto', !hasPrev && '!hidden')}
           >
-            <Icons.ChevronLeft className="w-5 h-5" />
             {hasPrev && !onNext ? 'Back' : 'Prev'}
           </Button>
-
-          <span className="text-sm font-medium text-gray-400">Tap card to flip</span>
 
           <Button
             variant="subtle"
@@ -550,10 +490,10 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               if (onNext) onNext()
             }}
             disabled={!hasNext}
-            className={`gap-2 ${!onNext ? 'invisible' : ''}`}
+            rightSection={<Icons.ChevronRight className="w-5 h-5" />}
+            className={clsx('ml-auto', !hasNext && '!hidden')}
           >
             Next
-            <Icons.ChevronRight className="w-5 h-5" />
           </Button>
         </div>
       )}
