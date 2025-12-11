@@ -152,12 +152,13 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
               <NavLink
                 key={g.id}
                 label={g.name}
-                leftSection={<g.icon />}
+                leftSection={<g.icon className={g.color + ' !bg-transparent'} />}
                 onClick={() => {
                   navigate(`/session/games/${g.id}`)
                   if (opened) toggle()
                 }}
                 active={location.pathname.includes(`/session/games/${g.id}`)}
+                className={'hover:!'+g.color}
               />
             ))}
           </NavLink>
