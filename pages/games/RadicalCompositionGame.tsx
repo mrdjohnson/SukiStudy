@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Subject, GameItem, SubjectType } from '../../types'
+import { Subject, GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
@@ -11,18 +11,16 @@ import { GameResults } from '../../components/GameResults'
 import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 
 interface RadicalCompositionGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
 export const RadicalCompositionGame: React.FC<RadicalCompositionGameProps> = ({
-  user,
   items: propItems,
   onComplete,
 }) => {
   // Only fetch Kanji
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = useMemo(() => {
     return (propItems || fetchedItems).filter(i => i.subject.object === 'kanji')
   }, [fetchedItems, propItems])

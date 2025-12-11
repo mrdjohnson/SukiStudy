@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Subject, GameItem } from '../../types'
+import { Subject, GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
@@ -11,13 +11,12 @@ import { HowToPlayModal } from '../../components/HowToPlayModal'
 import { GameResults } from '../../components/GameResults'
 
 interface QuizGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const QuizGame: React.FC<QuizGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [currentQuestion, setCurrentQuestion] = useState(0)

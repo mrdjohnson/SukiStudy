@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Subject, Assignment } from '../types'
+import { Subject, Assignment } from '../types'
 import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
@@ -20,13 +20,15 @@ import {
   Badge,
   Stack,
 } from '@mantine/core'
+import { useUser } from '../contexts/UserContext'
 
-export const Browse: React.FC<{ user: User }> = ({ user }) => {
+export const Browse: React.FC = () => {
+  const { user } = useUser()
   const [items, setItems] = useState<{ subject: Subject; assignment?: Assignment }[]>([])
   const [loading, setLoading] = useState(true)
 
   // Filters
-  const [levels, setLevels] = useState<number[]>([user.level])
+  const [levels, setLevels] = useState<number[]>(user ? [user.level] : [])
   const [onlyLearned, setOnlyLearned] = useState(false)
   const [srsFilter, setSrsFilter] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')

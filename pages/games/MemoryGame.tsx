@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, GameItem, Subject } from '../../types'
+import { GameItem, Subject } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
@@ -19,13 +19,12 @@ interface GameCard {
 }
 
 interface MemoryGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const MemoryGame: React.FC<MemoryGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [cards, setCards] = useState<GameCard[]>([])

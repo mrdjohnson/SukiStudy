@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { User, GameItem, Subject } from '../types'
 import { assignments, subjects } from '../services/db'
 import _ from 'lodash'
+import { useUser } from '../contexts/UserContext'
 
-export const useAllSubjects = (user: User | null, enabled: boolean = true) => {
+export const useAllSubjects = (enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(enabled)
+  const { user } = useUser()
 
   const runQuery = useCallback(() => {
     if (!user || !enabled) {

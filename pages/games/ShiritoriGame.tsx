@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Subject, GameItem } from '../../types'
+import { Subject, GameItem } from '../../types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { toHiragana } from '../../utils/kana'
 import { Icons } from '../../components/Icons'
@@ -13,17 +13,12 @@ import { toRomanji } from '../../utils/romanji'
 import { GameResults } from '../../components/GameResults'
 
 interface ShiritoriGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({
-  user,
-  items: propItems,
-  onComplete,
-}) => {
-  const { items: fetchedItems, loading } = useAllSubjects(user, !propItems)
+export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useAllSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [currentWord, setCurrentWord] = useState<{ subject: Subject; assignment?: any } | null>(

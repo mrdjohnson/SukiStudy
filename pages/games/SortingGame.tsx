@@ -1,26 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, GameItem, Subject } from '../../types'
+import { GameItem, Subject } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { useSettings } from '../../contexts/SettingsContext'
 import { playSound } from '../../utils/sound'
-import { HowToPlayModal } from '../../components/HowToPlayModal'
 import { GameResults } from '../../components/GameResults'
 
 interface MatchingGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const MatchingGame: React.FC<MatchingGameProps> = ({
-  user,
-  items: propItems,
-  onComplete,
-}) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [leftItems, setLeftItems] = useState<{ char: string; id: number; subject: Subject }[]>([])

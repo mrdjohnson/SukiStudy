@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { MantineProvider, createTheme } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import App from './App'
+import { UserProvider } from './contexts/UserContext'
 
 import '@mantine/core/styles.css'
 
@@ -19,10 +20,12 @@ const theme = createTheme({
 const root = ReactDOM.createRoot(rootElement)
 root.render(
   <React.StrictMode>
-    <MantineProvider theme={theme}>
-      <ModalsProvider>
-        <App />
-      </ModalsProvider>
-    </MantineProvider>
+    <UserProvider>
+      <MantineProvider theme={theme}>
+        <ModalsProvider>
+          <App />
+        </ModalsProvider>
+      </MantineProvider>
+    </UserProvider>
   </React.StrictMode>,
 )

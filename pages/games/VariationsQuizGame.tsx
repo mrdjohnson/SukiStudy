@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router'
 import { useSet } from '@mantine/hooks'
 import _ from 'lodash'
 
-import { User, Subject, GameItem } from '../../types'
-import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
+import { Subject, GameItem } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { playSound } from '../../utils/sound'
@@ -15,7 +14,6 @@ import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 
 interface VariationsQuizGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
@@ -27,11 +25,10 @@ type Question = {
 }
 
 export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
-  user,
   items: propItems,
   onComplete,
 }) => {
-  const { items: fetchedItems, loading } = useAllSubjects(user, !propItems)
+  const { items: fetchedItems, loading } = useAllSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [question, setQuestion] = useState<Question | null>(null)

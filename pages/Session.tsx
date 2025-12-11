@@ -10,10 +10,12 @@ import { QuizGame } from './games/QuizGame'
 import { MemoryGame } from './games/MemoryGame'
 import { ConnectGame } from './games/ConnectGame'
 import { VariationsQuizGame } from './games/VariationsQuizGame'
+import { useUser } from '../contexts/UserContext'
 
 type SessionPhase = 'fetch' | 'learn' | 'game' | 'submit' | 'complete'
 
-export const Session: React.FC<{ mode: 'lesson' | 'review'; user: User }> = ({ mode, user }) => {
+export const Session: React.FC<{ mode: 'lesson' | 'review' }> = ({ mode }) => {
+  const { user } = useUser()
   const [items, setItems] = useState<{ subject: Subject; assignment?: Assignment }[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -237,6 +239,7 @@ export const Session: React.FC<{ mode: 'lesson' | 'review'; user: User }> = ({ m
         <Button variant="outline" onClick={() => navigate('/')}>
           Go Back
         </Button>
+        .
       </div>
     )
 

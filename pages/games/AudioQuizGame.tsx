@@ -11,17 +11,12 @@ import { GameResults } from '../../components/GameResults'
 import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 
 interface AudioQuizGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({
-  user,
-  items: propItems,
-  onComplete,
-}) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   // Filter only items with audio
   const items = useMemo(() => {
     return (propItems || fetchedItems).filter(i => i.subject.pronunciation_audios?.[0])

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Summary } from '../types'
+import { Summary } from '../types'
 import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { useUser } from '../contexts/UserContext'
 
-export const Dashboard: React.FC<{ user: User }> = ({ user }) => {
+export const Dashboard: React.FC = () => {
+  const { user } = useUser()
   const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()

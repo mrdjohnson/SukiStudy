@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Subject, Assignment, GameItem } from '../../types'
+import { Subject, Assignment, GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
@@ -26,13 +26,12 @@ interface Cell {
 }
 
 interface ConnectGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const ConnectGame: React.FC<ConnectGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [currentSubject, setCurrentSubject] = useState<Subject | null>(null)

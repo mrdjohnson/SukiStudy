@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { User, GameItem, GameResultData } from '../../types'
+import { GameItem, GameResultData } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 
@@ -12,8 +12,10 @@ import { ConnectGame } from './ConnectGame'
 import { TypingGame } from './TypingGame'
 import { AudioQuizGame } from './AudioQuizGame'
 import { GameResults } from '../../components/GameResults'
+import { useUser } from '../../contexts/UserContext'
 
-export const CustomSession: React.FC<{ user: User }> = ({ user }) => {
+export const CustomSession = () => {
+  const { user } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
   const { games, items } = (location.state as { games: string[]; items: GameItem[] }) || {

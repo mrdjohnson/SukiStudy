@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { User, Subject, GameItem } from '../../types'
+import { Subject, GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
@@ -13,13 +13,12 @@ import { GameResults } from '../../components/GameResults'
 import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 
 interface TypingGameProps {
-  user: User
   items?: GameItem[]
   onComplete?: (data?: any) => void
 }
 
-export const TypingGame: React.FC<TypingGameProps> = ({ user, items: propItems, onComplete }) => {
-  const { items: fetchedItems, loading } = useLearnedSubjects(user, !propItems)
+export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComplete }) => {
+  const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
   const [currentItem, setCurrentItem] = useState<GameItem | null>(null)

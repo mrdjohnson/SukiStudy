@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { Icons } from './Icons'
-import { User } from '../types'
 import { useSettings } from '../contexts/SettingsContext'
 import { HowToPlayModal } from './HowToPlayModal'
 import {
@@ -17,16 +16,16 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { games } from '../utils/games'
+import { useUser } from '../contexts/UserContext'
 
 interface HeaderProps {
-  user: User | null
-  onLogout: () => void
   children: React.ReactNode
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
+export const Header: React.FC<HeaderProps> = ({ children }) => {
   const [opened, { toggle }] = useDisclosure()
   const { soundEnabled, toggleSound, romanjiEnabled, toggleRomanji, helpSteps } = useSettings()
+  const { user, logout } = useUser()
   const [showHelp, setShowHelp] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
@@ -171,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, children }) => {
               variant="light"
               color="red"
               onClick={() => {
-                onLogout()
+                logout()
                 if (opened) toggle()
               }}
               leftSection={<Icons.LogOut size={16} />}

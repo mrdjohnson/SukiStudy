@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { User, GameItem, SubjectType } from '../../types'
+import { GameItem, SubjectType } from '../../types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
@@ -19,14 +19,14 @@ import {
   Modal,
   SimpleGrid,
   UnstyledButton,
-  Card,
-  ThemeIcon,
   Stack,
   Box,
 } from '@mantine/core'
+import { useUser } from '../../contexts/UserContext'
 
-export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
-  const { items: learnedItems, loading } = useAllSubjects(user)
+export const CustomGameSetup: React.FC = () => {
+  const { user } = useUser()
+  const { items: learnedItems, loading } = useAllSubjects()
 
   const [selectedGames, setSelectedGames] = useState<string[]>(['quiz'])
   const [itemCount, setItemCount] = useState(25)
