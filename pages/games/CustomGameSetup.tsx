@@ -52,7 +52,7 @@ export const CustomGameSetup: React.FC<{ user: User }> = ({ user }) => {
       let level = 2
 
       while (level <= user.level) {
-        initialLevels.push(level + 1)
+        initialLevels.push(level)
         level += 1
       }
 
