@@ -8,7 +8,6 @@ import { Button } from '../../components/ui/Button'
 import { playSound } from '../../utils/sound'
 import { useSettings } from '../../contexts/SettingsContext'
 import { waniKaniService } from '../../services/wanikaniService'
-import { HowToPlayModal } from '../../components/HowToPlayModal'
 import { toRomanji } from '../../utils/romanji'
 import { GameResults } from '../../components/GameResults'
 
@@ -28,11 +27,34 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ items: propItems, 
   const [history, setHistory] = useState<Subject[]>([])
   const [message, setMessage] = useState('Type the reading in Hiragana')
   const [gameOver, setGameOver] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
   const startTimeRef = useRef(Date.now())
 
-  const { soundEnabled } = useSettings()
+  const { soundEnabled, setHelpSteps } = useSettings()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setHelpSteps([
+      {
+        title: 'Read the Word',
+        description:
+          'Type the correct reading for the displayed word in Hiragana (Romanji auto-converts).',
+        icon: Icons.BookOpen,
+      },
+      {
+        title: 'Link the Chain',
+        description: 'The next word will start with the last character of the previous word.',
+        icon: Icons.Link,
+      },
+      {
+        title: "Avoid 'N'",
+        description:
+          "In traditional Shiritori, if a word ends in 'ん' (N), you lose! But here we just try to keep going.",
+        icon: Icons.Check,
+      },
+    ])
+
+    return () => setHelpSteps(null)
+  }, [])
 
   const vocabItems = useMemo(() => items.filter(i => i.subject.object === 'vocabulary'), [items])
 
@@ -223,13 +245,8 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ items: propItems, 
               <Icons.ChevronLeft />
             </Button>
           )}
-          <button
-            onClick={() => setShowHelp(true)}
-            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full"
-          >
-            <Icons.Help className="w-6 h-6" />
-          </button>
         </div>
+
         <h2 className="text-xl font-bold">Shiritori ({history.length} Links)</h2>
       </div>
 
@@ -304,31 +321,6 @@ export const ShiritoriGame: React.FC<ShiritoriGameProps> = ({ items: propItems, 
             ))}
         </div>
       </div>
-
-      <HowToPlayModal
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        title="Shiritori Chain"
-        steps={[
-          {
-            title: 'Read the Word',
-            description:
-              'Type the correct reading for the displayed word in Hiragana (Romanji auto-converts).',
-            icon: Icons.BookOpen,
-          },
-          {
-            title: 'Link the Chain',
-            description: 'The next word will start with the last character of the previous word.',
-            icon: Icons.Link,
-          },
-          {
-            title: "Avoid 'N'",
-            description:
-              "In traditional Shiritori, if a word ends in 'ん' (N), you lose! But here we just try to keep going.",
-            icon: Icons.Check,
-          },
-        ]}
-      />
     </div>
   )
 }

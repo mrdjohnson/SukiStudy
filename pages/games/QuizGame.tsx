@@ -29,10 +29,31 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   // History Tracking
   const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
   const startTimeRef = useRef(Date.now())
-  const [showHelp, setShowHelp] = useState(false)
 
-  const { soundEnabled } = useSettings()
+  const { soundEnabled, setHelpSteps } = useSettings()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setHelpSteps([
+      {
+        title: 'Read the Prompt',
+        description: 'Look at the big character displayed on the card.',
+        icon: Icons.FileQuestion,
+      },
+      {
+        title: 'Choose Wisely',
+        description: 'Tap the correct Meaning or Reading from the list below.',
+        icon: Icons.Check,
+      },
+      {
+        title: 'Review Items',
+        description: "Getting a 'Review' item correct sends the review to WaniKani!",
+        icon: Icons.Sparkles,
+      },
+    ])
+
+    return () => setHelpSteps(null)
+  }, [])
 
   const initGame = () => {
     setFinished(false)
@@ -167,13 +188,8 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
               <Icons.ChevronLeft />
             </Button>
           )}
-          <button
-            onClick={() => setShowHelp(true)}
-            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full"
-          >
-            <Icons.Help className="w-6 h-6" />
-          </button>
         </div>
+
         <span className="font-bold text-gray-500">
           {currentQuestion + 1} / {questions.length}
         </span>
@@ -227,29 +243,6 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
           )
         })}
       </div>
-
-      <HowToPlayModal
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        title="Quick Quiz"
-        steps={[
-          {
-            title: 'Read the Prompt',
-            description: 'Look at the big character displayed on the card.',
-            icon: Icons.FileQuestion,
-          },
-          {
-            title: 'Choose Wisely',
-            description: 'Tap the correct Meaning or Reading from the list below.',
-            icon: Icons.Check,
-          },
-          {
-            title: 'Review Items',
-            description: "Getting a 'Review' item correct sends the review to WaniKani!",
-            icon: Icons.Sparkles,
-          },
-        ]}
-      />
     </div>
   )
 }

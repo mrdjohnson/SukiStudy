@@ -9,6 +9,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 import { playSound } from '../../utils/sound'
 import { toRomanji } from '../../utils/romanji'
 import { GameResults } from '../../components/GameResults'
+import { useLocalStorage } from '@mantine/hooks'
 
 // Grid size
 const ROWS = 5

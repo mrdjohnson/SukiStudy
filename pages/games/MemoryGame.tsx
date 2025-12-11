@@ -4,8 +4,8 @@ import { GameItem, Subject } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
-import { HowToPlayModal } from '../../components/HowToPlayModal'
 import { GameResults } from '../../components/GameResults'
+import { useSettings } from '../../contexts/SettingsContext'
 
 interface GameCard {
   id: string
@@ -30,22 +30,42 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
   const [cards, setCards] = useState<GameCard[]>([])
   const [flippedIndices, setFlippedIndices] = useState<number[]>([])
   const [matches, setMatches] = useState(0)
-  const [timer, setTimer] = useState(300)
   const [gameOver, setGameOver] = useState(false)
   const [won, setWon] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
 
   const startTimeRef = useRef(Date.now())
   const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
 
   const navigate = useNavigate()
+  const { setHelpSteps } = useSettings()
+
+  useEffect(() => {
+    setHelpSteps([
+      {
+        title: 'Flip Cards',
+        description: 'Tap any card to reveal its content. You can flip two cards at a time.',
+        icon: Icons.Brain,
+      },
+      {
+        title: 'Find Pairs',
+        description: 'Match the Japanese character with its corresponding Meaning or Reading.',
+        icon: Icons.CheckCircle,
+      },
+      {
+        title: 'Clear the Board',
+        description: 'Find all pairs before the time runs out to win!',
+        icon: Icons.Clock,
+      },
+    ])
+
+    return () => setHelpSteps(null)
+  }, [])
 
   const initGame = () => {
     setMatches(0)
     setFlippedIndices([])
     setGameOver(false)
     setWon(false)
-    setTimer(300)
     setHistory([])
     startTimeRef.current = Date.now()
 
@@ -107,21 +127,6 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       initGame()
     }
   }, [items, loading])
-
-  useEffect(() => {
-    if (loading || gameOver || won || showHelp) return
-    const interval = setInterval(() => {
-      setTimer(t => {
-        if (t <= 1) {
-          clearInterval(interval)
-          setGameOver(true)
-          return 0
-        }
-        return t - 1
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [loading, gameOver, won, showHelp])
 
   const handleFinish = () => {
     if (onComplete) {
@@ -222,15 +227,9 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
               <Icons.ChevronLeft />
             </Button>
           )}
-          <button
-            onClick={() => setShowHelp(true)}
-            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full"
-          >
-            <Icons.Help className="w-6 h-6" />
-          </button>
+
           <h2 className="text-2xl font-bold text-gray-900 ml-2">Memory Match</h2>
         </div>
-        <div className="text-xl font-mono font-bold text-gray-700">{formatTime(timer)}</div>
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
@@ -265,29 +264,6 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       </div>
 
       <style>{`.rotate-y-180 { transform: rotateY(180deg); } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .perspective-1000 { perspective: 1000px; }`}</style>
-
-      <HowToPlayModal
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        title="Memory Match"
-        steps={[
-          {
-            title: 'Flip Cards',
-            description: 'Tap any card to reveal its content. You can flip two cards at a time.',
-            icon: Icons.Brain,
-          },
-          {
-            title: 'Find Pairs',
-            description: 'Match the Japanese character with its corresponding Meaning or Reading.',
-            icon: Icons.CheckCircle,
-          },
-          {
-            title: 'Clear the Board',
-            description: 'Find all pairs before the time runs out to win!',
-            icon: Icons.Clock,
-          },
-        ]}
-      />
     </div>
   )
 }
