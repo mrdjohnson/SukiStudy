@@ -1,3 +1,4 @@
+import { useLocalStorage } from '@mantine/hooks'
 import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 interface Step {
@@ -18,32 +19,24 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    const saved = localStorage.getItem('suki_sound')
-    return saved !== 'false'
+  const [soundEnabled, setSoundEnabled] = useLocalStorage<boolean>({
+    key: 'suki_sound',
+    defaultValue: true,
   })
 
-  const [romanjiEnabled, setRomanjiEnabled] = useState(() => {
-    const saved = localStorage.getItem('suki_romanji')
-    return saved !== 'false'
+  const [romanjiEnabled, setRomanjiEnabled] = useLocalStorage<boolean>({
+    key: 'suki_romanji',
+    defaultValue: true,
   })
 
   const [helpSteps, setHelpSteps] = useState<Step[] | null>(null)
 
   const toggleSound = () => {
-    setSoundEnabled(prev => {
-      const newVal = !prev
-      localStorage.setItem('suki_sound', String(newVal))
-      return newVal
-    })
+    setSoundEnabled(!soundEnabled)
   }
 
   const toggleRomanji = () => {
-    setRomanjiEnabled(prev => {
-      const newVal = !prev
-      localStorage.setItem('suki_romanji', String(newVal))
-      return newVal
-    })
+    setRomanjiEnabled(!romanjiEnabled)
   }
 
   return (
