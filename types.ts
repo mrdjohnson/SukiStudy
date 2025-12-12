@@ -3,7 +3,7 @@ export enum SubjectType {
   KANJI = 'kanji',
   VOCABULARY = 'vocabulary',
   HIRAGANA = 'hiragana',
-  KATAKANA = 'katakana'
+  KATAKANA = 'katakana',
 }
 
 export interface WKResource<T> {
@@ -135,7 +135,8 @@ export interface Summary {
 export interface GameItem {
   subject: Subject
   assignment?: Assignment
-  isReviewable: boolean
+  isReviewable?: boolean
+  correct?: boolean
 }
 
 export interface GameResultData {
@@ -143,10 +144,20 @@ export interface GameResultData {
   score: number
   maxScore: number
   timeTaken: number // in seconds
-  history: {
-    subject: Subject
-    correct: boolean
-  }[]
+  history: GameItem[]
+}
+
+export interface GameState {
+  gameId: string
+  isActive: boolean
+  isFinished: boolean
+  score: number
+  maxScore: number
+  gameItems: GameItem[]
+  startTime: number
+  time: number | null
+  roundNumber: number
+  maxRoundNumber: number
 }
 
 export type FlashcardMode = 'lesson' | 'review' | 'browse'

@@ -55,8 +55,17 @@ export const syncService = {
   },
 
   async syncUser() {
+    const lastUserSync = localStorage.getItem(SYNC_KEYS.USER)
+    const userStart = new Date().toISOString()
+
+    if (moment().subtract(10, 'minutes').isBefore(moment(lastUserSync))) {
+      return
+    }
+
     const waniUser = await waniKaniService.getUser()
     users.updateOne({ id: 'current' }, { $set: { ...waniUser.data, id: 'current' } }) // Upsert by ID usually handled by clean/insert or find
+
+    localStorage.setItem(SYNC_KEYS.USER, userStart)
   },
 
   async syncSubjects() {
