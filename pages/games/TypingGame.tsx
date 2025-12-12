@@ -94,11 +94,11 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
 
     // Check Meaning (Exact & Fuzzy)
     const meaningExact = meanings.includes(attempt.toLowerCase())
-    const meaningFuzzy = meanings.some(m => levenshteinDistance(m, attempt.toLowerCase()) <= 2)
+    const meaningFuzzy = meanings.some(m => m.length > 3 && levenshteinDistance(m, attempt.toLowerCase()) <= 2)
 
     // Check Reading (Exact & Fuzzy on Kana)
     const readingExact = readings.includes(hiraganaAttempt)
-    const readingFuzzy = readings.some(r => levenshteinDistance(r, hiraganaAttempt) <= 1)
+    const readingFuzzy = readings.some(r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1)
 
     const isCorrect = meaningExact || readingExact || meaningFuzzy || readingFuzzy
 
