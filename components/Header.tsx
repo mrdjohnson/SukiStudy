@@ -17,7 +17,7 @@ import {
   ActionIcon,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { games } from '../utils/games'
+import { useGames } from '../hooks/useGames'
 import { useUser } from '../contexts/UserContext'
 
 import logo from '/assets/apple-touch-icon.png'
@@ -33,10 +33,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const [showHelp, setShowHelp] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-
-  const availableGames = useMemo(() => {
-    return games.filter(g => !isGuest || g.guestFriendly)
-  }, [isGuest])
+  const availableGames = useGames()
 
   return (
     <AppShell
@@ -120,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
             }}
             active={location.pathname === '/'}
           />
-          
+
           <NavLink
             label="Browse"
             leftSection={<Icons.BookOpen size="1rem" />}
@@ -161,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                   if (opened) toggle()
                 }}
                 active={location.pathname.includes(`/session/games/${g.id}`)}
-                className={'hover:!'+g.color}
+                className={'hover:!' + g.color}
               />
             ))}
           </NavLink>

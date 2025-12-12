@@ -6,7 +6,7 @@ import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { Flashcard } from '../../components/Flashcard'
 import { generateKanaGameItems } from '../../utils/kana'
-import { games } from '../../utils/games'
+import { useGames } from '../../hooks/useGames'
 import {
   Grid,
   Paper,
@@ -47,9 +47,7 @@ export const CustomGameSetup: React.FC = () => {
 
   const navigate = useNavigate()
 
-  const availableGames = useMemo(() => {
-    return games.filter(g => !isGuest || g.guestFriendly)
-  }, [isGuest])
+  const availableGames = useGames()
 
   // Initialize levels to current level
   useEffect(() => {
@@ -190,7 +188,7 @@ export const CustomGameSetup: React.FC = () => {
                           >
                             Radical
                           </Chip>
-                          
+
                           <Chip
                             value={SubjectType.KANJI}
                             color={SubjectColor[SubjectType.KANJI]}

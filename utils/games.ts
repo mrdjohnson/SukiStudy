@@ -1,5 +1,16 @@
 import { Icons } from '../components/Icons'
 
+import { AudioQuizGame } from '../pages/games/AudioQuizGame'
+import { ConnectGame } from '../pages/games/ConnectGame'
+import { MemoryGame } from '../pages/games/MemoryGame'
+import { QuizGame } from '../pages/games/QuizGame'
+import { RadicalCompositionGame } from '../pages/games/RadicalCompositionGame'
+import { RecallGame } from '../pages/games/RecallGame'
+import { ShiritoriGame } from '../pages/games/ShiritoriGame'
+import { SortingGame } from '../pages/games/SortingGame'
+import { TypingGame } from '../pages/games/TypingGame'
+import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
+
 export interface GameDefinition {
   id: string
   name: string
@@ -7,6 +18,8 @@ export interface GameDefinition {
   icon: any
   color: string
   guestFriendly?: boolean
+  enabled?: boolean,
+  component: React.FC
 }
 
 export const games: GameDefinition[] = [
@@ -17,6 +30,7 @@ export const games: GameDefinition[] = [
     icon: Icons.Brain,
     color: 'bg-purple-100 text-purple-600',
     guestFriendly: true,
+    component: MemoryGame
   },
   {
     id: 'quiz',
@@ -25,6 +39,7 @@ export const games: GameDefinition[] = [
     icon: Icons.FileQuestion,
     color: 'bg-orange-100 text-orange-600',
     guestFriendly: true,
+    component: QuizGame
   },
   {
     id: 'sorting',
@@ -33,6 +48,7 @@ export const games: GameDefinition[] = [
     icon: Icons.Shuffle,
     color: 'bg-blue-100 text-blue-600',
     guestFriendly: true,
+    component: SortingGame
   },
   {
     id: 'typing',
@@ -41,6 +57,7 @@ export const games: GameDefinition[] = [
     icon: Icons.Keyboard,
     color: 'bg-emerald-100 text-emerald-600',
     guestFriendly: true,
+    component: TypingGame
   },
   {
     id: 'connect',
@@ -48,6 +65,7 @@ export const games: GameDefinition[] = [
     desc: 'Trace the path of kana to spell the word.',
     icon: Icons.GridDots,
     color: 'bg-teal-100 text-teal-600',
+    component: ConnectGame
   },
   {
     id: 'variations',
@@ -55,6 +73,7 @@ export const games: GameDefinition[] = [
     desc: 'Select all valid readings for a Kanji.',
     icon: Icons.ListCheck,
     color: 'bg-rose-100 text-rose-600',
+    component: VariationsQuizGame
   },
   {
     id: 'recall',
@@ -62,6 +81,7 @@ export const games: GameDefinition[] = [
     desc: 'List words starting with a specific character.',
     icon: Icons.Sparkles,
     color: 'bg-indigo-100 text-indigo-600',
+    component: RecallGame
   },
   {
     id: 'shiritori',
@@ -69,6 +89,8 @@ export const games: GameDefinition[] = [
     desc: 'Connect words by their last character.',
     icon: Icons.Link,
     color: 'bg-yellow-100 text-yellow-600',
+    enabled: false,
+    component: ShiritoriGame
   },
   {
     id: 'radical-composition',
@@ -76,6 +98,8 @@ export const games: GameDefinition[] = [
     desc: 'Construct Kanji from radical parts.',
     icon: Icons.Puzzle,
     color: 'bg-sky-100 text-sky-600',
+    enabled: false,
+    component: RadicalCompositionGame
   },
   {
     id: 'audio-quiz',
@@ -83,5 +107,6 @@ export const games: GameDefinition[] = [
     desc: 'Listen to the audio and find the word.',
     icon: Icons.Music,
     color: 'bg-fuchsia-100 text-fuchsia-600',
+    component: AudioQuizGame
   },
 ]

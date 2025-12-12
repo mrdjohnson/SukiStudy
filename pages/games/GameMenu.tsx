@@ -1,17 +1,13 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
-import { games } from '../../utils/games'
-import { useUser } from '../../contexts/UserContext'
+import { useGames } from '../../hooks/useGames'
 
 export const GameMenu: React.FC = () => {
   const navigate = useNavigate()
-  const { isGuest } = useUser()
 
-  const availableGames = useMemo(() => {
-    return games.filter(g => !isGuest || g.guestFriendly)
-  }, [isGuest])
+  const availableGames = useGames()
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

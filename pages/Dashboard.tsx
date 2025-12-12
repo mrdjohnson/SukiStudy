@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useUser } from '../contexts/UserContext'
 import { SimpleGrid, useMatches } from '@mantine/core'
-import { games } from '../utils/games'
+import { useGames } from '../hooks/useGames'
 import _ from 'lodash'
 
 export const Dashboard: React.FC = () => {
@@ -19,6 +19,7 @@ export const Dashboard: React.FC = () => {
     base: 1,
     sm: 3
   })
+  const availableGames = useGames()
 
   useEffect(() => {
     if (isGuest) {
@@ -41,7 +42,7 @@ export const Dashboard: React.FC = () => {
 
   const handleReviewGame = () => {
     // Pick a random game to play as "Review"
-    const randomGame = _.sample(games).id
+    const randomGame = _.sample(availableGames).id
     navigate(`/session/games/${randomGame}`)
   }
 

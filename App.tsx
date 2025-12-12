@@ -4,6 +4,7 @@ import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { SettingsProvider } from './contexts/SettingsContext'
 import { useUser } from './contexts/UserContext'
+import { useGames } from './hooks/useGames'
 
 // Pages
 import { Login } from './pages/Login'
@@ -11,17 +12,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Browse } from './pages/Browse'
 import { Session } from './pages/Session'
 import { GameMenu } from './pages/games/GameMenu'
-import { MemoryGame } from './pages/games/MemoryGame'
-import { QuizGame } from './pages/games/QuizGame'
-import { ShiritoriGame } from './pages/games/ShiritoriGame'
-import { MatchingGame } from './pages/games/SortingGame'
-import { ConnectGame } from './pages/games/ConnectGame'
-import { VariationsQuizGame } from './pages/games/VariationsQuizGame'
-import { RecallGame } from './pages/games/RecallGame'
-import { TypingGame } from './pages/games/TypingGame'
 import { CustomGameSetup } from './pages/games/CustomGameSetup'
-import { RadicalCompositionGame } from './pages/games/RadicalCompositionGame'
-import { AudioQuizGame } from './pages/games/AudioQuizGame'
 import { CustomSession } from './pages/games/CustomSession'
 import { Landing } from './pages/Landing'
 
@@ -42,6 +33,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 export default function App() {
   const { user, isGuest, loading, isSyncing, login } = useUser()
+  const availableGames = useGames()
 
   if (loading) {
     return (
@@ -75,24 +67,21 @@ export default function App() {
               <Route path="/session/review" element={<Session mode="review" />} />
 
               <Route path="/session/games" element={<GameMenu />} />
-              <Route path="/session/games/memory" element={<MemoryGame />} />
-              <Route path="/session/games/quiz" element={<QuizGame />} />
-              <Route path="/session/games/shiritori" element={<ShiritoriGame />} />
-              <Route path="/session/games/sorting" element={<MatchingGame />} />
-              <Route path="/session/games/connect" element={<ConnectGame />} />
-              <Route path="/session/games/variations" element={<VariationsQuizGame />} />
-              <Route path="/session/games/recall" element={<RecallGame />} />
-              <Route path="/session/games/typing" element={<TypingGame />} />
-              <Route
-                path="/session/games/radical-composition"
-                element={<RadicalCompositionGame />}
-              />
-              <Route path="/session/games/audio-quiz" element={<AudioQuizGame />} />
+
+              {availableGames.map(game => (
+                <Route path={'/session/games/' + game.id} element={<game.component />} />
+              ))}
+
+              {/* go to games menu if at unknown game page */}
+              <Route path="/session/games/*" element={<Navigate to="/session/games" />} />
 
               <Route path="/session/custom" element={<CustomGameSetup />} />
               <Route path="/session/custom/play" element={<CustomSession />} />
 
               <Route path="/browse" element={<Browse />} />
+
+              {/* go to dashboard if at unknown page */}
+              <Route path="*" element={<Navigate to="/" />} />
             </Route>
           </Routes>
         </Layout>
