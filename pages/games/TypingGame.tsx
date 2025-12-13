@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
@@ -35,6 +35,8 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
   const [feedback, setFeedback] = useState('')
 
   const { soundEnabled, setHelpSteps } = useSettings()
+
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setHelpSteps([
@@ -82,6 +84,12 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
   useEffect(() => {
     nextRound()
   }, [roundNumber])
+
+  useEffect(() => {
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 50)
+  }, [currentItem])
 
   const checkAnswer = (e: React.FormEvent) => {
     e.preventDefault()
@@ -172,7 +180,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
                       ? 'border-green-500 bg-green-50 text-green-800'
                       : 'border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100',
                   )}
-                  autoFocus
+                  ref={inputRef}
                 />
                 <div
                   className={`mt-3 text-center font-bold h-6 ${feedback.includes('Incorrect') ? 'text-red-500' : 'text-green-600'}`}
