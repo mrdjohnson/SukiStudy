@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         breakpoint: 'md',
         collapsed: { mobile: !opened },
       }}
-      padding="md"
+      padding="xs"
     >
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">

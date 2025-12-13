@@ -1,7 +1,7 @@
 import { Path, useNavigate } from 'react-router'
-import { useMatches, Button, Container, Group, SimpleGrid, Title, ButtonProps } from '@mantine/core'
+import { useMatches, Button, Container, Group, Title, ActionIcon } from '@mantine/core'
 import { Icons } from './Icons'
-import { PropsWithChildren, useCallback, useMemo } from 'react'
+import { PropsWithChildren, useMemo } from 'react'
 import { GameResults } from './GameResults'
 import { GameLogic } from '../hooks/useGameLogic'
 
@@ -97,21 +97,19 @@ export const GameContainer = ({
   }
 
   if (gameState.gameItems.length < gameState.maxRoundNumber) {
-    console.log(gameState.gameItems.length)
     return <div className="p-8 text-center">Not enough Game items loaded.</div>
   }
 
   return (
     <Container size="sm" className="mt-4">
-      <SimpleGrid cols={3} className="mb-6">
+      <Group className="!justify-between pb-8 -mx-2 md:mx-4 !flex-nowrap">
         <div className="flex items-center gap-2">
-          <Button
+          <ActionIcon
             variant="subtle"
             onClick={() => navigate(shouldNavigateBack ? Back : '/session/games')}
-            className="-ml-4"
           >
             <Icons.ChevronLeft />
-          </Button>
+          </ActionIcon>
         </div>
 
         <Group>
@@ -120,18 +118,16 @@ export const GameContainer = ({
           </Title>
         </Group>
 
-        {gameState.maxRoundNumber > 0 && (
-          <Group>
-            <span className="font-bold text-gray-500 ml-auto">
-              {gameState.roundNumber} / {gameState.maxRoundNumber}
-            </span>
-          </Group>
-        )}
-      </SimpleGrid>
+        <Group>
+          <span className="font-bold text-gray-500 ml-auto">
+            {gameState.roundNumber} / {gameState.maxRoundNumber}
+          </span>
+        </Group>
+      </Group>
 
       <div className="px-2">{children}</div>
 
-      <Group className="!justify-between pt-8 px-4">
+      <Group className="!justify-between pt-8 -mx-2 md:mx-4 !flex-nowrap">
         <Button
           variant="outline"
           size={buttonSizes}

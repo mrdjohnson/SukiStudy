@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { useGames } from '../../hooks/useGames'
+import { ActionIcon, Container, Group } from '@mantine/core'
 
 export const GameMenu: React.FC = () => {
   const navigate = useNavigate()
@@ -10,13 +11,16 @@ export const GameMenu: React.FC = () => {
   const availableGames = useGames()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate('/')}>
+    <Container size="md" className="mt-4">
+      <Group className="gap-4 mb-8 !justify-between -mx-2 md:-mx-4">
+        <ActionIcon variant="subtle" onClick={() => navigate('/')}>
           <Icons.ChevronLeft />
-        </Button>
+        </ActionIcon>
+
         <h1 className="text-3xl font-bold text-gray-900">Mini Games</h1>
-      </div>
+
+        <div />
+      </Group>
 
       {/* Custom Game Banner */}
       <div className="mb-8">
@@ -37,7 +41,7 @@ export const GameMenu: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {availableGames.map(game => (
           <button
             key={game.id}
@@ -57,6 +61,6 @@ export const GameMenu: React.FC = () => {
           </button>
         ))}
       </div>
-    </div>
+    </Container>
   )
 }
