@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router'
+import React, { useState, useEffect } from 'react'
 import { GameItem, Subject } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
-import { Button } from '../../components/ui/Button'
-import { GameResults } from '../../components/GameResults'
 import { useSettings } from '../../contexts/SettingsContext'
 
 import logo from '/assets/apple-touch-icon.png'
+import { useGameLogic } from '../../hooks/useGameLogic'
+import { GameContainer } from '../../components/GameContainer'
+import { Tooltip } from '@mantine/core'
 
 interface GameCard {
   id: string
@@ -18,6 +18,7 @@ interface GameCard {
   isFlipped: boolean
   isMatched: boolean
   subjectType: string
+  gameItem: GameItem
 }
 
 interface MemoryGameProps {
@@ -29,16 +30,19 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
+  const gameLogic = useGameLogic({
+    gameId: 'memory',
+    totalRounds: propItems?.length || 6,
+    initialRoundNumber: 0,
+    canSkip: false,
+    onComplete,
+  })
+
+  const { startGame, setGameItems } = gameLogic
+
   const [cards, setCards] = useState<GameCard[]>([])
   const [flippedIndices, setFlippedIndices] = useState<number[]>([])
-  const [matches, setMatches] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
-  const [won, setWon] = useState(false)
 
-  const startTimeRef = useRef(Date.now())
-  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
-
-  const navigate = useNavigate()
   const { setHelpSteps } = useSettings()
 
   useEffect(() => {
@@ -64,22 +68,17 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
   }, [])
 
   const initGame = () => {
-    setMatches(0)
+    startGame()
     setFlippedIndices([])
-    setGameOver(false)
-    setWon(false)
-    setHistory([])
-    startTimeRef.current = Date.now()
-
-    if (items.length < 6) {
-      return
-    }
 
     const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 20)
     const gameCards: GameCard[] = []
+    const gameItems: GameItem[] = []
 
-    for (const { subject: s } of selected) {
+    for (const gameItem of selected) {
       if (gameCards.length === 12) break
+
+      const s = gameItem.subject
 
       const sType = s.object || 'vocabulary'
       let charContent = s.characters
@@ -111,6 +110,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
         isFlipped: false,
         isMatched: false,
         subjectType: sType,
+        gameItem,
       })
 
       gameCards.push({
@@ -122,10 +122,16 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
         isFlipped: false,
         isMatched: false,
         subjectType: sType,
+        gameItem,
       })
+
+      gameItems.push(gameItem)
     }
 
+    if (gameCards.length < 6) return
+
     setCards(gameCards.sort(() => 0.5 - Math.random()))
+    setGameItems(gameItems)
   }
 
   useEffect(() => {
@@ -134,21 +140,8 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
     }
   }, [items, loading])
 
-  const handleFinish = () => {
-    if (onComplete) {
-      onComplete({
-        gameId: 'memory',
-        score: matches,
-        maxScore: 6,
-        timeTaken: (Date.now() - startTimeRef.current) / 1000,
-        history: history,
-      })
-    }
-  }
-
   const handleCardClick = (index: number) => {
-    debugger
-    if (gameOver || won || loading) return
+    if (gameLogic.gameState.isFinished || loading) return
     if (cards[index].isFlipped || cards[index].isMatched) return
     if (flippedIndices.length >= 2) return
 
@@ -166,20 +159,14 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       const card2 = cards[idx2]
 
       if (card1.subjectId === card2.subjectId) {
+        gameLogic.recordAttempt(card1.gameItem, true)
+
         setTimeout(() => {
           const matchedCards = [...cards]
           matchedCards[idx1].isMatched = true
           matchedCards[idx2].isMatched = true
           setCards(matchedCards)
           setFlippedIndices([])
-
-          setHistory(prev => [...prev, { subject: card1.subject, correct: true }])
-
-          const newMatchCount = matches + 1
-          setMatches(newMatchCount)
-          if (newMatchCount === cards.length / 2) {
-            setWon(true)
-          }
         }, 500)
       } else {
         setTimeout(() => {
@@ -191,12 +178,6 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
         }, 1000)
       }
     }
-  }
-
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60)
-    const s = secs % 60
-    return `${m}:${s.toString().padStart(2, '0')}`
   }
 
   if (loading)
@@ -211,34 +192,8 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
   if (items.length < 6)
     return <div className="p-8 text-center text-gray-500">Not enough items to play.</div>
 
-  if (gameOver || won) {
-    return (
-      <GameResults
-        gameId="memory"
-        score={matches}
-        maxScore={6}
-        timeTaken={(Date.now() - startTimeRef.current) / 1000}
-        history={history}
-        onNext={handleFinish}
-        isLastGame={!propItems}
-      />
-    )
-  }
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
-          {!propItems && (
-            <Button variant="ghost" onClick={() => navigate('/session/games')}>
-              <Icons.ChevronLeft />
-            </Button>
-          )}
-
-          <h2 className="text-2xl font-bold text-gray-900 ml-2">Memory Match</h2>
-        </div>
-      </div>
-
+    <GameContainer gameLogic={gameLogic}>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
         {cards.map((card, idx) => (
           <div
@@ -249,9 +204,11 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
             <div
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}
             >
-              <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
-                <img src={logo} className="size-12 opacity-40" />
-              </div>
+              <Tooltip label={card.content}>
+                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
+                  <img src={logo} className="size-12 opacity-40" alt={card.content} />
+                </div>
+              </Tooltip>
 
               <div
                 className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
@@ -272,6 +229,6 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       </div>
 
       <style>{`.rotate-y-180 { transform: rotateY(180deg); } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .perspective-1000 { perspective: 1000px; }`}</style>
-    </div>
+    </GameContainer>
   )
 }

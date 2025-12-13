@@ -1,39 +1,26 @@
 import React from 'react'
-import { Subject } from '../types'
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
-import { games } from '../utils/games'
 import { openFlashcardModal } from './modals/FlashcardModal'
+import { GameLogic } from '../hooks/useGameLogic'
+import moment from 'moment'
 
 interface GameResultsProps {
-  gameId: string
-  score: number
-  maxScore: number
-  timeTaken: number
-  history: {
-    subject: Subject
-    correct: boolean
-  }[]
-  onNext: () => void
+  gameLogic: GameLogic
   isLastGame?: boolean
 }
 
-export const GameResults: React.FC<GameResultsProps> = ({
-  gameId,
-  score,
-  maxScore,
-  timeTaken,
-  history,
-  onNext,
-  isLastGame = false,
-}) => {
-  const gameInfo = games.find(g => g.id === gameId)
+export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame = true }) => {
+  const { game: gameInfo, gameState } = gameLogic
+  const { maxScore, score, time: timeTaken, gameItems } = gameState
+
   const Icon = gameInfo ? gameInfo.icon : Icons.Trophy
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
 
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
+    const duration = moment.duration(seconds * 1000)
+    const m = duration.minutes()
+    const s = duration.seconds()
     return `${m}:${s.toString().padStart(2, '0')}`
   }
 
@@ -55,7 +42,7 @@ export const GameResults: React.FC<GameResultsProps> = ({
           </div>
           <div className="w-px bg-gray-200 h-10"></div>
           <div className="flex flex-col items-center">
-            <span className="text-2xl font-bold text-gray-800">{formatTime(timeTaken)}</span>
+            <span className="text-2xl font-bold text-gray-800">{timeTaken}</span>
             <span className="text-xs uppercase font-bold text-gray-400">Time</span>
           </div>
         </div>
@@ -64,10 +51,10 @@ export const GameResults: React.FC<GameResultsProps> = ({
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
         <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
           <h3 className="font-bold text-gray-700">Review Summary</h3>
-          <span className="text-sm text-gray-500">{history.length} items</span>
+          <span className="text-sm text-gray-500">{gameItems.length} items</span>
         </div>
         <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-          {history.map((item, idx) => (
+          {gameLogic.gameState.gameItems.map((item, idx) => (
             <button
               key={`${item.subject.id}-${idx}`}
               onClick={() => openFlashcardModal(item.subject)}
@@ -107,7 +94,7 @@ export const GameResults: React.FC<GameResultsProps> = ({
       </div>
 
       <div className="text-center">
-        <Button size="lg" onClick={onNext} className="w-full sm:w-auto min-w-[200px]">
+        <Button size="lg" onClick={gameLogic.finishGame} className="w-full sm:w-auto min-w-[200px]">
           {isLastGame ? 'Finish Session' : 'Next Game'}
           <Icons.ChevronRight className="ml-2 w-5 h-5" />
         </Button>

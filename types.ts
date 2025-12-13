@@ -143,7 +143,7 @@ export interface GameResultData {
   gameId: string
   score: number
   maxScore: number
-  timeTaken: number // in seconds
+  timeTaken: string
   history: GameItem[]
 }
 
@@ -155,7 +155,7 @@ export interface GameState {
   maxScore: number
   gameItems: GameItem[]
   startTime: number
-  time: number | null
+  time: string | null
   roundNumber: number
   maxRoundNumber: number
 }

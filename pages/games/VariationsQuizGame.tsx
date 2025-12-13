@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { useNavigate } from 'react-router'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useSet } from '@mantine/hooks'
 import _ from 'lodash'
 
-import { Subject, GameItem } from '../../types'
+import { GameItem } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
-import { playSound } from '../../utils/sound'
 import { useSettings } from '../../contexts/SettingsContext'
-import { waniKaniService } from '../../services/wanikaniService'
-import { GameResults } from '../../components/GameResults'
 import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
+import { useGameLogic } from '../../hooks/useGameLogic'
+import { GameContainer } from '../../components/GameContainer'
 
 interface VariationsQuizGameProps {
   items?: GameItem[]
@@ -31,18 +29,21 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
   const { items: fetchedItems, loading } = useAllSubjects(!propItems)
   const items = propItems || fetchedItems
 
+  const gameLogic = useGameLogic({
+    gameId: 'variations',
+    totalRounds: propItems?.length || 5,
+    canSkip: true,
+  })
+
+  const { startGame, setGameItems, recordAttempt, gameState, skip } = gameLogic
+  const { roundNumber, maxRoundNumber, gameItems, isFinished } = gameState
+
+  const target = gameItems[roundNumber - 1]
   const [question, setQuestion] = useState<Question | null>(null)
   const selectedOptions = useSet<string>()
-  const [finished, setFinished] = useState(false)
-  const [score, setScore] = useState(0)
-  const [round, setRound] = useState(1)
   const [submitted, setSubmitted] = useState(false)
 
-  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
-  const startTimeRef = useRef(Date.now())
-
-  const { soundEnabled, setHelpSteps } = useSettings()
-  const navigate = useNavigate()
+  const { setHelpSteps } = useSettings()
 
   useEffect(() => {
     setHelpSteps([
@@ -70,42 +71,27 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     return items.filter(
       i => i.assignment.subject_type === 'kanji' && !_.isEmpty(i.subject.readings),
     )
-  }, [items, history])
+  }, [items])
+
+  const initGame = () => {
+    _.chain(kanjiItems).sampleSize(maxRoundNumber).tap(setGameItems).value()
+  }
 
   const initRound = () => {
     selectedOptions.clear()
     setSubmitted(false)
 
-    if (round === 1) {
-      setHistory([])
-      setScore(0)
-      startTimeRef.current = Date.now()
-    }
-
-    if (kanjiItems.length < 5) {
-      setFinished(true)
-
-      return
-    }
-
-    const previousAnswers = new Set(history.map(item => item.subject.id))
-    const target = _.chain(kanjiItems)
-      .filter(item => !previousAnswers.has(item.subject.id))
-      .sample()
-      .value()
     const correctReadings = target.subject.readings.map(r => r.reading)
 
-    // Distractors from other kanji
-    const distractors = _.chain(kanjiItems)
-      .sampleSize(8)
-      .flatMap(i => i.subject.readings.map(r => r.reading))
-      .without(...correctReadings)
-      .sampleSize(6 - target.subject.readings.length)
+    const options = _.chain(kanjiItems)
+      .sampleSize(8) // grab 8 random items
+      .flatMap(i => i.subject.readings.map(r => r.reading)) // grab the readings of those items
+      .without(...correctReadings) // remove the correct readings
+      .uniq() // remove duplicates
+      .sampleSize(6 - target.subject.readings.length) // grab X amount that totals to 6
+      .concat(correctReadings) // re-add the correct readings
+      .shuffle() // dance
       .value()
-
-    const options = Array.from(new Set([...correctReadings, ...distractors])).sort(
-      () => 0.5 - Math.random(),
-    )
 
     setQuestion({
       target,
@@ -115,8 +101,17 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
   }
 
   useEffect(() => {
-    if (!loading && items.length > 0) initRound()
+    if (!loading && items.length > 0) {
+      startGame()
+      initGame()
+    }
   }, [items, loading])
+
+  useEffect(() => {
+    if (isFinished || !target) return
+
+    initRound()
+  }, [roundNumber, isFinished, target?.subject])
 
   const toggleOption = (opt: string) => {
     if (submitted) return
@@ -135,41 +130,10 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     const noExtras = correctSet.size === selectedOptions.size
     const isCorrect = allCorrectSelected && noExtras
 
-    setHistory(prev => [...prev, { subject: question.target.subject, correct: isCorrect }])
-
-    if (isCorrect) {
-      playSound('success', soundEnabled)
-      setScore(s => s + 1)
-      if (question.target.isReviewable && question.target.assignment.id) {
-        waniKaniService.createReview(question.target.assignment.id, 0, 0)
-      }
-    } else {
-      playSound('error', soundEnabled)
-    }
+    recordAttempt(question.target, isCorrect)
   }
 
-  const nextRound = () => {
-    if (round >= 5) {
-      setFinished(true)
-    } else {
-      setRound(r => r + 1)
-      initRound()
-    }
-  }
-
-  const handleFinish = () => {
-    if (onComplete) {
-      onComplete({
-        gameId: 'variations',
-        score: score,
-        maxScore: 5,
-        timeTaken: (Date.now() - startTimeRef.current) / 1000,
-        history: history,
-      })
-    }
-  }
-
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin text-indigo-600">
@@ -177,35 +141,17 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
         </div>
       </div>
     )
-
-  if (finished)
-    return (
-      <GameResults
-        gameId="variations"
-        score={score}
-        maxScore={5}
-        timeTaken={(Date.now() - startTimeRef.current) / 1000}
-        history={history}
-        onNext={handleFinish}
-        isLastGame={!propItems}
-      />
-    )
+  }
 
   if (!question) return <div className="p-8 text-center">Not enough Kanji items loaded.</div>
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          {!propItems && (
-            <Button variant="ghost" onClick={() => navigate('/session/games')}>
-              <Icons.ChevronLeft />
-            </Button>
-          )}
-        </div>
-        <span className="font-bold text-gray-500">Round {round} / 5</span>
-      </div>
-
+    <GameContainer
+      gameLogic={gameLogic}
+      skip={() => skip(question.target)}
+      onClear={() => selectedOptions.clear()}
+      clearDisabled={selectedOptions.size === 0}
+    >
       <div className="text-center mb-8">
         <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">
           Select ALL correct readings
@@ -261,16 +207,10 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
       </div>
 
       <div className="text-center">
-        {!submitted ? (
-          <Button size="lg" onClick={handleSubmit} disabled={selectedOptions.length === 0}>
-            Submit Answer
-          </Button>
-        ) : (
-          <Button size="lg" onClick={nextRound}>
-            Next Question
-          </Button>
-        )}
+        <Button size="lg" onClick={handleSubmit} disabled={selectedOptions.size === 0 || submitted}>
+          Submit Answer
+        </Button>
       </div>
-    </div>
+    </GameContainer>
   )
 }

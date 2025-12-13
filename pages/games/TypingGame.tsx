@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router'
-import { Subject, GameItem } from '../../types'
+import React, { useState, useEffect } from 'react'
+import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
-import { Button } from '../../components/ui/Button'
 import { playSound } from '../../utils/sound'
 import { useSettings } from '../../contexts/SettingsContext'
-import { waniKaniService } from '../../services/wanikaniService'
 import { toHiragana } from '../../utils/kana'
 import { levenshteinDistance } from '../../utils/string'
-import { GameResults } from '../../components/GameResults'
 import { openFlashcardModal } from '../../components/modals/FlashcardModal'
+import { useGameLogic } from '../../hooks/useGameLogic'
+import { GameContainer } from '../../components/GameContainer'
+import _ from 'lodash'
+import clsx from 'clsx'
 
 interface TypingGameProps {
   items?: GameItem[]
@@ -21,20 +21,20 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
-  const [currentItem, setCurrentItem] = useState<GameItem | null>(null)
+  const gameLogic = useGameLogic({
+    gameId: 'typing',
+    totalRounds: propItems?.length || 10,
+  })
+
+  const { startGame, recordAttempt, gameState, setGameItems, skip } = gameLogic
+  const { roundNumber, maxRoundNumber, gameItems } = gameState
+
+  const currentItem = gameItems[roundNumber - 1]
   const [input, setInput] = useState('')
-  const [score, setScore] = useState(0)
   const [answered, setAnswered] = useState(false)
   const [feedback, setFeedback] = useState('')
-  const [round, setRound] = useState(1)
-  const MAX_ROUNDS = 10
-
-  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
-  const startTimeRef = useRef(Date.now())
-  const [finished, setFinished] = useState(false)
 
   const { soundEnabled, setHelpSteps } = useSettings()
-  const navigate = useNavigate()
 
   useEffect(() => {
     setHelpSteps([
@@ -54,35 +54,40 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
         icon: Icons.BookOpen,
       },
     ])
+
     return () => setHelpSteps(null)
   }, [])
 
-  const nextRound = () => {
-    if (round > MAX_ROUNDS) {
-      setFinished(true)
-      return
-    }
+  const initGame = () => {
+    _.chain(items)
+      .filter(item => item.isReviewable)
+      .sampleSize(maxRoundNumber)
+      .tap(setGameItems)
+      .value()
+  }
 
+  const nextRound = () => {
     setAnswered(false)
     setInput('')
     setFeedback('')
-
-    // Weighted random selection
-    const pool = items.sort(() => 0.5 - Math.random())
-    const selection = pool.find(i => i.isReviewable) || pool[0]
-    setCurrentItem(selection)
   }
 
   useEffect(() => {
     if (!loading && items.length > 0) {
-      startTimeRef.current = Date.now()
-      nextRound()
+      startGame()
+      initGame()
     }
   }, [loading, items])
+
+  useEffect(() => {
+    nextRound()
+  }, [roundNumber])
 
   const checkAnswer = (e: React.FormEvent) => {
     e.preventDefault()
     if (answered || !currentItem) return
+
+    setAnswered(true)
 
     const attempt = input.trim()
     if (!attempt) return
@@ -94,55 +99,31 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
 
     // Check Meaning (Exact & Fuzzy)
     const meaningExact = meanings.includes(attempt.toLowerCase())
-    const meaningFuzzy = meanings.some(m => m.length > 3 && levenshteinDistance(m, attempt.toLowerCase()) <= 2)
+    const meaningFuzzy = meanings.some(
+      m => m.length > 3 && levenshteinDistance(m, attempt.toLowerCase()) <= 2,
+    )
 
     // Check Reading (Exact & Fuzzy on Kana)
     const readingExact = readings.includes(hiraganaAttempt)
-    const readingFuzzy = readings.some(r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1)
+    const readingFuzzy = readings.some(
+      r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1,
+    )
 
     const isCorrect = meaningExact || readingExact || meaningFuzzy || readingFuzzy
 
+    recordAttempt(currentItem, isCorrect)
+
     if (isCorrect) {
-      if (meaningExact || readingExact) handleSuccess('Correct!', true)
-      else if (meaningFuzzy) handleSuccess('Close enough! Watch spelling.', true)
-      else if (readingFuzzy) handleSuccess(`Close! (${hiraganaAttempt})`, true)
+      if (meaningExact || readingExact) setFeedback('Correct!')
+      else if (meaningFuzzy) setFeedback('Close enough! Watch spelling.')
+      else if (readingFuzzy) setFeedback(`Close! (${hiraganaAttempt})`)
     } else {
       playSound('error', soundEnabled)
-      setFeedback('Incorrect. Try again.')
+      setFeedback('Incorrect.')
     }
   }
 
-  const handleSuccess = (msg: string, isCorrect: boolean) => {
-    setAnswered(true)
-    setFeedback(msg)
-    playSound('success', soundEnabled)
-    setScore(s => s + 1)
-
-    if (currentItem) setHistory(prev => [...prev, { subject: currentItem.subject, correct: true }])
-
-    if (currentItem?.isReviewable && currentItem.assignment?.id) {
-      waniKaniService.createReview(currentItem.assignment.id, 0, 0)
-    }
-  }
-
-  const handleNext = () => {
-    setRound(r => r + 1)
-    nextRound()
-  }
-
-  const handleFinish = () => {
-    if (onComplete) {
-      onComplete({
-        gameId: 'typing',
-        score: score,
-        maxScore: MAX_ROUNDS,
-        timeTaken: (Date.now() - startTimeRef.current) / 1000,
-        history: history,
-      })
-    }
-  }
-
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin text-indigo-600">
@@ -150,37 +131,12 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
         </div>
       </div>
     )
-
-  if (finished)
-    return (
-      <GameResults
-        gameId="typing"
-        score={score}
-        maxScore={MAX_ROUNDS}
-        timeTaken={(Date.now() - startTimeRef.current) / 1000}
-        history={history}
-        onNext={handleFinish}
-        isLastGame={!propItems}
-      />
-    )
+  }
 
   if (!currentItem) return null
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-12">
-        <div className="flex items-center gap-2">
-          {!propItems && (
-            <Button variant="ghost" onClick={() => navigate('/session/games')}>
-              <Icons.ChevronLeft />
-            </Button>
-          )}
-        </div>
-        <div className="font-bold text-gray-500">
-          Round {round} / {MAX_ROUNDS}
-        </div>
-      </div>
-
+    <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)}>
       <div className="text-center mb-8">
         <div
           onClick={() =>
@@ -192,7 +148,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
         </div>
 
         <div
-          className={`h-8 text-lg font-medium transition-opacity ${answered ? 'opacity-100 text-gray-600' : 'opacity-0'}`}
+          className={`h-8 text-lg font-medium ${answered ? 'transition-opacity opacity-100 text-gray-600' : 'opacity-0'}`}
         >
           {currentItem.subject.meanings[0].meaning} • {currentItem.subject.readings?.[0]?.reading}
         </div>
@@ -206,14 +162,12 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
             onChange={e => setInput(e.target.value)}
             disabled={answered}
             placeholder="Type meaning or reading..."
-            className={`
-                    w-full px-4 py-4 text-center text-xl border-2 rounded-xl outline-none transition-all shadow-sm
-                    ${
-                      answered
-                        ? 'border-green-500 bg-green-50 text-green-800'
-                        : 'border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
-                    }
-                 `}
+            className={clsx(
+              'w-full px-4 py-4 text-center text-xl border-2 rounded-xl outline-none -transition-all shadow-sm',
+              answered
+                ? 'border-green-500 bg-green-50 text-green-800'
+                : 'border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100',
+            )}
             autoFocus
           />
           <div
@@ -221,16 +175,8 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
           >
             {feedback}
           </div>
-
-          {answered && (
-            <div className="mt-6 flex justify-center animate-fade-in">
-              <Button onClick={handleNext} size="lg" className="w-full">
-                Next <Icons.ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
-            </div>
-          )}
         </form>
       </div>
-    </div>
+    </GameContainer>
   )
 }

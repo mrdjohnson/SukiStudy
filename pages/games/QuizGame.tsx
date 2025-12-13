@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router'
-import { Subject, GameItem } from '../../types'
+import React, { useState, useEffect } from 'react'
+import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
-import { Button } from '../../components/ui/Button'
-import { playSound } from '../../utils/sound'
 import { useSettings } from '../../contexts/SettingsContext'
-import { waniKaniService } from '../../services/wanikaniService'
-import { HowToPlayModal } from '../../components/HowToPlayModal'
-import { GameResults } from '../../components/GameResults'
+import { GameContainer } from '../../components/GameContainer'
+import { useGameLogic } from '../../hooks/useGameLogic'
 
 interface QuizGameProps {
   items?: GameItem[]
@@ -19,19 +15,20 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [score, setScore] = useState(0)
+  // const [currentQuestion, setCurrentQuestion] = useState(0)
   const [questions, setQuestions] = useState<any[]>([])
-  const [finished, setFinished] = useState(false)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
 
-  // History Tracking
-  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
-  const startTimeRef = useRef(Date.now())
+  const gameLogic = useGameLogic({
+    gameId: 'quiz',
+    totalRounds: propItems?.length || 10,
+    canSkip: true,
+    onComplete,
+  })
 
-  const { soundEnabled, setHelpSteps } = useSettings()
-  const navigate = useNavigate()
+  const { gameState, skip, recordAttempt, startGame } = gameLogic
+
+  const { setHelpSteps } = useSettings()
 
   useEffect(() => {
     setHelpSteps([
@@ -56,13 +53,8 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   }, [])
 
   const initGame = () => {
-    setFinished(false)
-    setCurrentQuestion(0)
-    setScore(0)
-    setHistory([])
+    startGame()
     setSelectedAnswer(null)
-    setFeedback(null)
-    startTimeRef.current = Date.now()
 
     if (items.length < 4) return
 
@@ -107,51 +99,22 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     }
   }, [items, loading])
 
+  useEffect(() => {
+    setSelectedAnswer(null)
+  }, [gameState.roundNumber])
+
   const handleAnswer = (ans: string) => {
     if (selectedAnswer) return
 
     setSelectedAnswer(ans)
-    const q = questions[currentQuestion]
+    const q = questions[gameState.roundNumber]
     const isCorrect = ans === q.correctAnswer
 
     // Track history
-    setHistory(prev => [...prev, { subject: q.subject, correct: isCorrect }])
-
-    if (isCorrect) {
-      setScore(s => s + 1)
-      setFeedback('correct')
-      playSound('success', soundEnabled)
-      if (q.isReviewable && q.assignment && q.assignment.id) {
-        waniKaniService.createReview(q.assignment.id, 0, 0)
-      }
-    } else {
-      setFeedback('wrong')
-      playSound('error', soundEnabled)
-    }
-
-    setTimeout(() => {
-      setSelectedAnswer(null)
-      setFeedback(null)
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(c => c + 1)
-      } else {
-        setFinished(true)
-      }
-    }, 1500)
+    recordAttempt(q, isCorrect)
   }
 
-  const handleFinish = () => {
-    if (onComplete) {
-      onComplete({
-        gameId: 'quiz',
-        score,
-        maxScore: questions.length,
-        timeTaken: (Date.now() - startTimeRef.current) / 1000,
-        history,
-      })
-    }
-  }
-
+  // todo add this to game container
   if (loading)
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -160,41 +123,17 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
         </div>
       </div>
     )
-  if (items.length < 4)
+
+  // todo: add this to game container
+  if (items.length < 4) {
     return <div className="p-8 text-center text-gray-500">Not enough items.</div>
+  }
 
-  if (finished)
-    return (
-      <GameResults
-        gameId="quiz"
-        score={score}
-        maxScore={questions.length}
-        timeTaken={(Date.now() - startTimeRef.current) / 1000}
-        history={history}
-        onNext={handleFinish}
-        isLastGame={!propItems} // Standard mode implies last game, propItems usually implies custom/lesson queue
-      />
-    )
-
-  const q = questions[currentQuestion]
+  const q = questions[gameState.roundNumber]
   if (!q) return null
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          {!propItems && (
-            <Button variant="ghost" onClick={() => navigate('/session/games')}>
-              <Icons.ChevronLeft />
-            </Button>
-          )}
-        </div>
-
-        <span className="font-bold text-gray-500">
-          {currentQuestion + 1} / {questions.length}
-        </span>
-      </div>
-
+    <GameContainer gameLogic={gameLogic} skip={() => skip(questions[gameState.roundNumber])}>
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-8 relative overflow-hidden">
         {q.isReviewable && (
           <div className="absolute top-0 right-0 bg-yellow-400 text-white text-xs font-bold px-2 py-1">
@@ -243,6 +182,6 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
           )
         })}
       </div>
-    </div>
+    </GameContainer>
   )
 }

@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { useNavigate } from 'react-router'
-import { User, Subject, GameItem } from '../../types'
+import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
-import { Button } from '../../components/ui/Button'
-import { playSound } from '../../utils/sound'
 import { useSettings } from '../../contexts/SettingsContext'
-import { waniKaniService } from '../../services/wanikaniService'
-import { GameResults } from '../../components/GameResults'
-import { openFlashcardModal } from '../../components/modals/FlashcardModal'
+import { useGameLogic } from '../../hooks/useGameLogic'
+import _ from 'lodash'
+import { GameContainer } from '../../components/GameContainer'
 
 interface AudioQuizGameProps {
   items?: GameItem[]
@@ -22,23 +19,33 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     return (propItems || fetchedItems).filter(i => i.subject.pronunciation_audios?.[0])
   }, [fetchedItems, propItems])
 
-  const [question, setQuestion] = useState<{
-    target: GameItem
-    options: GameItem[]
-  } | null>(null)
-  const [score, setScore] = useState(0)
-  const [round, setRound] = useState(1)
+  const gameLogic = useGameLogic({
+    gameId: 'audio-quiz',
+    totalRounds: propItems?.length || 10,
+  })
+
+  const { startGame, recordAttempt, gameState, setGameItems, skip } = gameLogic
+  const { roundNumber, maxRoundNumber, gameItems, isFinished } = gameState
+
+  const target = gameItems[roundNumber - 1]
   const [submitted, setSubmitted] = useState(false)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
 
-  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
-  const startTimeRef = useRef(Date.now())
-  const [finished, setFinished] = useState(false)
-
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const { soundEnabled, setHelpSteps } = useSettings()
-  const navigate = useNavigate()
-  const MAX_ROUNDS = 10
+  const { setHelpSteps } = useSettings()
+
+  const options = useMemo(() => {
+    if (!target || items.length < 4) return []
+
+    const targetCharacters = target.subject.characters
+
+    return _.chain(items)
+      .filter(item => item.subject.characters !== targetCharacters)
+      .uniqBy(item => item.subject.characters)
+      .sampleSize(3)
+      .concat(target)
+      .value()
+  }, [target?.subject, items])
 
   useEffect(() => {
     setHelpSteps([
@@ -54,12 +61,13 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
         icon: Icons.Music,
       },
     ])
+
     return () => setHelpSteps(null)
   }, [])
 
   const playQuestionAudio = () => {
-    if (question && question.target.subject.pronunciation_audios) {
-      const audios = question.target.subject.pronunciation_audios
+    if (target.subject.pronunciation_audios) {
+      const audios = target.subject.pronunciation_audios
       // Pick a random audio sample from the subject
       const audio = audios[Math.floor(Math.random() * audios.length)]
 
@@ -74,82 +82,44 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     }
   }
 
+  const initGame = () => {
+    _.chain(items).sampleSize(maxRoundNumber).tap(setGameItems).value()
+  }
+
   const initRound = () => {
     setSelectedOption(null)
     setSubmitted(false)
-
-    if (round === 1) {
-      setHistory([])
-      setScore(0)
-      startTimeRef.current = Date.now()
-    }
-
-    if (items.length < 4) return
-
-    const target = items[Math.floor(Math.random() * items.length)]
-    const distractors = items
-      .filter(i => i.subject.id !== target.subject.id)
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 3)
-
-    const options = [target, ...distractors].sort(() => 0.5 - Math.random())
-
-    setQuestion({ target, options })
   }
 
   // Auto play audio when question sets
   useEffect(() => {
-    if (question) {
+    if (target) {
       setTimeout(playQuestionAudio, 500)
     }
-  }, [question])
+  }, [target])
 
   useEffect(() => {
-    if (!loading && items.length >= 4) initRound()
+    if (!loading && items.length >= 4) {
+      startGame()
+      initGame()
+    }
   }, [items, loading])
+
+  useEffect(() => {
+    initRound()
+  }, [target?.subject])
 
   const handleOptionClick = (id: number) => {
     if (submitted) return
     setSelectedOption(id)
     setSubmitted(true)
 
-    const isCorrect = id === question?.target.subject.id
-    if (question)
-      setHistory(prev => [...prev, { subject: question.target.subject, correct: isCorrect }])
+    const isCorrect = id === target.subject.id
 
-    if (isCorrect) {
-      playSound('success', soundEnabled)
-      setScore(s => s + 1)
-      if (question?.target.isReviewable && question.target.assignment?.id) {
-        waniKaniService.createReview(question.target.assignment.id, 0, 0)
-      }
-    } else {
-      playSound('error', soundEnabled)
-    }
+    recordAttempt(target, isCorrect)
   }
 
-  const handleNext = () => {
-    if (round >= MAX_ROUNDS) {
-      setFinished(true)
-    } else {
-      setRound(r => r + 1)
-      initRound()
-    }
-  }
-
-  const handleFinish = () => {
-    if (onComplete) {
-      onComplete({
-        gameId: 'audio-quiz',
-        score: score,
-        maxScore: MAX_ROUNDS,
-        timeTaken: (Date.now() - startTimeRef.current) / 1000,
-        history: history,
-      })
-    }
-  }
-
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin text-indigo-600">
@@ -157,37 +127,13 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
         </div>
       </div>
     )
+  }
 
-  if (finished)
-    return (
-      <GameResults
-        gameId="audio-quiz"
-        score={score}
-        maxScore={MAX_ROUNDS}
-        timeTaken={(Date.now() - startTimeRef.current) / 1000}
-        history={history}
-        onNext={handleFinish}
-        isLastGame={!propItems}
-      />
-    )
-
-  if (!question) return <div className="p-8 text-center">Not enough vocabulary with audio.</div>
+  if (options.length === 0 && !isFinished)
+    return <div className="p-8 text-center">Not enough vocabulary with audio.</div>
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          {!propItems && (
-            <Button variant="ghost" onClick={() => navigate('/session/games')}>
-              <Icons.ChevronLeft />
-            </Button>
-          )}
-        </div>
-        <div className="font-bold text-gray-500">
-          Round {round} / {MAX_ROUNDS}
-        </div>
-      </div>
-
+    <GameContainer gameLogic={gameLogic} skip={() => skip(target)}>
       <div className="text-center mb-12">
         <button
           onClick={playQuestionAudio}
@@ -199,52 +145,35 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
       </div>
 
       <div className="grid grid-cols-1 gap-3 mb-8">
-        {question.options.map(opt => {
-          const isSelected = selectedOption === opt.subject.id
-          const isCorrect = opt.subject.id === question.target.subject.id
+        {target &&
+          options.map(opt => {
+            const isSelected = selectedOption === opt.subject.id
+            const isCorrect = opt.subject.id === target.subject.id
 
-          let styles = 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'
-          if (submitted) {
-            if (isCorrect) styles = 'bg-green-100 border-green-500 text-green-800 font-bold'
-            else if (isSelected && !isCorrect)
-              styles = 'bg-red-100 border-red-500 text-red-800 opacity-60'
-            else styles = 'bg-gray-50 border-gray-100 text-gray-400 opacity-60'
-          }
+            let styles = 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'
+            if (submitted) {
+              if (isCorrect) styles = 'bg-green-100 border-green-500 text-green-800 font-bold'
+              else if (isSelected && !isCorrect)
+                styles = 'bg-red-100 border-red-500 text-red-800 opacity-60'
+              else styles = 'bg-gray-50 border-gray-100 text-gray-400 opacity-60'
+            }
 
-          return (
-            <button
-              key={opt.subject.id}
-              onClick={() => handleOptionClick(opt.subject.id!)}
-              disabled={submitted}
-              className={`p-4 rounded-xl border-2 flex items-center justify-between transition-all ${styles}`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-2xl font-bold">{opt.subject.characters}</span>
-                <span className="text-sm">{opt.subject.meanings[0].meaning}</span>
-              </div>
-              {submitted && isCorrect && <Icons.Check className="w-5 h-5 text-green-600" />}
-            </button>
-          )
-        })}
+            return (
+              <button
+                key={opt.subject.id}
+                onClick={() => handleOptionClick(opt.subject.id!)}
+                disabled={submitted}
+                className={`p-4 rounded-xl border-2 flex items-center justify-between transition-all ${styles}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl font-bold">{opt.subject.characters}</span>
+                  <span className="text-sm">{opt.subject.meanings[0].meaning}</span>
+                </div>
+                {submitted && isCorrect && <Icons.Check className="w-5 h-5 text-green-600" />}
+              </button>
+            )
+          })}
       </div>
-
-      {submitted && (
-        <div className="text-center animate-fade-in">
-          <Button size="lg" onClick={handleNext} className="mb-4">
-            Next Question
-          </Button>
-          <div>
-            <button
-              onClick={() =>
-                openFlashcardModal(question.target.subject, question.target.assignment)
-              }
-              className="text-indigo-600 text-sm font-medium hover:underline"
-            >
-              View Flashcard
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    </GameContainer>
   )
 }

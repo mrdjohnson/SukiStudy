@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router'
-import { Subject, Assignment, GameItem } from '../../types'
+import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
-import { Button } from '../../components/ui/Button'
-import { waniKaniService } from '../../services/wanikaniService'
 import { useSettings } from '../../contexts/SettingsContext'
 import { playSound } from '../../utils/sound'
 import { toRomanji } from '../../utils/romanji'
-import { GameResults } from '../../components/GameResults'
-import { useLocalStorage } from '@mantine/hooks'
+import { useGameLogic } from '../../hooks/useGameLogic'
+import _ from 'lodash'
+import { GameContainer } from '../../components/GameContainer'
 
 // Grid size
 const ROWS = 5
@@ -35,28 +33,26 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
-  const [currentSubject, setCurrentSubject] = useState<Subject | null>(null)
-  const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null)
+  const gameLogic = useGameLogic({
+    gameId: 'connect',
+    totalRounds: propItems?.length || 5,
+    canSkip: true,
+  })
+
+  const { startGame, setGameItems, recordAttempt, gameState, skip } = gameLogic
+  const { roundNumber, maxRoundNumber, gameItems } = gameState
+
+  const currentItem = gameItems[roundNumber - 1]
   const [grid, setGrid] = useState<Cell[]>([])
   const [selectedCells, setSelectedCells] = useState<string[]>([])
   const [validPath, setValidPath] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
-  const [score, setScore] = useState(0)
-  const [highScore, setHighScore] = useState(
-    Number(localStorage.getItem('suki_connect_highscore') || 0),
-  )
-  const [message, setMessage] = useState('')
   const [found, setFound] = useState(false)
   const [hintCellId, setHintCellId] = useState<string | null>(null)
   const [pressedCell, setPressedCell] = useState<string | null>(null)
 
-  const [history, setHistory] = useState<{ subject: Subject; correct: boolean }[]>([])
-  const startTimeRef = useRef(Date.now())
-  const [finished, setFinished] = useState(false)
-
   const { soundEnabled, romanjiEnabled, setHelpSteps } = useSettings()
   const containerRef = useRef<HTMLDivElement>(null)
-  const navigate = useNavigate()
 
   const hiraganaPool =
     'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'
@@ -75,40 +71,28 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
         icon: Icons.FileQuestion,
       },
     ])
+
     return () => setHelpSteps(null)
   }, [])
 
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score)
-      localStorage.setItem('suki_connect_highscore', String(score))
-    }
-  }, [score, highScore])
+  const initGame = () => {
+    _.chain(items)
+      .filter(i => {
+        const reading = i.subject.readings?.[0]?.reading
+        return reading && reading.length >= 2 && reading.length <= 8
+      })
+      .sampleSize(maxRoundNumber)
+      .tap(setGameItems)
+      .value()
+  }
 
   const initLevel = () => {
     setSelectedCells([])
     setFound(false)
-    setMessage('')
     setHintCellId(null)
     setPressedCell(null)
 
-    // Stop after 5 successes for standardized session
-    if (score >= 5) {
-      setFinished(true)
-      return
-    }
-
-    let candidates = items.filter(i => {
-      const reading = i.subject.readings?.[0]?.reading
-      return reading && reading.length >= 2 && reading.length <= 8
-    })
-
-    if (candidates.length === 0) return
-
-    const idx = Math.floor(Math.random() * Math.min(candidates.length, 5))
-    const selection = candidates[idx]
-    setCurrentSubject(selection.subject)
-    setCurrentAssignment(selection.assignment || null)
+    const selection = currentItem
 
     const reading = selection.subject.readings![0].reading
 
@@ -191,13 +175,16 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
   useEffect(() => {
     if (!loading && items.length > 0) {
       // Reset state on mount
-      setScore(0)
-      setHistory([])
-      startTimeRef.current = Date.now()
-      setFinished(false)
-      initLevel()
+      startGame()
+      initGame()
     }
   }, [loading, items])
+
+  useEffect(() => {
+    if (!currentItem?.subject) return
+
+    initLevel()
+  }, [currentItem?.subject])
 
   const handlePointerDown = (e: React.PointerEvent, cellId: string) => {
     if (found) return
@@ -210,7 +197,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
     } else {
       setSelectedCells([cellId])
     }
-    setMessage('')
+
     playSound('pop', soundEnabled)
   }
 
@@ -254,28 +241,16 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
         return grid[r * COLS + c].char
       })
       .join('')
-    const correctReading = currentSubject?.readings?.[0]?.reading
+
+    const correctReading = currentItem.subject.readings?.[0]?.reading
 
     if (selectedChars === correctReading) {
-      setScore(s => s + 1)
+      recordAttempt(currentItem, true)
       setFound(true)
-      setMessage('Correct!')
       setGrid(prev =>
         prev.map(cell => (selectedCells.includes(cell.id) ? { ...cell, correct: true } : cell)),
       )
 
-      if (currentSubject) setHistory(prev => [...prev, { subject: currentSubject, correct: true }])
-
-      playSound('success', soundEnabled)
-      if (
-        currentAssignment &&
-        currentAssignment.id &&
-        new Date(currentAssignment.available_at!) < new Date()
-      ) {
-        waniKaniService.createReview(currentAssignment.id, 0, 0).catch(e => console.error(e))
-      }
-
-      setTimeout(initLevel, 1500)
     } else {
       if (selectedCells.length > 1) playSound('error', soundEnabled)
       setGrid(prev =>
@@ -290,12 +265,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
   const handleClear = () => {
     if (!found) {
       setSelectedCells([])
-      setMessage('')
     }
-  }
-
-  const handleSkip = () => {
-    initLevel()
   }
 
   const handleHint = () => {
@@ -317,19 +287,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
     return { x, y }
   }
 
-  const handleFinish = () => {
-    if (onComplete) {
-      onComplete({
-        gameId: 'connect',
-        score: score,
-        maxScore: score, // Connect is endless, so score is max
-        timeTaken: (Date.now() - startTimeRef.current) / 1000,
-        history: history,
-      })
-    }
-  }
-
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin text-indigo-600">
@@ -337,50 +295,32 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
         </div>
       </div>
     )
-  if (items.length < 5)
-    return <div className="p-8 text-center text-gray-500">Not enough vocabulary.</div>
+  }
 
-  if (finished)
-    return (
-      <GameResults
-        gameId="connect"
-        score={score}
-        maxScore={score}
-        timeTaken={(Date.now() - startTimeRef.current) / 1000}
-        history={history}
-        onNext={handleFinish}
-        isLastGame={!propItems}
-      />
-    )
+  if (items.length < 5) {
+    return <div className="p-8 text-center text-gray-500">Not enough vocabulary.</div>
+  }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 select-none overscroll-none touch-none">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {!propItems && (
-            <Button variant="ghost" onClick={() => navigate('/session/games')}>
-              <Icons.ChevronLeft />
-            </Button>
-          )}
-        </div>
-        <div className="flex flex-col items-center">
-          <h2 className="text-xl font-bold">Connect</h2>
-          <span className="text-xs text-indigo-600 font-bold">High Score: {highScore}</span>
-        </div>
-        <div className="font-mono bg-gray-100 px-3 py-1 rounded text-sm font-bold">
-          Score: {score}
-        </div>
-      </div>
-
+    <GameContainer
+      gameLogic={gameLogic}
+      skip={() => skip(currentItem)}
+      onHint={handleHint}
+      hintDisabled={found}
+      onClear={handleClear}
+      clearDisabled={found || selectedCells.length === 0}
+    >
       <div className="text-center mb-6">
         <div className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">
           Trace the reading
         </div>
-        <div className="text-5xl font-bold text-gray-900 mb-1">{currentSubject?.characters}</div>
-        <div className="text-indigo-600 font-medium text-sm">
-          {currentSubject?.meanings[0].meaning}
+        <div className="text-5xl font-bold text-gray-900 mb-1">
+          {currentItem?.subject?.characters}
         </div>
-        {currentAssignment && new Date(currentAssignment.available_at!) < new Date() && (
+        <div className="text-indigo-600 font-medium text-sm">
+          {currentItem?.subject?.meanings[0].meaning}
+        </div>
+        {currentItem?.assignment && new Date(currentItem.assignment.available_at!) < new Date() && (
           <span className="inline-block mt-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase rounded">
             Review Item
           </span>
@@ -466,31 +406,6 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
           })}
         </div>
       </div>
-
-      <div className="mt-8 flex items-center justify-between max-w-[320px] mx-auto">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClear}
-          disabled={found || selectedCells.length === 0}
-        >
-          <Icons.Eraser className="w-4 h-4 mr-1" />
-          Clear
-        </Button>
-
-        <div className={`text-lg font-bold ${found ? 'text-green-600' : 'text-gray-400'}`}>
-          {found ? 'Correct!' : message || ''}
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleHint} disabled={found}>
-            <Icons.Lightbulb className="w-4 h-4 text-yellow-500" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleSkip}>
-            <Icons.SkipForward className="w-4 h-4 text-gray-500" />
-          </Button>
-        </div>
-      </div>
-    </div>
+    </GameContainer>
   )
 }
