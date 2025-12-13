@@ -140,6 +140,7 @@ export const useGameLogic = ({
 
   const setGameItems = (items: GameItem[]) => {
     setMaxRounds(items.length)
+    setMaxScore(items.length)
     gameItemsHandlers.setState(items)
   }
 
