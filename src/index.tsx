@@ -4,6 +4,9 @@ import { MantineProvider, createTheme } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import App from './App'
 import { UserProvider } from './contexts/UserContext'
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
 
 import '@mantine/core/styles.css'
 
