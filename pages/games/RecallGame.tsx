@@ -162,10 +162,6 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
     )
   }
 
-  if (items.length === 0) {
-    return <div className="p-8 text-center text-gray-500">Not enough vocabulary items.</div>
-  }
-
   return (
     <GameContainer
       gameLogic={gameLogic}

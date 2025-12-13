@@ -142,8 +142,6 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     )
   }
 
-  if (items.length < 5) return <div className="p-8 text-center">Not enough items to match.</div>
-
   return (
     <GameContainer gameLogic={gameLogic}>
       <div className="flex gap-8 justify-center">

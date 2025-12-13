@@ -26,7 +26,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     onComplete,
   })
 
-  const { gameState, skip, recordAttempt, startGame } = gameLogic
+  const { gameState, skip, recordAttempt, startGame, setGameItems } = gameLogic
 
   const { setHelpSteps } = useSettings()
 
@@ -91,6 +91,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
       }
     })
     setQuestions(q)
+    setGameItems(q)
   }
 
   useEffect(() => {
@@ -114,8 +115,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     recordAttempt(q, isCorrect)
   }
 
-  // todo add this to game container
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin text-indigo-600">
@@ -123,65 +123,77 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
         </div>
       </div>
     )
-
-  // todo: add this to game container
-  if (items.length < 4) {
-    return <div className="p-8 text-center text-gray-500">Not enough items.</div>
   }
 
   const q = questions[gameState.roundNumber]
-  if (!q) return null
+
+  console.log(gameState.gameItems)
 
   return (
-    <GameContainer gameLogic={gameLogic} skip={() => skip(questions[gameState.roundNumber])}>
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-8 relative overflow-hidden">
-        {q.isReviewable && (
-          <div className="absolute top-0 right-0 bg-yellow-400 text-white text-xs font-bold px-2 py-1">
-            REVIEW
-          </div>
-        )}
-        <div className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-4">
-          Select the Correct {q.type}
-        </div>
-        <div className="text-6xl font-bold text-gray-800 mb-4">
-          {q.subject.characters || (
-            <img src={q.subject.character_images[0].url} className="w-16 h-16 mx-auto" alt="" />
-          )}
-        </div>
-      </div>
+    <GameContainer
+      gameLogic={gameLogic}
+      skip={() => skip(questions[gameState.roundNumber])}
+      children={
+        q && (
+          <>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-8 relative overflow-hidden">
+              {q.isReviewable && (
+                <div className="absolute top-0 right-0 bg-yellow-400 text-white text-xs font-bold px-2 py-1">
+                  REVIEW
+                </div>
+              )}
+              <div className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-4">
+                Select the Correct {q.type}
+              </div>
+              <div className="text-6xl font-bold text-gray-800 mb-4">
+                {q.subject.characters || (
+                  <img
+                    src={q.subject.character_images[0].url}
+                    className="w-16 h-16 mx-auto"
+                    alt=""
+                  />
+                )}
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 gap-3">
-        {q.options.map((opt: string, idx: number) => {
-          const isSelected = selectedAnswer === opt
-          const isCorrect = opt === q.correctAnswer
+            <div className="grid grid-cols-1 gap-3">
+              {q.options.map((opt: string, idx: number) => {
+                const isSelected = selectedAnswer === opt
+                const isCorrect = opt === q.correctAnswer
 
-          let btnClass = 'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700'
+                let btnClass =
+                  'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700'
 
-          if (selectedAnswer) {
-            if (isCorrect) {
-              btnClass =
-                'border-green-500 bg-green-50 text-green-700 font-bold ring-2 ring-green-200'
-            } else if (isSelected) {
-              btnClass = 'border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200'
-            } else {
-              btnClass = 'border-gray-200 opacity-50'
-            }
-          }
+                if (selectedAnswer) {
+                  if (isCorrect) {
+                    btnClass =
+                      'border-green-500 bg-green-50 text-green-700 font-bold ring-2 ring-green-200'
+                  } else if (isSelected) {
+                    btnClass = 'border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200'
+                  } else {
+                    btnClass = 'border-gray-200 opacity-50'
+                  }
+                }
 
-          return (
-            <button
-              key={idx}
-              onClick={() => handleAnswer(opt)}
-              disabled={!!selectedAnswer}
-              className={`p-4 rounded-xl border-2 transition-all font-medium text-lg ${btnClass}`}
-            >
-              {opt}
-              {selectedAnswer && isCorrect && <Icons.Check className="inline-block ml-2 w-5 h-5" />}
-              {isSelected && !isCorrect && <Icons.X className="inline-block ml-2 w-5 h-5" />}
-            </button>
-          )
-        })}
-      </div>
-    </GameContainer>
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswer(opt)}
+                    disabled={!!selectedAnswer}
+                    className={`p-4 rounded-xl border-2 transition-all font-medium text-lg ${btnClass}`}
+                  >
+                    {opt}
+                    {selectedAnswer && isCorrect && (
+                      <Icons.Check className="inline-block ml-2 w-5 h-5" />
+                    )}
+                    {isSelected && !isCorrect && <Icons.X className="inline-block ml-2 w-5 h-5" />}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )
+      }
+    />
   )
 }

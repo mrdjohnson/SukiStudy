@@ -129,9 +129,6 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     )
   }
 
-  if (options.length === 0 && !isFinished)
-    return <div className="p-8 text-center">Not enough vocabulary with audio.</div>
-
   return (
     <GameContainer gameLogic={gameLogic} skip={() => skip(target)}>
       <div className="text-center mb-12">

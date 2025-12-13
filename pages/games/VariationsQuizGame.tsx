@@ -143,74 +143,82 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     )
   }
 
-  if (!question) return <div className="p-8 text-center">Not enough Kanji items loaded.</div>
-
   return (
     <GameContainer
       gameLogic={gameLogic}
       skip={() => skip(question.target)}
       onClear={() => selectedOptions.clear()}
       clearDisabled={selectedOptions.size === 0}
-    >
-      <div className="text-center mb-8">
-        <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">
-          Select ALL correct readings
-        </div>
+      children={
+        question && (
+          <>
+            <div className="text-center mb-8">
+              <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">
+                Select ALL correct readings
+              </div>
 
-        <div
-          onClick={() =>
-            submitted && openFlashcardModal(question.target.subject, question.target.assignment)
-          }
-          className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-8' : 'text-gray-900'}`}
-          title={submitted ? 'Click to view flashcard' : ''}
-        >
-          {question.target.subject.characters}
-        </div>
+              <div
+                onClick={() =>
+                  submitted &&
+                  openFlashcardModal(question.target.subject, question.target.assignment)
+                }
+                className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-8' : 'text-gray-900'}`}
+                title={submitted ? 'Click to view flashcard' : ''}
+              >
+                {question.target.subject.characters}
+              </div>
 
-        {/* Meaning revealed after submit */}
-        <div
-          className={`text-lg font-medium transition-opacity duration-500 ${submitted ? 'opacity-100 text-gray-700' : 'opacity-0'}`}
-        >
-          {question.target.subject.meanings[0].meaning}
-        </div>
-      </div>
+              {/* Meaning revealed after submit */}
+              <div
+                className={`text-lg font-medium transition-opacity duration-500 ${submitted ? 'opacity-100 text-gray-700' : 'opacity-0'}`}
+              >
+                {question.target.subject.meanings[0].meaning}
+              </div>
+            </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-        {question.options.map((opt: string) => {
-          const isSelected = selectedOptions.has(opt)
-          const isCorrect = question.correctReadings.includes(opt)
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+              {question.options.map((opt: string) => {
+                const isSelected = selectedOptions.has(opt)
+                const isCorrect = question.correctReadings.includes(opt)
 
-          let className = 'p-4 rounded-xl border-2 font-bold text-lg transition-all '
+                let className = 'p-4 rounded-xl border-2 font-bold text-lg transition-all '
 
-          if (submitted) {
-            if (isSelected) className += ' opacity-30 '
-            if (isCorrect) className += 'bg-green-100 border-green-500 text-green-800'
-            else if (isSelected && !isCorrect)
-              className += 'bg-red-100 border-red-500 text-red-800 opacity-50'
-            else className += 'bg-gray-50 border-gray-200 text-gray-400'
-          } else {
-            if (isSelected) className += 'bg-indigo-100 border-indigo-500 text-indigo-800'
-            else className += 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'
-          }
+                if (submitted) {
+                  if (isSelected) className += ' opacity-30 '
+                  if (isCorrect) className += 'bg-green-100 border-green-500 text-green-800'
+                  else if (isSelected && !isCorrect)
+                    className += 'bg-red-100 border-red-500 text-red-800 opacity-50'
+                  else className += 'bg-gray-50 border-gray-200 text-gray-400'
+                } else {
+                  if (isSelected) className += 'bg-indigo-100 border-indigo-500 text-indigo-800'
+                  else className += 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'
+                }
 
-          return (
-            <button
-              key={opt}
-              onClick={() => toggleOption(opt)}
-              className={className}
-              disabled={submitted}
-            >
-              {opt}
-            </button>
-          )
-        })}
-      </div>
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => toggleOption(opt)}
+                    className={className}
+                    disabled={submitted}
+                  >
+                    {opt}
+                  </button>
+                )
+              })}
+            </div>
 
-      <div className="text-center">
-        <Button size="lg" onClick={handleSubmit} disabled={selectedOptions.size === 0 || submitted}>
-          Submit Answer
-        </Button>
-      </div>
-    </GameContainer>
+            <div className="text-center">
+              <Button
+                size="lg"
+                onClick={handleSubmit}
+                disabled={selectedOptions.size === 0 || submitted}
+              >
+                Submit Answer
+              </Button>
+            </div>
+          </>
+        )
+      }
+    />
   )
 }

@@ -84,7 +84,7 @@ export const GameContainer = ({
     gameState.roundNumber,
     gameState.maxRoundNumber,
     buttonSizes,
-    gameState.gameItems
+    gameState.gameItems,
   ])
 
   if (gameState.isFinished) {
@@ -94,6 +94,11 @@ export const GameContainer = ({
         // isLastGame={!propItems} // Standard mode implies last game, propItems usually implies custom/lesson queue
       />
     )
+  }
+
+  if (gameState.gameItems.length < gameState.maxRoundNumber) {
+    console.log(gameState.gameItems.length)
+    return <div className="p-8 text-center">Not enough Game items loaded.</div>
   }
 
   return (

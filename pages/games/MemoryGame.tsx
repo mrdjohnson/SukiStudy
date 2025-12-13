@@ -189,9 +189,6 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       </div>
     )
 
-  if (items.length < 6)
-    return <div className="p-8 text-center text-gray-500">Not enough items to play.</div>
-
   return (
     <GameContainer gameLogic={gameLogic}>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">

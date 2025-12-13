@@ -297,10 +297,6 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
     )
   }
 
-  if (items.length < 5) {
-    return <div className="p-8 text-center text-gray-500">Not enough vocabulary.</div>
-  }
-
   return (
     <GameContainer
       gameLogic={gameLogic}

@@ -133,50 +133,57 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
     )
   }
 
-  if (!currentItem) return null
-
   return (
-    <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)}>
-      <div className="text-center mb-8">
-        <div
-          onClick={() =>
-            answered && openFlashcardModal(currentItem.subject, currentItem.assignment)
-          }
-          className={`text-7xl font-bold mb-6 inline-block transition-all ${answered ? 'text-indigo-600 cursor-pointer scale-110' : 'text-gray-900'}`}
-        >
-          {currentItem.subject.characters || '?'}
-        </div>
+    <GameContainer
+      gameLogic={gameLogic}
+      skip={() => skip(currentItem)}
+      children={
+        currentItem && (
+          <>
+            <div className="text-center mb-8">
+              <div
+                onClick={() =>
+                  answered && openFlashcardModal(currentItem.subject, currentItem.assignment)
+                }
+                className={`text-7xl font-bold mb-6 inline-block transition-all ${answered ? 'text-indigo-600 cursor-pointer scale-110' : 'text-gray-900'}`}
+              >
+                {currentItem.subject.characters || '?'}
+              </div>
 
-        <div
-          className={`h-8 text-lg font-medium ${answered ? 'transition-opacity opacity-100 text-gray-600' : 'opacity-0'}`}
-        >
-          {currentItem.subject.meanings[0].meaning} • {currentItem.subject.readings?.[0]?.reading}
-        </div>
-      </div>
+              <div
+                className={`h-8 text-lg font-medium ${answered ? 'transition-opacity opacity-100 text-gray-600' : 'opacity-0'}`}
+              >
+                {currentItem.subject.meanings[0].meaning} •{' '}
+                {currentItem.subject.readings?.[0]?.reading}
+              </div>
+            </div>
 
-      <div className="max-w-sm mx-auto">
-        <form onSubmit={checkAnswer} className="relative">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            disabled={answered}
-            placeholder="Type meaning or reading..."
-            className={clsx(
-              'w-full px-4 py-4 text-center text-xl border-2 rounded-xl outline-none -transition-all shadow-sm',
-              answered
-                ? 'border-green-500 bg-green-50 text-green-800'
-                : 'border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100',
-            )}
-            autoFocus
-          />
-          <div
-            className={`mt-3 text-center font-bold h-6 ${feedback.includes('Incorrect') ? 'text-red-500' : 'text-green-600'}`}
-          >
-            {feedback}
-          </div>
-        </form>
-      </div>
-    </GameContainer>
+            <div className="max-w-sm mx-auto">
+              <form onSubmit={checkAnswer} className="relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  disabled={answered}
+                  placeholder="Type meaning or reading..."
+                  className={clsx(
+                    'w-full px-4 py-4 text-center text-xl border-2 rounded-xl outline-none -transition-all shadow-sm',
+                    answered
+                      ? 'border-green-500 bg-green-50 text-green-800'
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100',
+                  )}
+                  autoFocus
+                />
+                <div
+                  className={`mt-3 text-center font-bold h-6 ${feedback.includes('Incorrect') ? 'text-red-500' : 'text-green-600'}`}
+                >
+                  {feedback}
+                </div>
+              </form>
+            </div>
+          </>
+        )
+      }
+    />
   )
 }
