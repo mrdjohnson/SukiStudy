@@ -4,7 +4,7 @@ import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 
-import logo from '/assets/apple-touch-icon.png'
+import logo from '@/src/assets/apple-touch-icon.png'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import { Tooltip } from '@mantine/core'

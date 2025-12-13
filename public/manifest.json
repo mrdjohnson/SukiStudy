@@ -1,0 +1,19 @@
+{
+  "short_name": "SukiStudy",
+  "name": "SukiStudy",
+  "icons": [
+    {
+      "src": "/assets/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "display": "standalone",
+  "theme_color": "#ff8800",
+  "background_color": "#ff0000"
+}

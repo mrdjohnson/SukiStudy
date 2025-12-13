@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button'
 import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
 import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper } from '@mantine/core'
-import logo from '/assets/apple-touch-icon.png'
+import logo from '@/src/assets/apple-touch-icon.png'
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate()

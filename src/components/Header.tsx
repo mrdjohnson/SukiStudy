@@ -20,7 +20,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
 import { useUser } from '../contexts/UserContext'
 
-import logo from '/assets/apple-touch-icon.png'
+import logo from '@/src/assets/apple-touch-icon.png'
 
 interface HeaderProps {
   children: React.ReactNode

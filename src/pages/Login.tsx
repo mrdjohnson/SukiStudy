@@ -17,7 +17,7 @@ import {
   ActionIcon,
 } from '@mantine/core'
 import clsx from 'clsx'
-import logo from '/assets/apple-touch-icon.png'
+import logo from '@/src/assets/apple-touch-icon.png'
 
 interface LoginProps {
   onLogin: (token: string, user: User) => void
