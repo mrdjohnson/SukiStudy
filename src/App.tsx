@@ -15,6 +15,7 @@ import { GameMenu } from './pages/games/GameMenu'
 import { CustomGameSetup } from './pages/games/CustomGameSetup'
 import { CustomSession } from './pages/games/CustomSession'
 import { Landing } from './pages/Landing'
+import PWABadge from './PWABadge'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation()
@@ -48,6 +49,8 @@ export default function App() {
 
   return (
     <SettingsProvider>
+      <PWABadge />
+
       <HashRouter>
         <Layout>
           {isSyncing && user && (
