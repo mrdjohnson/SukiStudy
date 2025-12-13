@@ -13,6 +13,7 @@ dev-dist
 dist-ssr
 *.local
 .yarn
+resources
 
 # Editor directories and files
 .vscode/*
