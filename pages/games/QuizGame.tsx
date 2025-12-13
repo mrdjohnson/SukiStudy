@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 import { GameContainer } from '../../components/GameContainer'
 import { useGameLogic } from '../../hooks/useGameLogic'
+import _ from 'lodash'
 
 interface QuizGameProps {
   items?: GameItem[]
@@ -13,11 +14,16 @@ interface QuizGameProps {
 
 export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
-  const items = propItems || fetchedItems
 
-  // const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [questions, setQuestions] = useState<any[]>([])
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const items = useMemo(() => {
+    return (propItems || fetchedItems).filter(
+      item => item.subject.meanings[0].meaning && item.subject.readings?.[0]?.reading,
+    )
+  }, [propItems, fetchedItems])
+
+  const [selectedAnswer, setSelectedAnswer] = useState<{ value: string; correct: boolean } | null>(
+    null,
+  )
 
   const gameLogic = useGameLogic({
     gameId: 'quiz',
@@ -27,8 +33,33 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   })
 
   const { gameState, skip, recordAttempt, startGame, setGameItems } = gameLogic
+  const { gameItems, roundNumber, maxRoundNumber } = gameState
 
   const { setHelpSteps } = useSettings()
+
+  const currentItem = gameItems[roundNumber - 1]
+
+  const type = useMemo(() => {
+    return Math.random() > 0.5 ? 'meaning' : 'reading'
+  }, [currentItem?.subject])
+
+  const options = useMemo(() => {
+    if (!currentItem) return []
+
+    const answer =
+      type === 'reading'
+        ? currentItem.subject.readings[0].reading
+        : currentItem.subject.meanings[0].meaning
+
+    return _.chain(items)
+      .map(item =>
+        type === 'reading' ? item.subject.readings[0].reading : item.subject.meanings[0].meaning,
+      )
+      .without(answer)
+      .sampleSize(3)
+      .concat(answer)
+      .value()
+  }, [currentItem?.subject, items, type])
 
   useEffect(() => {
     setHelpSteps([
@@ -56,42 +87,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     startGame()
     setSelectedAnswer(null)
 
-    if (items.length < 4) return
-
-    const shuffledItems = [...items].sort(() => 0.5 - Math.random())
-    const selection = shuffledItems.slice(0, 10)
-
-    const q = selection.map(item => {
-      const type = Math.random() > 0.5 ? 'meaning' : 'reading'
-      const distractors = items
-        .filter(i => i.subject.id !== item.subject.id && i.subject.object === item.subject.object)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-
-      const correctAns =
-        type === 'meaning'
-          ? item.subject.meanings[0].meaning
-          : item.subject.readings?.[0]?.reading || item.subject.meanings[0].meaning
-
-      const options = [item, ...distractors]
-        .map(i => {
-          return type === 'meaning'
-            ? i.subject.meanings[0].meaning
-            : i.subject.readings?.[0]?.reading || i.subject.meanings[0].meaning
-        })
-        .sort(() => 0.5 - Math.random())
-
-      return {
-        subject: item.subject,
-        assignment: item.assignment,
-        isReviewable: item.isReviewable,
-        type,
-        correctAnswer: correctAns,
-        options,
-      }
-    })
-    setQuestions(q)
-    setGameItems(q)
+    _.chain(items).sampleSize(maxRoundNumber).tap(setGameItems).value()
   }
 
   useEffect(() => {
@@ -104,15 +100,17 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     setSelectedAnswer(null)
   }, [gameState.roundNumber])
 
-  const handleAnswer = (ans: string) => {
+  const handleAnswer = (value: string) => {
     if (selectedAnswer) return
 
-    setSelectedAnswer(ans)
-    const q = questions[gameState.roundNumber]
-    const isCorrect = ans === q.correctAnswer
+    const correct =
+      value === currentItem.subject.readings[0].reading ||
+      value === currentItem.subject.meanings[0].meaning
+
+    setSelectedAnswer({ value, correct })
 
     // Track history
-    recordAttempt(q, isCorrect)
+    recordAttempt(currentItem, correct)
   }
 
   if (loading) {
@@ -125,30 +123,26 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     )
   }
 
-  const q = questions[gameState.roundNumber]
-
-  console.log(gameState.gameItems)
-
   return (
     <GameContainer
       gameLogic={gameLogic}
-      skip={() => skip(questions[gameState.roundNumber])}
+      skip={() => skip(currentItem)}
       children={
-        q && (
+        currentItem && (
           <>
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-8 relative overflow-hidden">
-              {q.isReviewable && (
+              {currentItem.isReviewable && (
                 <div className="absolute top-0 right-0 bg-yellow-400 text-white text-xs font-bold px-2 py-1">
                   REVIEW
                 </div>
               )}
               <div className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-4">
-                Select the Correct {q.type}
+                Select the Correct {type}
               </div>
               <div className="text-6xl font-bold text-gray-800 mb-4">
-                {q.subject.characters || (
+                {currentItem.subject.characters || (
                   <img
-                    src={q.subject.character_images[0].url}
+                    src={currentItem.subject.character_images[0].url}
                     className="w-16 h-16 mx-auto"
                     alt=""
                   />
@@ -157,9 +151,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {q.options.map((opt: string, idx: number) => {
-                const isSelected = selectedAnswer === opt
-                const isCorrect = opt === q.correctAnswer
+              {options.map((opt: string, idx: number) => {
+                const isSelected = selectedAnswer?.value === opt
+                const isCorrect = isSelected && selectedAnswer.correct
 
                 let btnClass =
                   'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700'
@@ -177,7 +171,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
 
                 return (
                   <button
-                    key={idx}
+                    key={opt + idx}
                     onClick={() => handleAnswer(opt)}
                     disabled={!!selectedAnswer}
                     className={`p-4 rounded-xl border-2 transition-all font-medium text-lg ${btnClass}`}
