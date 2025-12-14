@@ -9,6 +9,7 @@ import { registerSW } from 'virtual:pwa-register'
 registerSW({ immediate: true })
 
 import '@mantine/core/styles.css'
+import './index.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {

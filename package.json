@@ -22,6 +22,7 @@
     "@signaldb/maverickjs": "^1.0.0",
     "@signaldb/react": "^1.0.1",
     "@tabler/icons-react": "^3.35.0",
+    "@tailwindcss/vite": "^4.1.18",
     "clsx": "2.1.0",
     "gh-pages": "^6.3.0",
     "lodash": "^4.17.21",

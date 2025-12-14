@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import mkcert from 'vite-plugin-mkcert'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import tailwindcss from '@tailwindcss/vite'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -18,6 +19,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       isDev && mkcert(),
+      tailwindcss(),
       VitePWA({
         mode: 'production',
         registerType: 'autoUpdate',
@@ -29,7 +31,7 @@ export default defineConfig(({ mode }) => {
           short_name: 'SukiStudy',
           description: 'WaniKani backed Japanese learning app',
           theme_color: '#ff8800',
-          background_color: "#ff0000",
+          background_color: '#ff0000',
           display: 'standalone',
           icons: [
             {
