@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { GameItem, Subject } from '../../types'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 import { playSound } from '../../utils/sound'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
+import _ from 'lodash'
 
 interface MatchingGameProps {
   items?: GameItem[]
@@ -21,22 +22,33 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     totalRounds: propItems?.length || 5,
     initialRoundNumber: 0,
     canSkip: false,
-    scoreDelay: 0
+    scoreDelay: 0,
   })
 
   const { startGame, setGameItems, recordAttempt } = gameLogic
 
-  const [leftItems, setLeftItems] = useState<
-    { char: string; id: number; subject: Subject; gameItem: GameItem }[]
-  >([])
-  const [rightItems, setRightItems] = useState<{ val: string; id: number; gameItem: GameItem }[]>(
-    [],
-  )
+  const [leftItems, setLeftItems] = useState<GameItem[]>([])
+  const [rightItems, setRightItems] = useState<GameItem[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null)
   const [matchedIds, setMatchedIds] = useState<number[]>([])
 
   const { soundEnabled, setHelpSteps } = useSettings()
+
+  const type = useMemo(() => {
+    return Math.random() > 0.5 ? 'meaning' : 'reading'
+  }, [])
+
+  const getItemValue = useCallback(
+    (gameItem: GameItem) => {
+      if (type === 'meaning') {
+        return gameItem.subject.meanings[0]?.meaning
+      }
+
+      return gameItem.subject.readings?.[0]?.reading
+    },
+    [type],
+  )
 
   const initGame = () => {
     startGame()
@@ -44,21 +56,16 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     setSelectedSide(null)
     setMatchedIds([])
 
-    if (items.length < 5) return
-
-    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 5)
-    const base = selected.map(s => ({
-      id: s.subject.id!,
-      char: s.subject.characters || '?',
-      val: s.subject.meanings[0].meaning,
-      subject: s.subject,
-      gameItem: s,
-    }))
-
-    setLeftItems(base.map(({ val, ...item }) => item).sort(() => 0.5 - Math.random()))
-    setRightItems(base.sort(() => 0.5 - Math.random()))
-
-    setGameItems(base.map(item => item.gameItem))
+    _.chain(items)
+      .uniqBy(getItemValue)
+      .filter(({ subject }) => !!subject.id && !!subject.characters)
+      .filter(item => !!getItemValue(item))
+      .sampleSize(5)
+      .tap(setGameItems)
+      .tap(setLeftItems)
+      .shuffle() // randomize answers
+      .tap(setRightItems)
+      .value()
   }
 
   useEffect(() => {
@@ -89,10 +96,9 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     return () => setHelpSteps(null)
   }, [])
 
-  const handleSelection = (
-    { id, gameItem }: { id: number; gameItem: GameItem },
-    side: 'left' | 'right',
-  ) => {
+  const handleSelection = (gameItem: GameItem, side: 'left' | 'right') => {
+    const id = gameItem.subject.id
+
     if (matchedIds.includes(id)) return
 
     // First selection
@@ -142,52 +148,35 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     )
   }
 
-  return (
-    <GameContainer gameLogic={gameLogic}>
-      <div className="flex gap-8 justify-center">
-        {/* Left Column */}
-        <div className="flex-1 space-y-4">
-          {leftItems.map(item => {
-            const isMatched = matchedIds.includes(item.id)
-            const isSelected = selectedId === item.id && selectedSide === 'left'
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleSelection(item, 'left')}
-                disabled={isMatched}
-                className={`
+  const createItemCard = (side: 'left' | 'right') => (item: GameItem) => {
+    const id = item.subject.id
+    const isMatched = matchedIds.includes(id)
+    const isSelected = selectedId === id && selectedSide === side
+
+    return (
+      <button
+        key={id}
+        onClick={() => handleSelection(item, side)}
+        disabled={isMatched}
+        className={`
                    w-full h-20 flex items-center justify-center bg-white border-2 rounded-xl font-bold text-3xl shadow-sm transition-all
                    ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
                    ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}
                  `}
-              >
-                {item.char}
-              </button>
-            )
-          })}
-        </div>
+      >
+        {side === 'left' ? item.subject.characters : getItemValue(item)}
+      </button>
+    )
+  }
+
+  return (
+    <GameContainer gameLogic={gameLogic}>
+      <div className="flex gap-8 justify-center">
+        {/* Left Column */}
+        <div className="flex-1 space-y-4">{leftItems.map(createItemCard('left'))}</div>
 
         {/* Right Column */}
-        <div className="flex-1 space-y-4">
-          {rightItems.map(item => {
-            const isMatched = matchedIds.includes(item.id)
-            const isSelected = selectedId === item.id && selectedSide === 'right'
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleSelection(item, 'right')}
-                disabled={isMatched}
-                className={`
-                   w-full h-20 px-2 flex items-center justify-center rounded-xl font-medium text-sm transition-all border-2
-                   ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
-                   ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 bg-gray-50 hover:bg-white'}
-                 `}
-              >
-                {item.val}
-              </button>
-            )
-          })}
-        </div>
+        <div className="flex-1 space-y-4">{rightItems.map(createItemCard('right'))}</div>
       </div>
     </GameContainer>
   )
