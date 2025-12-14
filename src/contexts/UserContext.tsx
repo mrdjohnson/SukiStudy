@@ -3,6 +3,8 @@ import { waniKaniService } from '../services/wanikaniService'
 import { syncService } from '../services/syncService'
 import { users } from '../services/db'
 import { User } from '../types'
+import { modals } from '@mantine/modals'
+import { Text } from '@mantine/core'
 
 interface UserContextType {
   user: User | null
@@ -74,16 +76,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncService.sync().then(() => setIsSyncing(false))
   }
 
-  const logout = async () => {
+  const logout = () => {
     if (isGuest) {
       setIsGuest(false)
 
       return
     }
 
-    localStorage.removeItem('wk_token')
-    await syncService.clearData()
-    setUser(null)
+    modals.openConfirmModal({
+      title: 'Logout?',
+      children: (
+        <Text>This will remove your account and locally saved progress for SukiStudy.</Text>
+      ),
+      labels: { confirm: 'Logout', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        localStorage.removeItem('wk_token')
+        setUser(null)
+        syncService.clearData()
+      },
+    })
   }
 
   const loginAsGuest = () => {
