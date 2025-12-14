@@ -10,6 +10,7 @@ import { toRomanji } from '../utils/romanji'
 import { Modal, Image, ActionIcon, Stack, Badge, Group } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
+import { openFlashcardModal } from './modals/FlashcardModal'
 
 interface FlashcardProps {
   subject: Subject
@@ -134,6 +135,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     setLoadingAi(false)
     setAudioIndex(0)
     setStudyMaterial(null)
+    setComponents([])
 
     const loadData = async () => {
       if (subject.id) {
@@ -147,7 +149,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         }
       }
 
-      setComponents([])
       if (subject.component_subject_ids && subject.component_subject_ids.length > 0) {
         try {
           const col = await waniKaniService.getSubjects(subject.component_subject_ids)
@@ -420,10 +421,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                   return (
                     <div
                       key={comp.id}
-                      onClick={e => {
-                        e.stopPropagation()
-                        if (onDrillDown) onDrillDown(comp)
-                      }}
+                      onClick={() => openFlashcardModal(comp)}
                       className={`
                           p-2 rounded-lg border text-center cursor-pointer transition-all hover:shadow-md active:scale-95
                           ${compType === SubjectType.RADICAL ? 'bg-sky-50 border-sky-100 hover:border-sky-300' : 'bg-pink-50 border-pink-100 hover:border-pink-300'}
@@ -474,7 +472,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             variant="subtle"
             onClick={e => {
               e.stopPropagation()
-              onPrev()
+              onPrev?.()
             }}
             leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
             disabled={!hasPrev}
