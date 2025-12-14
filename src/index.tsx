@@ -4,6 +4,7 @@ import { MantineProvider, createTheme } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import App from './App'
 import { UserProvider } from './contexts/UserContext'
+import { SettingsProvider } from './contexts/SettingsContext'
 import { registerSW } from 'virtual:pwa-register'
 
 registerSW({ immediate: true })
@@ -27,7 +28,9 @@ root.render(
     <UserProvider>
       <MantineProvider theme={theme}>
         <ModalsProvider>
-          <App />
+          <SettingsProvider>
+            <App />
+          </SettingsProvider>
         </ModalsProvider>
       </MantineProvider>
     </UserProvider>

@@ -2,7 +2,6 @@ import React from 'react'
 import { Route, Routes, useLocation, HashRouter, Navigate } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
-import { SettingsProvider } from './contexts/SettingsContext'
 import { useUser } from './contexts/UserContext'
 import { useGames } from './hooks/useGames'
 
@@ -48,7 +47,7 @@ export default function App() {
   }
 
   return (
-    <SettingsProvider>
+    <>
       <PWABadge />
 
       <HashRouter>
@@ -89,6 +88,6 @@ export default function App() {
           </Routes>
         </Layout>
       </HashRouter>
-    </SettingsProvider>
+    </>
   )
 }
