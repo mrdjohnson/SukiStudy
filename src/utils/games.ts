@@ -8,7 +8,7 @@ import { QuizGame } from '../pages/games/QuizGame'
 import { RadicalCompositionGame } from '../pages/games/RadicalCompositionGame'
 import { RecallGame } from '../pages/games/RecallGame'
 import { ShiritoriGame } from '../pages/games/ShiritoriGame'
-import { SortingGame } from '../pages/games/SortingGame'
+import { MatchingGame } from '../pages/games/MatchingGame'
 import { TypingGame } from '../pages/games/TypingGame'
 import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
 
@@ -43,13 +43,13 @@ export const games: GameDefinition[] = [
     component: QuizGame,
   },
   {
-    id: 'sorting',
+    id: 'matching',
     name: 'Matching Pairs',
     desc: 'Find matching pairs of Kanji/Kana and Meanings.',
     icon: Icons.Shuffle,
     color: 'bg-blue-100 text-blue-600',
     guestFriendly: true,
-    component: SortingGame,
+    component: MatchingGame,
   },
   {
     id: 'typing',

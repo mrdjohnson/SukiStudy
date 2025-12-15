@@ -18,7 +18,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
   const items = propItems || fetchedItems
 
   const gameLogic = useGameLogic({
-    gameId: 'sorting',
+    gameId: 'matching',
     totalRounds: propItems?.length || 5,
     initialRoundNumber: 0,
     canSkip: false,
@@ -181,4 +181,4 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     </GameContainer>
   )
 }
-export { MatchingGame as SortingGame }
+

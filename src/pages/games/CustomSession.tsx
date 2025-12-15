@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button'
 // Games
 import { QuizGame } from './QuizGame'
 import { MemoryGame } from './MemoryGame'
-import { MatchingGame } from './SortingGame'
+import { MatchingGame } from './MatchingGame'
 import { ConnectGame } from './ConnectGame'
 import { TypingGame } from './TypingGame'
 import { AudioQuizGame } from './AudioQuizGame'
@@ -160,7 +160,7 @@ export const CustomSession = () => {
       <div className="animate-fade-in">
         {currentGame === 'quiz' && <QuizGame {...commonProps} />}
         {currentGame === 'memory' && <MemoryGame {...commonProps} />}
-        {currentGame === 'sorting' && <MatchingGame {...commonProps} />}
+        {currentGame === 'matching' && <MatchingGame {...commonProps} />}
         {currentGame === 'connect' && <ConnectGame {...commonProps} />}
         {currentGame === 'typing' && <TypingGame {...commonProps} />}
         {currentGame === 'audio-quiz' && <AudioQuizGame {...commonProps} />}
