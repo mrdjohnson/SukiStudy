@@ -20,7 +20,7 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
   }, [fetchedItems, propItems])
 
   const gameLogic = useGameLogic({
-    gameId: 'audio-quiz',
+    gameId: 'audio',
     totalRounds: propItems?.length || 10,
   })
 

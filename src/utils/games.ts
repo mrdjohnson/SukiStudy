@@ -103,7 +103,7 @@ export const games: GameDefinition[] = [
     component: RadicalCompositionGame,
   },
   {
-    id: 'audio-quiz',
+    id: 'audio',
     name: 'Audio Listen',
     desc: 'Listen to the audio and find the word.',
     icon: Icons.Music,

@@ -163,7 +163,7 @@ export const CustomSession = () => {
         {currentGame === 'matching' && <MatchingGame {...commonProps} />}
         {currentGame === 'connect' && <ConnectGame {...commonProps} />}
         {currentGame === 'typing' && <TypingGame {...commonProps} />}
-        {currentGame === 'audio-quiz' && <AudioQuizGame {...commonProps} />}
+        {currentGame === 'audio' && <AudioQuizGame {...commonProps} />}
       </div>
     </div>
   )
