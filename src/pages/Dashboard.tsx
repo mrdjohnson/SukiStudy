@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { Summary } from '../types'
 import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useUser } from '../contexts/UserContext'
 import { SimpleGrid, useMatches } from '@mantine/core'
 import { useGames } from '../hooks/useGames'
@@ -17,7 +16,7 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const gridWidth = useMatches({
     base: 1,
-    sm: 3
+    sm: 3,
   })
   const availableGames = useGames()
 
@@ -57,16 +56,6 @@ export const Dashboard: React.FC = () => {
 
   const lessonsCount = summary?.lessons?.[0]?.subject_ids?.length || 0
   const reviewsCount = summary?.reviews?.[0]?.subject_ids?.length || 0
-
-  const chartData = [
-    { name: 'Mon', reviews: 45 },
-    { name: 'Tue', reviews: 52 },
-    { name: 'Wed', reviews: 38 },
-    { name: 'Thu', reviews: 65 },
-    { name: 'Fri', reviews: 48 },
-    { name: 'Sat', reviews: 20 },
-    { name: 'Sun', reviews: 15 },
-  ]
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -145,55 +134,18 @@ export const Dashboard: React.FC = () => {
       </SimpleGrid>
 
       {/* Quick Browse */}
-      {isGuest || !user ? (
-        <div
-          className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group cursor-pointer"
-          onClick={() => navigate('/browse')}
-        >
-          <div className="bg-blue-100 p-4 rounded-full mb-4 group-hover:bg-blue-200 transition-colors">
-            <Icons.BookOpen className="w-8 h-8 text-blue-600" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Browse</h3>
-          <Button variant="outline" onClick={() => navigate('/browse')}>
-            Browse
-          </Button>
+      <div
+        className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group cursor-pointer"
+        onClick={() => navigate('/browse')}
+      >
+        <div className="bg-blue-100 p-4 rounded-full mb-4 group-hover:bg-blue-200 transition-colors">
+          <Icons.BookOpen className="w-8 h-8 text-blue-600" />
         </div>
-      ) : (
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Current Level Content</h3>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/browse')}>
-              Browse All <Icons.ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#9ca3af', fontSize: 12 }}
-                  dy={10}
-                />
-                <Tooltip
-                  cursor={{ fill: '#f3f4f6' }}
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: 'none',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                  }}
-                />
-                <Bar dataKey="reviews" radius={[4, 4, 4, 4]}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 3 ? '#4f46e5' : '#e5e7eb'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+        <h3 className="text-xl font-bold text-gray-900 mb-1">Browse Content</h3>
+        <p className="text-gray-500 mb-6">
+          Explore all kana, radicals, kanji, and vocabulary by level.
+        </p>
+      </div>
     </div>
   )
 }
