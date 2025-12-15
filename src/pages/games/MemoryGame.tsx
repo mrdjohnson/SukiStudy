@@ -7,7 +7,6 @@ import { useSettings } from '../../contexts/SettingsContext'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
-import { Tooltip } from '@mantine/core'
 
 interface GameCard {
   id: string
@@ -201,11 +200,9 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
             <div
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}
             >
-              <Tooltip label={card.content}>
-                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
-                  <img src={logo} className="size-12 opacity-40" alt={card.content} />
-                </div>
-              </Tooltip>
+              <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
+                <img src={logo} className="size-12 opacity-40" alt={card.content} />
+              </div>
 
               <div
                 className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
