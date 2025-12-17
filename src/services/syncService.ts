@@ -79,14 +79,8 @@ export const syncService = {
     await fetchAllPages<Subject>(
       () => waniKaniService.getSubjectsUpdatedAfter(lastSubjectSync || undefined),
       async items => {
-        // SignalDB handles upserts if ID matches
-        items.forEach(item => {
-          // Check if exists to determine insert vs update (SignalDB implementation specific)
-          // For Simplicity in v0.8 we often remove then insert or use upsert if available
-          // Here we just remove matches and insert
-          subjects.removeOne({ id: item.id })
-          subjects.insert(item)
-        })
+        subjects.upsertMany(items)
+        console.log('inserted or updated: %s items', items.length)
       },
     )
     localStorage.setItem(SYNC_KEYS.SUBJECTS, subjectsStart)
@@ -103,10 +97,8 @@ export const syncService = {
     await fetchAllPages<Assignment>(
       () => waniKaniService.getAssignmentsUpdatedAfter(lastAssignSync || undefined),
       async items => {
-        items.forEach(item => {
-          assignments.removeOne({ id: item.id })
-          assignments.insert(item)
-        })
+        assignments.upsertMany(items)
+        console.log('inserted or updated: %s items', items.length)
       },
     )
 
@@ -124,10 +116,8 @@ export const syncService = {
     await fetchAllPages<StudyMaterial>(
       () => waniKaniService.getStudyMaterialsUpdatedAfter(lastMatSync || undefined),
       async items => {
-        items.forEach(item => {
-          studyMaterials.removeOne({ id: item.id })
-          studyMaterials.insert(item as any)
-        })
+        studyMaterials.upsertMany(items)
+        console.log('inserted or updated: %s items', items.length)
       },
     )
 
