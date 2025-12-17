@@ -1,33 +1,17 @@
-import { waniKaniService } from './wanikaniService'
-import { subjects, assignments, studyMaterials, users } from './db'
-import { WKCollection, Subject, Assignment, StudyMaterial } from '../types'
 import moment from 'moment'
 
 const SYNC_KEYS = {
   USER: 'wk_last_sync_user',
-  SUBJECTS: 'wk_last_sync_subjects',
+  SUBJECTS: 'wk_last_sync_subjects_2',
   ASSIGNMENTS: 'wk_last_sync_assignments',
   MATERIALS: 'wk_last_sync_materials',
 }
 
-async function fetchAllPages<T>(
-  initialRequest: () => Promise<WKCollection<T>>,
-  onPage: (items: T[]) => Promise<void>,
-) {
-  let response = await initialRequest()
+const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.ts')>(
+  new URL('./syncService.worker.ts', import.meta.url),
+  {},
+)
 
-  if (response.data.length > 0) {
-    await onPage(response.data.map(d => ({ ...d.data, id: d.id })))
-  }
-
-  while (response.pages.next_url && response.data.length > 0) {
-    console.log(`[Sync] Fetching next page...`)
-    response = await waniKaniService.request<WKCollection<T>>(response.pages.next_url)
-    if (response.data.length > 0) {
-      await onPage(response.data.map(d => ({ ...d.data, object: d.object, url: d.url, id: d.id })))
-    }
-  }
-}
 
 export const syncService = {
   async sync() {
@@ -38,6 +22,9 @@ export const syncService = {
 
     const token = localStorage.getItem('wk_token')
     if (!token) return
+
+    // Set the token in the worker before syncing
+    await syncServiceWorker.setToken(token)
 
     console.log('[Sync] Starting synchronization...')
 
@@ -62,8 +49,7 @@ export const syncService = {
       return
     }
 
-    const waniUser = await waniKaniService.getUser()
-    users.updateOne({ id: 'current' }, { $set: { ...waniUser.data, id: 'current' } }) // Upsert by ID usually handled by clean/insert or find
+    await syncServiceWorker.syncUser()
 
     localStorage.setItem(SYNC_KEYS.USER, userStart)
   },
@@ -76,13 +62,8 @@ export const syncService = {
       return
     }
 
-    await fetchAllPages<Subject>(
-      () => waniKaniService.getSubjectsUpdatedAfter(lastSubjectSync || undefined),
-      async items => {
-        subjects.upsertMany(items)
-        console.log('inserted or updated: %s items', items.length)
-      },
-    )
+    await syncServiceWorker.syncSubjects(lastSubjectSync)
+
     localStorage.setItem(SYNC_KEYS.SUBJECTS, subjectsStart)
   },
 
@@ -94,13 +75,7 @@ export const syncService = {
       return
     }
 
-    await fetchAllPages<Assignment>(
-      () => waniKaniService.getAssignmentsUpdatedAfter(lastAssignSync || undefined),
-      async items => {
-        assignments.upsertMany(items)
-        console.log('inserted or updated: %s items', items.length)
-      },
-    )
+    await syncServiceWorker.syncAssignments(lastAssignSync)
 
     localStorage.setItem(SYNC_KEYS.ASSIGNMENTS, assignStart)
   },
@@ -113,22 +88,14 @@ export const syncService = {
       return
     }
 
-    await fetchAllPages<StudyMaterial>(
-      () => waniKaniService.getStudyMaterialsUpdatedAfter(lastMatSync || undefined),
-      async items => {
-        studyMaterials.upsertMany(items)
-        console.log('inserted or updated: %s items', items.length)
-      },
-    )
+    await syncServiceWorker.syncStudyMaterials(lastMatSync)
 
     localStorage.setItem(SYNC_KEYS.MATERIALS, matStart)
   },
 
   async clearData() {
-    subjects.removeMany({})
-    assignments.removeMany({})
-    studyMaterials.removeMany({})
-    users.removeMany({})
+    await syncServiceWorker.clearData()
+
     localStorage.removeItem(SYNC_KEYS.SUBJECTS)
     localStorage.removeItem(SYNC_KEYS.ASSIGNMENTS)
     localStorage.removeItem(SYNC_KEYS.MATERIALS)
