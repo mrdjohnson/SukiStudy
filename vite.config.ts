@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import mkcert from 'vite-plugin-mkcert'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
+import { comlink } from 'vite-plugin-comlink'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -20,6 +21,7 @@ export default defineConfig(({ mode }) => {
       react(),
       isDev && mkcert(),
       tailwindcss(),
+      comlink(),
       VitePWA({
         mode: 'production',
         registerType: 'autoUpdate',
@@ -80,6 +82,9 @@ export default defineConfig(({ mode }) => {
       }),
       tsconfigPaths(),
     ],
+    worker: {
+      plugins: () => [comlink()], // Enable Comlink for workers
+    },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),

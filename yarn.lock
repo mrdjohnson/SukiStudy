@@ -3214,6 +3214,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"comlink@npm:^4.4.2":
+  version: 4.4.2
+  resolution: "comlink@npm:4.4.2"
+  checksum: 10/ecee53b5b4536b3aa3f7636c383f831e68fbc013def77665cc7fad873d72cfa23b994e1ec4b49e83e4e909c1089a03acae03a523e33a5e5ed938cdb613456434
+  languageName: node
+  linkType: hard
+
 "comma-separated-tokens@npm:^2.0.0":
   version: 2.0.3
   resolution: "comma-separated-tokens@npm:2.0.3"
@@ -4921,7 +4928,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json5@npm:^2.2.0, json5@npm:^2.2.3":
+"json5@npm:2.2.3, json5@npm:^2.2.0, json5@npm:^2.2.3":
   version: 2.2.3
   resolution: "json5@npm:2.2.3"
   bin:
@@ -5162,6 +5169,15 @@ __metadata:
   dependencies:
     yallist: "npm:^3.0.2"
   checksum: 10/951d2673dcc64a7fb888bf3d13bc2fdf923faca97d89cdb405ba3dfff77e2b26e5798d405e78fcd7094c9e7b8b4dab2ddc5a4f8a11928af24a207b7c738ca3f8
+  languageName: node
+  linkType: hard
+
+"magic-string@npm:0.30.17":
+  version: 0.30.17
+  resolution: "magic-string@npm:0.30.17"
+  dependencies:
+    "@jridgewell/sourcemap-codec": "npm:^1.5.0"
+  checksum: 10/2f71af2b0afd78c2e9012a29b066d2c8ba45a9cd0c8070f7fd72de982fb1c403b4e3afdb1dae00691d56885ede66b772ef6bedf765e02e3a7066208fe2fec4aa
   languageName: node
   linkType: hard
 
@@ -6934,6 +6950,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"source-map@npm:^0.7.4":
+  version: 0.7.6
+  resolution: "source-map@npm:0.7.6"
+  checksum: 10/c8d2da7c57c14f3fd7568f764b39ad49bbf9dd7632b86df3542b31fed117d4af2fb74a4f886fc06baf7a510fee68e37998efc3080aacdac951c36211dc29a7a3
+  languageName: node
+  linkType: hard
+
 "source-map@npm:^0.8.0-beta.0":
   version: 0.8.0-beta.0
   resolution: "source-map@npm:0.8.0-beta.0"
@@ -7155,6 +7178,7 @@ __metadata:
     "@vite-pwa/assets-generator": "npm:^1.0.2"
     "@vitejs/plugin-react": "npm:^5.0.0"
     clsx: "npm:2.1.0"
+    comlink: "npm:^4.4.2"
     gh-pages: "npm:^6.3.0"
     globals: "npm:^16.5.0"
     lodash: "npm:^4.17.21"
@@ -7168,6 +7192,7 @@ __metadata:
     react-router-dom: "npm:^7.10.1"
     typescript: "npm:~5.8.2"
     vite: "npm:^6.2.0"
+    vite-plugin-comlink: "npm:^5.3.0"
     vite-plugin-mkcert: "npm:^1.17.9"
     vite-plugin-pwa: "npm:^1.2.0"
     vite-tsconfig-paths: "npm:^5.1.4"
@@ -7694,6 +7719,20 @@ __metadata:
     "@types/unist": "npm:^3.0.0"
     vfile-message: "npm:^4.0.0"
   checksum: 10/a5a85293c9eb8787aa42e180edaef00c13199a493d6ed82fecf13ab29a68526850788e22434d77808ea6b17a74e03ff899b9b4711df5b9eee75afcddd7c2e1fb
+  languageName: node
+  linkType: hard
+
+"vite-plugin-comlink@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "vite-plugin-comlink@npm:5.3.0"
+  dependencies:
+    json5: "npm:2.2.3"
+    magic-string: "npm:0.30.17"
+    source-map: "npm:^0.7.4"
+  peerDependencies:
+    comlink: ^4.3.1
+    vite: ">=2.9.6"
+  checksum: 10/f15b496ea5f90c5370f5e933013236faa8af777a4db8dcb6d3c648dc1b14b38fa3afbad22800d5cb5a02c5f2099fc39f8be16f346ad78f92e5042547fa54a2b6
   languageName: node
   linkType: hard
 

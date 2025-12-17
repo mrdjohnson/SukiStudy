@@ -36,7 +36,7 @@ export interface User {
 }
 
 export interface StudyMaterial {
-  id?: number
+  id: number
   created_at: string
   subject_id: number
   subject_type: string
@@ -106,7 +106,7 @@ export interface Subject {
 }
 
 export interface Assignment {
-  id?: number
+  id: number
   created_at: string
   subject_id: number
   subject_type: string
