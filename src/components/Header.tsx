@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { Icons } from './Icons'
 import { useSettings } from '../contexts/SettingsContext'
 import { HowToPlayModal } from './HowToPlayModal'
+import { SettingsModal } from './modals/SettingsModal'
 import {
   AppShell,
   Burger,
@@ -11,10 +12,10 @@ import {
   Text,
   ThemeIcon,
   ScrollArea,
-  Switch,
   Button,
   Badge,
   ActionIcon,
+  Divider,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
@@ -28,9 +29,10 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ children }) => {
   const [opened, { toggle }] = useDisclosure()
-  const { soundEnabled, toggleSound, romanjiEnabled, toggleRomanji, helpSteps } = useSettings()
-  const { user, isGuest, logout } = useUser()
+  const { helpSteps } = useSettings()
+  const { user, isGuest } = useUser()
   const [showHelp, setShowHelp] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const availableGames = useGames()
@@ -78,17 +80,6 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
             )}
 
             <Group gap="xs">
-              <ThemeIcon
-                variant="light"
-                size="lg"
-                radius="xl"
-                color="gray"
-                style={{ cursor: 'pointer' }}
-                onClick={toggleSound}
-              >
-                {soundEnabled ? <Icons.Volume size={18} /> : <Icons.VolumeOff size={18} />}
-              </ThemeIcon>
-
               {helpSteps && (
                 <ThemeIcon
                   variant="light"
@@ -164,27 +155,19 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
           </NavLink>
         </AppShell.Section>
 
+        <Divider />
+
         <AppShell.Section pt="md">
-          <Text size="xs" fw={500} c="dimmed" mb="sm" tt="uppercase">
-            Settings
-          </Text>
-
-          <Group justify="space-between" mb="sm">
-            <Text size="sm">Game Romanji</Text>
-            <Switch checked={romanjiEnabled} onChange={toggleRomanji} />
-          </Group>
-
           <Button
             fullWidth
             variant="light"
-            color="red"
             onClick={() => {
-              logout()
+              setShowSettings(true)
               if (opened) toggle()
             }}
-            leftSection={<Icons.LogOut size={16} />}
+            rightSection={<Icons.Settings size={16} />}
           >
-            Logout
+            Settings
           </Button>
         </AppShell.Section>
       </AppShell.Navbar>
@@ -199,6 +182,8 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
           steps={helpSteps}
         />
       )}
+
+      <SettingsModal opened={showSettings} onClose={() => setShowSettings(false)} />
     </AppShell>
   )
 }
