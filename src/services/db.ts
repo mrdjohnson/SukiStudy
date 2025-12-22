@@ -20,6 +20,24 @@ export const subjects = new ExtendedCollection<Subject & { id: number }>({
   persistence: createIndexedDBAdapter('subjects'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id'), createIndex('object'), createIndex('level')],
+  transform: subject => {
+    let object = subject.object
+
+    if (!object && subject.document_url) {
+      if (subject.document_url.startsWith('https://www.wanikani.com/radicals')) {
+        object = 'radical'
+      } else if (subject.document_url.startsWith('https://www.wanikani.com/kanji')) {
+        object = 'kanji'
+      } else {
+        console.error('missing object for subject: ', subject)
+      }
+    }
+
+    return {
+      ...subject,
+      object,
+    }
+  },
 })
 
 export const assignments = new ExtendedCollection<Assignment & { id: number }>({
