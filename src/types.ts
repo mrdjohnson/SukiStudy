@@ -33,6 +33,9 @@ export interface User {
   started_at: string
   current_vacation_started_at: string | null
   profile_url: string
+  subscription: {
+    max_level_granted: number
+  }
 }
 
 export interface StudyMaterial {
