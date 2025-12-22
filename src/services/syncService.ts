@@ -2,7 +2,8 @@ import moment from 'moment'
 
 const SYNC_KEYS = {
   USER: 'wk_last_sync_user',
-  SUBJECTS: 'wk_last_sync_subjects_2',
+  SUBJECTS: 'wk_last_sync_subjects',
+  SUBJECTS_MIGRATION: 'wk_last_sync_subjects_migration',
   ASSIGNMENTS: 'wk_last_sync_assignments',
   MATERIALS: 'wk_last_sync_materials',
 }
@@ -31,6 +32,7 @@ export const syncService = {
     try {
       await this.syncUser()
 
+      await this.migrateSubjects()
       await this.syncSubjects()
       await this.syncAssignments()
       await this.syncStudyMaterials()
@@ -52,6 +54,19 @@ export const syncService = {
     await syncServiceWorker.syncUser()
 
     localStorage.setItem(SYNC_KEYS.USER, userStart)
+  },
+
+  async migrateSubjects() {
+    const lastSubjectMigration = localStorage.getItem(SYNC_KEYS.SUBJECTS_MIGRATION)
+    const subjectsStart = new Date().toISOString()
+
+    if (lastSubjectMigration) {
+      return
+    }
+
+    await syncServiceWorker.migrateSubjects()
+
+    localStorage.setItem(SYNC_KEYS.SUBJECTS_MIGRATION, subjectsStart)
   },
 
   async syncSubjects() {

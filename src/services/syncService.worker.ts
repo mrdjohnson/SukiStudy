@@ -2,6 +2,7 @@ import { waniKaniService } from './wanikaniService'
 import { subjects, assignments, studyMaterials, users } from './db'
 import { WKCollection, Subject, Assignment, StudyMaterial } from '../types'
 import _ from 'lodash'
+import { transformSubject } from '../utils/transformSubject'
 
 async function fetchAllPages<T>(
   initialRequest: () => Promise<WKCollection<T>>,
@@ -31,11 +32,30 @@ export async function syncUser() {
   users.updateOne({ id: 'current' }, { $set: { ...waniUser.data, id: 'current' } }) // Upsert by ID usually handled by clean/insert or find
 }
 
+export async function migrateSubjects() {
+  const emptySubjects = subjects.find({ object: { $eq: undefined } }).fetch()
+
+  console.log('migrating %s subjects', emptySubjects.length)
+
+  subjects.batch(() => {
+    emptySubjects.forEach(subject => {
+      const transformed = transformSubject(subject)
+
+      subjects.updateOne({ id: subject.id }, { $set: transformed })
+    })
+  })
+
+  console.log(
+    'migration complete, %s broken subjects left',
+    subjects.find({ object: { $eq: undefined } }).count(),
+  )
+}
+
 export async function syncSubjects(lastSubjectSync: string | null) {
   await fetchAllPages<Subject>(
     () => waniKaniService.getSubjectsUpdatedAfter(lastSubjectSync || undefined),
     async items => {
-      subjects.upsertMany(items)
+      subjects.upsertMany(items.map(transformSubject))
       console.log('inserted or updated: %s items', items.length)
     },
   )
