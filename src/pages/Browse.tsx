@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { Subject, Assignment, GameItem, SubjectType } from '../types'
-import { waniKaniService } from '../services/wanikaniService'
+import { GameItem, SubjectType } from '../types'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { generateKanaGameItems, toHiragana } from '../utils/kana'
@@ -23,6 +22,8 @@ import {
   Input,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
+import _ from 'lodash'
+import { assignments, subjects } from '../services/db'
 
 export const Browse: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -52,40 +53,15 @@ export const Browse: React.FC = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const results = await waniKaniService.getLevelSubjects(levels)
+        const allSubjects = subjects.find({}, { sort: { id: 1 } }).fetch()
 
-        let allSubjects: Subject[] = []
-        if (results.data) {
-          const subs = results.data.map(r => ({
-            ...r.data,
-            id: r.id,
-            object: r.object,
-            url: r.url,
-          }))
-          allSubjects = [...allSubjects, ...subs]
-        }
-
-        const subjectIds = allSubjects.map(s => s.id!).filter(Boolean)
-        let assignments: Record<number, Assignment> = {}
-
-        if (subjectIds.length > 0) {
-          const assignmentsCol = await waniKaniService.getAssignments(subjectIds)
-          if (assignmentsCol && assignmentsCol.data) {
-            assignments = assignmentsCol.data.reduce(
-              (acc, curr) => {
-                acc[curr.data.subject_id] = curr.data
-                return acc
-              },
-              {} as Record<number, Assignment>,
-            )
-          }
-        }
+        let allAssignments = _.chain(assignments.find({}).fetch()).keyBy('subject_id').value()
 
         setItems(
           baseItems.concat(
             allSubjects.map(s => ({
               subject: s,
-              assignment: s.id ? assignments[s.id] : undefined,
+              assignment: allAssignments[s.id],
               isReviewable: false,
             })),
           ),
