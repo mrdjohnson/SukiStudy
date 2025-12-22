@@ -12,15 +12,17 @@ import { MatchingGame } from '../pages/games/MatchingGame'
 import { TypingGame } from '../pages/games/TypingGame'
 import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
 
+import { SubjectType } from '../types'
+
 export interface GameDefinition {
   id: string
   name: string
   desc: string
   icon: any
   color: string
-  guestFriendly?: boolean
   enabled?: boolean
   component: React.FC
+  hiddenSubjectTypes: SubjectType[]
 }
 
 export const games: GameDefinition[] = [
@@ -30,8 +32,8 @@ export const games: GameDefinition[] = [
     desc: 'Match characters to their meanings or readings.',
     icon: Icons.Brain,
     color: 'bg-purple-100 text-purple-600',
-    guestFriendly: true,
     component: MemoryGame,
+    hiddenSubjectTypes: [],
   },
   {
     id: 'quiz',
@@ -39,8 +41,8 @@ export const games: GameDefinition[] = [
     desc: 'Multiple choice speed run of your learned items.',
     icon: Icons.FileQuestion,
     color: 'bg-orange-100 text-orange-600',
-    guestFriendly: true,
     component: QuizGame,
+    hiddenSubjectTypes: [],
   },
   {
     id: 'matching',
@@ -48,8 +50,8 @@ export const games: GameDefinition[] = [
     desc: 'Find matching pairs of Kanji/Kana and Meanings.',
     icon: Icons.Shuffle,
     color: 'bg-blue-100 text-blue-600',
-    guestFriendly: true,
     component: MatchingGame,
+    hiddenSubjectTypes: [],
   },
   {
     id: 'typing',
@@ -57,8 +59,8 @@ export const games: GameDefinition[] = [
     desc: 'Type the correct reading or meaning.',
     icon: Icons.Keyboard,
     color: 'bg-emerald-100 text-emerald-600',
-    guestFriendly: true,
     component: TypingGame,
+    hiddenSubjectTypes: [],
   },
   {
     id: 'connect',
@@ -67,6 +69,12 @@ export const games: GameDefinition[] = [
     icon: Icons.GridDots,
     color: 'bg-teal-100 text-teal-600',
     component: ConnectGame,
+    hiddenSubjectTypes: [
+      SubjectType.HIRAGANA,
+      SubjectType.KATAKANA,
+      SubjectType.RADICAL,
+      SubjectType.KATAKANA,
+    ],
   },
   {
     id: 'variations',
@@ -75,6 +83,12 @@ export const games: GameDefinition[] = [
     icon: Icons.ListCheck,
     color: 'bg-rose-100 text-rose-600',
     component: VariationsQuizGame,
+    hiddenSubjectTypes: [
+      SubjectType.HIRAGANA,
+      SubjectType.KATAKANA,
+      SubjectType.RADICAL,
+      SubjectType.VOCABULARY,
+    ],
   },
   {
     id: 'recall',
@@ -83,6 +97,11 @@ export const games: GameDefinition[] = [
     icon: Icons.Sparkles,
     color: 'bg-indigo-100 text-indigo-600',
     component: RecallGame,
+    hiddenSubjectTypes: [
+      SubjectType.HIRAGANA,
+      SubjectType.KATAKANA,
+      SubjectType.RADICAL,
+    ],
   },
   {
     id: 'shiritori',
@@ -92,6 +111,13 @@ export const games: GameDefinition[] = [
     color: 'bg-yellow-100 text-yellow-600',
     enabled: false,
     component: ShiritoriGame,
+    // hidden game for now
+    hiddenSubjectTypes: [
+      SubjectType.HIRAGANA,
+      SubjectType.KATAKANA,
+      SubjectType.RADICAL,
+      SubjectType.VOCABULARY,
+    ],
   },
   {
     id: 'radical-composition',
@@ -101,6 +127,13 @@ export const games: GameDefinition[] = [
     color: 'bg-sky-100 text-sky-600',
     enabled: false,
     component: RadicalCompositionGame,
+    // hidden game for now
+    hiddenSubjectTypes: [
+      SubjectType.HIRAGANA,
+      SubjectType.KATAKANA,
+      SubjectType.RADICAL,
+      SubjectType.VOCABULARY,
+    ],
   },
   {
     id: 'audio',
@@ -109,5 +142,6 @@ export const games: GameDefinition[] = [
     icon: Icons.Music,
     color: 'bg-fuchsia-100 text-fuchsia-600',
     component: AudioQuizGame,
+    hiddenSubjectTypes: [SubjectType.HIRAGANA, SubjectType.KATAKANA, SubjectType.RADICAL],
   },
 ]

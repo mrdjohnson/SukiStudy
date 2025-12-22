@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, GameItem, Subject } from '../types'
+import { GameItem, Subject, SubjectType } from '../types'
 import { assignments, subjects } from '../services/db'
 import { useUser } from '../contexts/UserContext'
 import { generateKanaGameItems } from '../utils/kana'
+import { useSettings } from '../contexts/SettingsContext'
+import _ from 'lodash'
 
-export const useLearnedSubjects = (enabled: boolean = true) => {
+export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
   const { user, isGuest } = useUser()
+  const { availableSubjects, disabledSubjects, getGameSettings } = useSettings()
 
   const runQuery = useCallback(() => {
     if (!enabled) {
@@ -42,6 +45,17 @@ export const useLearnedSubjects = (enabled: boolean = true) => {
 
     const learnedSubjectIds = learnedAssignments.map(a => a.subject_id)
 
+    let subjectTypes = availableSubjects
+
+    if (gameId) {
+      const { hiddenSubjects = [] } = getGameSettings(gameId)
+
+      subjectTypes = _.chain(SubjectType)
+        .values()
+        .without(...hiddenSubjects, ...disabledSubjects)
+        .value()
+    }
+
     // Fetch corresponding subjects
     const learnedSubjects = subjects.find({ id: { $in: learnedSubjectIds } }).fetch()
 
@@ -72,7 +86,7 @@ export const useLearnedSubjects = (enabled: boolean = true) => {
 
     setItems(combined)
     setLoading(false)
-  }, [user, enabled])
+  }, [user, enabled, availableSubjects, getGameSettings, gameId])
 
   useEffect(() => {
     runQuery()

@@ -1,19 +1,36 @@
 import { useMemo } from 'react'
 import { games } from '../utils/games'
 import { useUser } from '../contexts/UserContext'
+import { useSettings } from '../contexts/SettingsContext'
+import _ from 'lodash'
+import { SubjectType } from '../types'
 
-export const useGames = () => {
+export const useGames = ({ includeHidden = false } = {}) => {
   const { isGuest } = useUser()
+  const { hiddenGames, hiddenSubjects, disabledSubjects, getGameSettings } = useSettings()
 
   const availableGames = useMemo(() => {
+
     return games.filter(game => {
       if (game.enabled === false) return false
 
-      if (isGuest) return game.guestFriendly
+      if (includeHidden) return true
 
-      return true
+      if (hiddenGames.includes(game.id)) return false
+
+      const { hiddenSubjects = [] } = getGameSettings(game.id)
+
+      // if there are no subject types for this game
+      const emptySubjects = _.chain(SubjectType)
+        .values()
+        .without(...hiddenSubjects)
+        .without(...disabledSubjects)
+        .isEmpty()
+        .value()
+
+      return !emptySubjects
     })
-  }, [isGuest])
+  }, [isGuest, hiddenGames, hiddenSubjects, getGameSettings])
 
   return availableGames
 }
