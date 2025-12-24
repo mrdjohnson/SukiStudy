@@ -36,8 +36,8 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
   const { soundEnabled, setHelpSteps } = useSettings()
 
   const type = useMemo(() => {
-    return Math.random() > 0.5 ? 'meaning' : 'reading'
-  }, [])
+    return propItems || Math.random() > 0.5 ? 'meaning' : 'reading'
+  }, [propItems])
 
   const getItemValue = useCallback(
     (gameItem: GameItem) => {

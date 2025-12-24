@@ -12,7 +12,7 @@ import { MatchingGame } from '../pages/games/MatchingGame'
 import { TypingGame } from '../pages/games/TypingGame'
 import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
 
-import { SubjectType } from '../types'
+import { GameItem, GameResultData, SubjectType } from '../types'
 
 export interface GameDefinition {
   id: string
@@ -21,7 +21,7 @@ export interface GameDefinition {
   icon: any
   color: string
   enabled?: boolean
-  component: React.FC
+  component: React.FC<{ items?: GameItem[]; onComplete?: (data: GameResultData) => void }>
   hiddenSubjectTypes: SubjectType[]
 }
 
@@ -97,11 +97,7 @@ export const games: GameDefinition[] = [
     icon: Icons.Sparkles,
     color: 'bg-indigo-100 text-indigo-600',
     component: RecallGame,
-    hiddenSubjectTypes: [
-      SubjectType.HIRAGANA,
-      SubjectType.KATAKANA,
-      SubjectType.RADICAL,
-    ],
+    hiddenSubjectTypes: [SubjectType.HIRAGANA, SubjectType.KATAKANA, SubjectType.RADICAL],
   },
   {
     id: 'shiritori',

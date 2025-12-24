@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { GameItem } from '../../types'
+import { GameItem, GameResultData } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -9,7 +9,7 @@ import _ from 'lodash'
 
 interface QuizGameProps {
   items?: GameItem[]
-  onComplete?: (data?: any) => void
+  onComplete?: (data?: GameResultData) => void
 }
 
 export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete }) => {
@@ -17,7 +17,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
 
   const items = useMemo(() => {
     return (propItems || fetchedItems).filter(
-      item => item.subject.meanings[0].meaning && item.subject.readings?.[0]?.reading,
+      item => propItems || item.subject.meanings[0].meaning && item.subject.readings?.[0]?.reading,
     )
   }, [propItems, fetchedItems])
 
@@ -40,7 +40,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   const currentItem = gameItems[roundNumber - 1]
 
   const type = useMemo(() => {
-    return Math.random() > 0.5 ? 'meaning' : 'reading'
+    return propItems || Math.random() > 0.5 ? 'meaning' : 'reading'
   }, [currentItem?.subject])
 
   const options = useMemo(() => {
@@ -48,12 +48,12 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
 
     const answer =
       type === 'reading'
-        ? currentItem.subject.readings[0].reading
+        ? currentItem.subject.readings![0].reading
         : currentItem.subject.meanings[0].meaning
 
     return _.chain(items)
       .map(item =>
-        type === 'reading' ? item.subject.readings[0].reading : item.subject.meanings[0].meaning,
+        type === 'reading' ? item.subject.readings![0].reading : item.subject.meanings[0].meaning,
       )
       .without(answer)
       .sampleSize(3)
@@ -104,7 +104,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     if (selectedAnswer) return
 
     const correct =
-      value === currentItem.subject.readings[0].reading ||
+      value === currentItem.subject.readings![0].reading ||
       value === currentItem.subject.meanings[0].meaning
 
     setSelectedAnswer({ value, correct })
