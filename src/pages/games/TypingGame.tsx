@@ -24,6 +24,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
   const gameLogic = useGameLogic({
     gameId: 'typing',
     totalRounds: propItems?.length || 10,
+    onComplete,
   })
 
   const { startGame, recordAttempt, gameState, setGameItems, skip } = gameLogic
@@ -62,7 +63,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
 
   const initGame = () => {
     _.chain(items)
-      .filter(item => item.isReviewable)
+      .filter(item => (propItems ? true : !!item.isReviewable))
       .sampleSize(maxRoundNumber)
       .tap(setGameItems)
       .value()
