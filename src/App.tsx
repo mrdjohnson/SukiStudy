@@ -65,8 +65,7 @@ export default function App() {
 
             <Route element={!user && !isGuest && <Navigate to="/landing" />}>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/session/lesson" element={<Session mode="lesson" />} />
-              <Route path="/session/review" element={<Session mode="review" />} />
+              <Route path="/session/lesson" element={<Session />} />
 
               <Route path="/session/games" element={<GameMenu />} />
 

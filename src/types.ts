@@ -51,7 +51,7 @@ export interface StudyMaterial {
 
 export interface Subject {
   id: number // Required for SignalDB matching, though optional in raw API type
-  object?: string
+  object?: SubjectType
   url?: string
   created_at: string
   level: number

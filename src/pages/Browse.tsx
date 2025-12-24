@@ -252,12 +252,12 @@ export const Browse: React.FC = () => {
         </div>
       ) : (
         <SimpleGrid cols={{ base: 2, xs: 3, sm: 4, md: 6, lg: 8 }} spacing="sm">
-          {filteredItems.map(({ subject, assignment }) => {
+          {filteredItems.map(({ subject, assignment }, index) => {
             const color = getTypeColor(subject.object || 'vocabulary')
             return (
               <UnstyledButton
                 key={subject.id}
-                onClick={() => openFlashcardModal(subject, assignment)}
+                onClick={() => openFlashcardModal(filteredItems.map(item => item.subject), index)}
                 style={theme => ({
                   position: 'relative',
                   aspectRatio: '1/1',

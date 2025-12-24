@@ -3,7 +3,6 @@ import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import { GameLogic } from '../hooks/useGameLogic'
-import moment from 'moment'
 
 interface GameResultsProps {
   gameLogic: GameLogic
@@ -16,13 +15,6 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame 
 
   const Icon = gameInfo ? gameInfo.icon : Icons.Trophy
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
-
-  const formatTime = (seconds: number) => {
-    const duration = moment.duration(seconds * 1000)
-    const m = duration.minutes()
-    const s = duration.seconds()
-    return `${m}:${s.toString().padStart(2, '0')}`
-  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
@@ -57,7 +49,12 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame 
           {gameLogic.gameState.gameItems.map((item, idx) => (
             <button
               key={`${item.subject.id}-${idx}`}
-              onClick={() => openFlashcardModal(item.subject)}
+              onClick={() =>
+                openFlashcardModal(
+                  gameLogic.gameState.gameItems.map(item => item.subject),
+                  idx,
+                )
+              }
               className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
             >
               <div className="flex items-center gap-4">

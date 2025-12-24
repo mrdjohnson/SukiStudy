@@ -1,9 +1,8 @@
-import React from 'react'
 import { modals } from '@mantine/modals'
 import { Flashcard } from '../Flashcard'
-import { Subject, Assignment } from '../../types'
+import {  Subject } from '../../types'
 
-export const openFlashcardModal = (subject: Subject, assignment?: Assignment) => {
+export const openFlashcardModal = (items: Subject[], index = 0) => {
   modals.open({
     title: null,
     withCloseButton: false,
@@ -17,10 +16,9 @@ export const openFlashcardModal = (subject: Subject, assignment?: Assignment) =>
     children: (
       <div onClick={() => modals.closeAll()}>
         <Flashcard
-          subject={subject}
-          assignment={assignment}
-          hasPrev={false}
-          hasNext={false}
+          items={items}
+          index={index}
+          isPopup
         />
       </div>
     ),

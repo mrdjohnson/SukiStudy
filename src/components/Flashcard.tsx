@@ -1,26 +1,48 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Subject, SubjectType, Assignment, StudyMaterial } from '../types'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { Subject, SubjectType, StudyMaterial } from '../types'
 import { Icons } from './Icons'
 import { generateExplanation } from '../services/geminiService'
-import { waniKaniService } from '../services/wanikaniService'
 import ReactMarkdown from 'react-markdown'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
-import { Modal, Image, ActionIcon, Stack, Badge, Group } from '@mantine/core'
+import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader, ButtonProps } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
+import { studyMaterials, subjects } from '../services/db'
+import _ from 'lodash'
 
-interface FlashcardProps {
-  subject: Subject
-  assignment?: Assignment
-  onNext?: () => void
-  onPrev?: () => void
-  hasPrev: boolean
-  hasNext: boolean
-  onDrillDown?: (subject: Subject) => void
+const colors = {
+  [SubjectType.RADICAL]: '!bg-sky-600 text-white',
+  [SubjectType.KANJI]: '!bg-pink-600 text-white',
+  [SubjectType.HIRAGANA]: '!bg-teal-600 text-white',
+  [SubjectType.KATAKANA]: '!bg-amber-600 text-white',
+  [SubjectType.VOCABULARY]: '!bg-purple-600 text-white',
 }
+
+const borderColors = {
+  [SubjectType.RADICAL]: 'border-sky-200 bg-sky-50',
+  [SubjectType.KANJI]: 'border-pink-200 bg-pink-50',
+  [SubjectType.HIRAGANA]: 'border-teal-200 bg-teal-50',
+  [SubjectType.KATAKANA]: 'border-amber-200 bg-amber-50',
+  [SubjectType.VOCABULARY]: 'border-purple-200 bg-purple-50',
+}
+
+type FlashcardProps = {
+  index?: number
+  isPopup?: boolean
+  onIndexChanged?: (value: number) => void
+} & (
+  | {
+      ids: number[]
+      items?: never
+    }
+  | {
+      ids?: never
+      items: Subject[]
+    }
+)
 
 // Global cache for failed image URLs to prevent flickering/re-checking in same session
 const failedImages = new Set<string>()
@@ -116,19 +138,29 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType }> = ({ id, type }
 }
 
 export const Flashcard: React.FC<FlashcardProps> = ({
-  subject,
-  onNext,
-  onPrev,
-  hasPrev,
-  hasNext,
-  onDrillDown,
-}) => {
+  ids,
+  items,
+  index = 0,
+  onIndexChanged,
+  isPopup = false,
+}: FlashcardProps) => {
   const [aiExplanation, setAiExplanation] = useState<string | null>(null)
   const [loadingAi, setLoadingAi] = useState(false)
   const [components, setComponents] = useState<Subject[]>([])
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null)
   const [audioIndex, setAudioIndex] = useState(0)
+  const [itemIndex, setItemIndex] = useState(index)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const allItems = useMemo(() => {
+    return items || subjects.find({ id: { $in: ids } }).fetch()
+  }, [ids, items])
+
+  const subject = allItems[itemIndex]
+
+  const hasNext = itemIndex < allItems.length - 1
+
+  const hasPrev = itemIndex > 0
 
   useEffect(() => {
     setAiExplanation(null)
@@ -137,35 +169,41 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     setStudyMaterial(null)
     setComponents([])
 
-    const loadData = async () => {
-      if (subject.id) {
-        try {
-          const matCol = await waniKaniService.getStudyMaterials([subject.id])
-          if (matCol.data && matCol.data.length > 0) {
-            setStudyMaterial(matCol.data[0].data)
-          }
-        } catch (e) {
-          console.error('Failed user materials', e)
-        }
-      }
-
-      if (subject.component_subject_ids && subject.component_subject_ids.length > 0) {
-        try {
-          const col = await waniKaniService.getSubjects(subject.component_subject_ids)
-          if (col && col.data) {
-            setComponents(
-              col.data.map(r => ({ ...r.data, id: r.id, object: r.object, url: r.url })),
-            )
-          }
-        } catch (e) {
-          console.error('Failed to load components', e)
-        }
-      }
+    if (!subject) {
+      return
     }
-    loadData()
-  }, [subject.id])
+
+    const studyMaterial = studyMaterials.findOne({ subject_id: subject.id })
+
+    setStudyMaterial(studyMaterial || null)
+
+    if (!_.isEmpty(subject.component_subject_ids)) {
+      const subjectComponents = subjects
+        .find({ id: { $in: subject.component_subject_ids } })
+        .fetch()
+      setComponents(subjectComponents)
+    }
+  }, [subject])
+
+  useEffect(() => {
+    setItemIndex(index)
+  }, [index])
+
+  const handleNext = () => {
+    setItemIndex(itemIndex + 1)
+    onIndexChanged?.(itemIndex + 1)
+  }
+
+  const handlePrev = () => {
+    setItemIndex(itemIndex - 1)
+    onIndexChanged?.(itemIndex - 1)
+  }
+
+  if (!subject) return <Loader />
 
   const getSubjectType = (s: Subject): SubjectType => {
+    if (!s) return SubjectType.VOCABULARY
+
     if (s.object === 'radical') return SubjectType.RADICAL
     if (s.object === 'kanji') return SubjectType.KANJI
     if (s.object === 'hiragana') return SubjectType.HIRAGANA
@@ -174,22 +212,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   }
 
   const type = getSubjectType(subject)
-
-  const colors = {
-    [SubjectType.RADICAL]: '!bg-sky-600 text-white',
-    [SubjectType.KANJI]: '!bg-pink-600 text-white',
-    [SubjectType.HIRAGANA]: '!bg-teal-600 text-white',
-    [SubjectType.KATAKANA]: '!bg-amber-600 text-white',
-    [SubjectType.VOCABULARY]: '!bg-purple-600 text-white',
-  }
-
-  const borderColors = {
-    [SubjectType.RADICAL]: 'border-sky-200 bg-sky-50',
-    [SubjectType.KANJI]: 'border-pink-200 bg-pink-50',
-    [SubjectType.HIRAGANA]: 'border-teal-200 bg-teal-50',
-    [SubjectType.KATAKANA]: 'border-amber-200 bg-amber-50',
-    [SubjectType.VOCABULARY]: 'border-purple-200 bg-purple-50',
-  }
 
   const handleAiExplain = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -241,12 +263,9 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     )
   }
 
-  // Determine if this is a popup/modal view (implied by missing prev/next actions)
-  const isPopup = !onNext && !hasNext
-
   return (
     <div
-      className={`w-full max-w-2xl mx-auto p-4 perspective-1000 ${isPopup ? 'h-auto' : ''}`}
+      className={`w-full max-w-2xl mx-auto perspective-1000 ${isPopup ? 'h-auto' : ''}`}
       onClick={e => e.stopPropagation()}
     >
       <div
@@ -412,7 +431,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                 {type === SubjectType.VOCABULARY ? 'Kanji Composition' : 'Radicals'}
               </h3>
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                {components.map(comp => {
+                {components.map((comp, index) => {
                   const compType = getSubjectType(comp)
                   const compChar = comp.characters
                   const compImg = comp.character_images?.find(
@@ -421,7 +440,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                   return (
                     <div
                       key={comp.id}
-                      onClick={() => openFlashcardModal(comp)}
+                      onClick={() => openFlashcardModal(components, index)}
                       className={`
                           p-2 rounded-lg border text-center cursor-pointer transition-all hover:shadow-md active:scale-95
                           ${compType === SubjectType.RADICAL ? 'bg-sky-50 border-sky-100 hover:border-sky-300' : 'bg-pink-50 border-pink-100 hover:border-pink-300'}
@@ -466,35 +485,27 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         </div>
       </div>
 
-      {!isPopup && (
-        <div className="flex justify-between items-center mt-8 px-4">
-          <Button
-            variant="subtle"
-            onClick={e => {
-              e.stopPropagation()
-              onPrev?.()
-            }}
-            leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
-            disabled={!hasPrev}
-            className={clsx('ml-auto', !hasPrev && '!hidden')}
-          >
-            {hasPrev && !onNext ? 'Back' : 'Prev'}
-          </Button>
+      <Group className="mt-8 px-4">
+        <Button
+          variant="subtle"
+          onClick={handlePrev}
+          leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
+          disabled={!hasPrev}
+          className={clsx(!hasPrev && '!hidden')}
+        >
+          Prev
+        </Button>
 
-          <Button
-            variant="subtle"
-            onClick={e => {
-              e.stopPropagation()
-              if (onNext) onNext()
-            }}
-            disabled={!hasNext}
-            rightSection={<Icons.ChevronRight className="w-5 h-5" />}
-            className={clsx('ml-auto', !hasNext && '!hidden')}
-          >
-            Next
-          </Button>
-        </div>
-      )}
+        <Button
+          variant="subtle"
+          onClick={handleNext}
+          disabled={!hasNext}
+          rightSection={<Icons.ChevronRight className="w-5 h-5" />}
+          className={clsx('ml-auto', !hasNext && '!hidden')}
+        >
+          Next
+        </Button>
+      </Group>
 
       <style>{`
         .rotate-y-180 {
