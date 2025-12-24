@@ -58,6 +58,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
       .without(answer)
       .sampleSize(3)
       .concat(answer)
+      .shuffle()
       .value()
   }, [currentItem?.subject, items, type])
 
@@ -104,7 +105,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     if (selectedAnswer) return
 
     const correct =
-      value === currentItem.subject.readings![0].reading ||
+      value === currentItem.subject.readings?.[0].reading ||
       value === currentItem.subject.meanings[0].meaning
 
     setSelectedAnswer({ value, correct })
