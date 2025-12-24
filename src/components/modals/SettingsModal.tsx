@@ -13,6 +13,9 @@ import {
   Title,
   useMatches,
   Button,
+  Anchor,
+  Center,
+  ActionIcon,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -22,6 +25,7 @@ import { SubjectType } from '../../types'
 import _ from 'lodash'
 import clsx from 'clsx'
 import { Icons } from '../Icons'
+import moment from 'moment'
 
 interface SettingsModalProps {
   opened: boolean
@@ -298,6 +302,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
               )
             })}
           </Accordion>
+        </Stack>
+
+        <Divider />
+
+        <Stack gap="xs">
+          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+            About
+          </Text>
+
+          <Stack>
+            {/* Build Info */}
+            <Text size="xs" c="dimmed" className="text-center">
+              Last updated: {moment(__BUILD_DATE__).format('LL')}
+            </Text>
+
+            {/* GitHub Link */}
+            <Center className="pt-2">
+              <Anchor
+                href="https://github.com/mrdjohnson/SukiStudy"
+                target="_blank"
+                rel="noopener noreferrer"
+                c="dimmed"
+              >
+                <ActionIcon radius="xl" p={2} color="black" size="lg">
+                  <Icons.GitHub stroke={1.5} />
+                </ActionIcon>
+              </Anchor>
+            </Center>
+          </Stack>
         </Stack>
 
         <Divider />
