@@ -80,7 +80,7 @@ export const useGameLogic = ({
       setScore(s => s + 1)
 
       //   track history
-      if (item.isReviewable && item.assignment?.id) {
+      if (item.isReviewable && item.assignment?.id && !onComplete) {
         waniKaniService.createReview(item.assignment.id, 0, 0)
       }
 
