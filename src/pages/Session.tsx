@@ -30,7 +30,7 @@ export const Session = () => {
   const navigate = useNavigate()
 
   const lessonBatch = useMemo(() => {
-    return items.splice(0, 5)
+    return items.splice(0, 4)
   }, [items])
 
   useEffect(() => {
@@ -144,7 +144,8 @@ export const Session = () => {
           </div>
         </div>
 
-        {<Component {...commonProps} />}
+        {/* force the key to let the game know this is new data */}
+        {<Component {...commonProps} key={lessonBatch[0].subject.id} />}
       </div>
     )
   }
