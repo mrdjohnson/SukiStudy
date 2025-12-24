@@ -57,7 +57,9 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
     }
 
     // Fetch corresponding subjects
-    const learnedSubjects = subjects.find({ id: { $in: learnedSubjectIds } }).fetch()
+    const learnedSubjects = subjects
+      .find({ id: { $in: learnedSubjectIds }, object: { $in: subjectTypes } })
+      .fetch()
 
     const subjectMap = new Map<number, Subject>()
     learnedSubjects.forEach(s => subjectMap.set(s.id, s))
@@ -76,6 +78,10 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
         })
       }
     })
+
+    const includeHirigana = subjectTypes.includes(SubjectType.HIRAGANA)
+    const includeKatakana = subjectTypes.includes(SubjectType.HIRAGANA)
+    combined.push(...generateKanaGameItems(includeHirigana, includeKatakana))
 
     // Sort: Reviewable first
     combined.sort((a, b) => {
