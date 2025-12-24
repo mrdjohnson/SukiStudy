@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
               </Button>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group opacity-60 cursor-not-allowed">
               <div className="bg-sky-100 p-4 rounded-full mb-4 group-hover:bg-sky-200 transition-colors">
                 <Icons.RotateCcw className="w-8 h-8 text-sky-600" />
               </div>
@@ -103,14 +103,14 @@ export const Dashboard: React.FC = () => {
                 <Button
                   className="flex-1"
                   variant={reviewsCount > 0 ? 'secondary' : 'outline'}
-                  disabled={reviewsCount === 0}
+                  disabled={true}
                   onClick={() => navigate('/session/review')}
                 >
                   Start
                 </Button>
                 <Button
                   variant="outline"
-                  disabled={reviewsCount === 0}
+                  disabled={true}
                   onClick={handleReviewGame}
                   title="Play Review Game"
                 >
