@@ -43,3 +43,16 @@ export const users = new ExtendedCollection<User & { id: string }>({
   persistence: createIndexedDBAdapter('users'),
   reactivity: maverickjsReactivityAdapter,
 })
+
+export interface LogEntry {
+  id: string
+  timestamp: string // ISO string for better serialization
+  level: 'log' | 'error' | 'warn' | 'info' | 'debug'
+  message: string
+}
+
+export const logs = new ExtendedCollection<LogEntry>({
+  persistence: createIndexedDBAdapter('logs'),
+  reactivity: maverickjsReactivityAdapter,
+  indices: [createIndex('id'), createIndex('timestamp'), createIndex('level')],
+})

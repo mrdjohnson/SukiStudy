@@ -22,6 +22,8 @@ import { useGames } from '../hooks/useGames'
 import { useUser } from '../contexts/UserContext'
 
 import logo from '@/src/assets/apple-touch-icon.png'
+import { IconActivity } from '@tabler/icons-react'
+import { openLogModal } from './modals/LogsModal'
 
 interface HeaderProps {
   children: React.ReactNode
@@ -158,17 +160,23 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         <Divider />
 
         <AppShell.Section pt="md">
-          <Button
-            fullWidth
-            variant="light"
-            onClick={() => {
-              setShowSettings(true)
-              if (opened) toggle()
-            }}
-            rightSection={<Icons.Settings size={16} />}
-          >
-            Settings
-          </Button>
+          <Group className='flex-nowrap!'>
+            <Button
+              fullWidth
+              variant="light"
+              onClick={() => {
+                setShowSettings(true)
+                if (opened) toggle()
+              }}
+              rightSection={<Icons.Settings size={16} />}
+            >
+              Settings
+            </Button>
+
+            <Button variant='subtle' className='size-9! p-0!' onClick={openLogModal} size="sm">
+              <IconActivity size={20} />
+            </Button>
+          </Group>
         </AppShell.Section>
       </AppShell.Navbar>
 
