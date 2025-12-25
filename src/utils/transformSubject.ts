@@ -8,6 +8,8 @@ export function transformSubject(subject: Subject) {
       object = SubjectType.RADICAL
     } else if (subject.document_url.startsWith('https://www.wanikani.com/kanji')) {
       object = SubjectType.KANJI
+    } else if (subject.document_url.startsWith('https://www.wanikani.com/vocabulary')) {
+      object = SubjectType.VOCABULARY
     } else {
       console.error('missing object for subject: ', subject)
     }

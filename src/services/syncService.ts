@@ -60,7 +60,7 @@ export const syncService = {
     const lastSubjectMigration = localStorage.getItem(SYNC_KEYS.SUBJECTS_MIGRATION)
     const subjectsStart = new Date().toISOString()
 
-    if (lastSubjectMigration) {
+    if (moment(lastSubjectMigration).isAfter(moment('12/24/2025'))) {
       return
     }
 
