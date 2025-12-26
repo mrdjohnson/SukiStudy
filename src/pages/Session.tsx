@@ -35,6 +35,10 @@ export const Session = () => {
 
   useEffect(() => {
     setCurrentIndex(0)
+
+    if (items.length > 0) {
+      setLessonPhase('learn')
+    }
   }, [items])
 
   const startLessonGame = () => {
@@ -85,10 +89,12 @@ export const Session = () => {
       }
     }
 
+    setLessonPhase('fetch')
+
     assignments.batch(() => {
       for (const { assignment } of lessonBatch) {
         if (assignment?.id) {
-          assignments.updateOne({ id: assignment.id }, { $set: { ...assignment, srs_stage: -1 } })
+          assignments.updateOne({ id: assignment.id }, { $set: { ...assignment, srs_stage: 1 } })
         }
       }
     })
@@ -96,7 +102,7 @@ export const Session = () => {
 
   // --- RENDER HELPERS ---
 
-  if (loading)
+  if (loading || lessonPhase === 'fetch')
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
         <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
