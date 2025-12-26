@@ -6,8 +6,7 @@ import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
 import { SimpleGrid, useMatches } from '@mantine/core'
-import { useGames } from '../hooks/useGames'
-import _ from 'lodash'
+import clsx from 'clsx'
 
 export const Dashboard: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -18,7 +17,6 @@ export const Dashboard: React.FC = () => {
     base: 1,
     sm: 3,
   })
-  const availableGames = useGames()
 
   useEffect(() => {
     if (isGuest) {
@@ -38,12 +36,6 @@ export const Dashboard: React.FC = () => {
     }
     loadData()
   }, [])
-
-  const handleReviewGame = () => {
-    // Pick a random game to play as "Review"
-    const randomGame = _.sample(availableGames).id
-    navigate(`/session/games/${randomGame}`)
-  }
 
   if (loading)
     return (
@@ -93,7 +85,15 @@ export const Dashboard: React.FC = () => {
               </Button>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group opacity-60 cursor-not-allowed">
+            <div
+              className={clsx(
+                'bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center',
+
+                reviewsCount === 0
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:border-indigo-200 transition-colors group',
+              )}
+            >
               <div className="bg-sky-100 p-4 rounded-full mb-4 group-hover:bg-sky-200 transition-colors">
                 <Icons.RotateCcw className="w-8 h-8 text-sky-600" />
               </div>
@@ -102,19 +102,12 @@ export const Dashboard: React.FC = () => {
               <div className="flex gap-2 w-full">
                 <Button
                   className="flex-1"
-                  variant={reviewsCount > 0 ? 'secondary' : 'outline'}
-                  disabled={true}
+                  variant="light"
+                  disabled={reviewsCount === 0}
                   onClick={() => navigate('/session/review')}
+                  rightSection={<Icons.Gamepad2 className="w-5 h-5" />}
                 >
                   Start
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={true}
-                  onClick={handleReviewGame}
-                  title="Play Review Game"
-                >
-                  <Icons.Gamepad2 className="w-5 h-5 text-sky-600" />
                 </Button>
               </div>
             </div>

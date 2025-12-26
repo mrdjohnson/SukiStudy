@@ -10,6 +10,7 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Browse } from './pages/Browse'
 import { Session } from './pages/Session'
+import { Review } from './pages/Review'
 import { GameMenu } from './pages/games/GameMenu'
 import { CustomGameSetup } from './pages/games/CustomGameSetup'
 import { CustomSession } from './pages/games/CustomSession'
@@ -71,6 +72,7 @@ export default function App() {
             <Route element={!user && !isGuest && <Navigate to="/landing" />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/session/lesson" element={<Session />} />
+              <Route path="/session/review" element={<Review />} />
 
               <Route path="/session/games" element={<GameMenu />} />
 
