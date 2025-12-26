@@ -12,7 +12,7 @@ const LogsModal = () => {
   // Auto-scroll to bottom when new logs are added
   useEffect(() => {
     if (logsEndRef.current) {
-      logsEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      logsEndRef.current.scrollIntoView()
     }
   }, [logs])
 
@@ -20,7 +20,7 @@ const LogsModal = () => {
     <Stack gap="xs">
       <Group justify="space-between" align="center">
         <Text c="dimmed" size="sm" fw={700} tt="uppercase">
-          Logs
+          Logs ({logs.length})
         </Text>
         <Button
           size="xs"
@@ -92,6 +92,22 @@ const LogsModal = () => {
           )}
         </Stack>
       </ScrollArea>
+
+      <Group justify="space-between" align="center">
+        <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+          Logs ({logs.length})
+        </Text>
+        <Button
+          size="xs"
+          variant="light"
+          color="gray"
+          onClick={clearLogs}
+          disabled={logs.length === 0}
+          leftSection={<Icons.Eraser size={14} />}
+        >
+          Clear
+        </Button>
+      </Group>
     </Stack>
   )
 }

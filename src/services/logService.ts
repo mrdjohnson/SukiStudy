@@ -2,7 +2,7 @@ import { logs, LogEntry } from './db'
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
 
-const MAX_LOGS = 3000 // Limit logs to prevent memory issues
+const MAX_LOGS = 500 // Limit logs to prevent memory issues
 
 const formatMessage = (...args: any[]): string => {
   return args
