@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route, Routes, useLocation, HashRouter, Navigate } from 'react-router'
+import { Route, Routes, useLocation, BrowserRouter, Navigate } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { useUser } from './contexts/UserContext'
@@ -50,7 +50,7 @@ export default function App() {
     <>
       <PWABadge />
 
-      <HashRouter>
+      <BrowserRouter>
         <Layout>
           {isSyncing && user && (
             <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
@@ -86,7 +86,7 @@ export default function App() {
             </Route>
           </Routes>
         </Layout>
-      </HashRouter>
+      </BrowserRouter>
     </>
   )
 }
