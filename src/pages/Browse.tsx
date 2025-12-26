@@ -205,7 +205,7 @@ export const Browse: React.FC = () => {
     )
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto p-2 md:p-4">
       {/* Filters Header */}
       <Paper p="md" withBorder radius="md" mb="xl">
         <Group justify="space-between" mb="md">
@@ -282,7 +282,7 @@ export const Browse: React.FC = () => {
           <p>No items match your filters.</p>
         </div>
       ) : (
-        <SimpleGrid cols={{ base: 2, xs: 3, sm: 4, md: 6, lg: 8 }} spacing="sm">
+        <SimpleGrid cols={{ base: 2, xs: 3, sm: 4, md: 6 }} spacing="sm">
           {filteredItems.map(({ subject, assignment }, index) => {
             const color = getTypeColor(subject.object || 'vocabulary')
             return (
