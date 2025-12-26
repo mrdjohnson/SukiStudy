@@ -30,7 +30,7 @@ export const Session = () => {
   const navigate = useNavigate()
 
   const lessonBatch = useMemo(() => {
-    return items.splice(0, 4)
+    return items.splice(0, 5)
   }, [items])
 
   useEffect(() => {
