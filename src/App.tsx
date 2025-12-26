@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Route, Routes, useLocation, BrowserRouter, Navigate } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
@@ -18,6 +18,11 @@ import PWABadge from './PWABadge'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
   const hideHeader = location.pathname === '/login' || location.pathname === '/landing'
 
   if (hideHeader) {
