@@ -28,7 +28,7 @@ import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
 import { assignments, subjects } from '../services/db'
 import { SubjectColor } from '../utils/subject'
-import clsx from 'clsx'
+import { GameItemIcon } from '../components/GameItemIcon'
 
 export const Browse: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -144,18 +144,6 @@ export const Browse: React.FC = () => {
       })
       .take(ignoreLimit ? items.length : limit)
       .value()
-  }
-
-  const getTypeColor = (object: string) => {
-    return (
-      {
-        [SubjectType.RADICAL]: '!bg-sky-600 !text-white',
-        [SubjectType.KANJI]: '!bg-pink-600 !text-white',
-        [SubjectType.HIRAGANA]: '!bg-teal-600 !text-white',
-        [SubjectType.KATAKANA]: '!bg-amber-600 !text-white',
-        [SubjectType.VOCABULARY]: '!bg-purple-600 !text-white',
-      }[object] || '!bg-purple-600 !text-white'
-    )
   }
 
   const getSRSBadge = (stage?: number) => {
@@ -299,7 +287,6 @@ export const Browse: React.FC = () => {
                 </Group>
                 <Paper withBorder radius="md" className="overflow-hidden">
                   {groupItems.map(({ subject, assignment }, index) => {
-                    const color = getTypeColor(subject.object || 'vocabulary')
                     const isLast = index === groupItems.length - 1
 
                     return (
@@ -309,31 +296,7 @@ export const Browse: React.FC = () => {
                           className="w-full text-left hover:!bg-gray-50 transition-colors"
                         >
                           <Group className="p-3 md:p-4 flex-nowrap">
-                            <Box
-                              className={clsx(
-                                `${color} flex items-center justify-center rounded-lg font-bold shrink-0 h-12 min-w-12 w-fit p-1 text-2xl`,
-                                (subject.characters?.length || 0) > 2 && 'text-sm font-semibold',
-                                (subject.characters?.length || 0) > 4 && 'text-xs font-semibold',
-                              )}
-                            >
-                              {subject.characters || (
-                                <div className="size-12">
-                                  {subject.character_images?.find(
-                                    i => i.content_type === 'image/svg+xml',
-                                  )?.url && (
-                                    <img
-                                      src={
-                                        subject.character_images?.find(
-                                          i => i.content_type === 'image/svg+xml',
-                                        )?.url
-                                      }
-                                      alt=""
-                                      className="w-full h-full brightness-0 invert"
-                                    />
-                                  )}
-                                </div>
-                              )}
-                            </Box>
+                            <GameItemIcon subject={subject} />
 
                             <div className="flex-1 min-w-0">
                               <Group gap="xs" align="center" mb={4}>

@@ -3,6 +3,7 @@ import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import { GameLogic } from '../hooks/useGameLogic'
+import { GameItemIcon } from './GameItemIcon'
 
 interface GameResultsProps {
   gameLogic: GameLogic
@@ -58,21 +59,8 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame 
               className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-xl font-bold shadow-sm">
-                  {item.subject.characters || (
-                    <div className="w-6 h-6">
-                      <img
-                        src={
-                          item.subject.character_images?.find(
-                            i => i.content_type === 'image/svg+xml',
-                          )?.url
-                        }
-                        className="w-full h-full"
-                        alt=""
-                      />
-                    </div>
-                  )}
-                </div>
+                <GameItemIcon subject={item.subject} />
+
                 <div>
                   <div className="font-medium text-gray-900">
                     {item.subject.meanings[0].meaning}

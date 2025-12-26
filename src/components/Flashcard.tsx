@@ -6,12 +6,13 @@ import ReactMarkdown from 'react-markdown'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
-import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader, ButtonProps } from '@mantine/core'
+import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import { studyMaterials, subjects } from '../services/db'
 import _ from 'lodash'
+import { GameItemIcon } from './GameItemIcon'
 
 const colors = {
   [SubjectType.RADICAL]: '!bg-sky-600 text-white',
@@ -275,28 +276,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         {/* Back Header */}
         <div className={`p-6 border-b ${borderColors[type]} relative`}>
           <div className="flex gap-4">
-            <div
-              className={clsx(
-                'hidden sm:flex min-w-20 h-20 w-fit p-1 shrink-0 items-center justify-center rounded-xl text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity',
-                colors[type],
-                (subject.characters?.length || 0) > 2 && 'text-3xl font-semibold',
-                (subject.characters?.length || 0) > 4 && 'text-xl font-semibold',
-              )}
-            >
-              {character || (
-                <div className="w-12 h-12">
-                  {subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url && (
-                    <img
-                      src={
-                        subject.character_images?.find(i => i.content_type === 'image/svg+xml')?.url
-                      }
-                      alt=""
-                      className="w-full h-full brightness-0 invert"
-                    />
-                  )}
-                </div>
-              )}
-            </div>
+            <GameItemIcon subject={subject} size="lg" />
 
             <div className="flex-1 flex flex-col justify-center">
               <div className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">
