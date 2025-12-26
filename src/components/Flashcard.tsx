@@ -276,7 +276,12 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         <div className={`p-6 border-b ${borderColors[type]} relative`}>
           <div className="flex gap-4">
             <div
-              className={`hidden sm:flex w-20 h-20 shrink-0 items-center justify-center rounded-xl ${colors[type]} text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
+              className={clsx(
+                'hidden sm:flex min-w-20 h-20 w-fit p-1 shrink-0 items-center justify-center rounded-xl text-4xl font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity',
+                colors[type],
+                (subject.characters?.length || 0) > 2 && 'text-3xl font-semibold',
+                (subject.characters?.length || 0) > 4 && 'text-xl font-semibold',
+              )}
             >
               {character || (
                 <div className="w-12 h-12">

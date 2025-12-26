@@ -22,11 +22,13 @@ import {
   Input,
   useMatches,
   Center,
+  Divider,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
 import { assignments, subjects } from '../services/db'
 import { SubjectColor } from '../utils/subject'
+import clsx from 'clsx'
 
 export const Browse: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -178,12 +180,7 @@ export const Browse: React.FC = () => {
     }
 
     return (
-      <Badge
-        color={color}
-        size="xs"
-        variant="filled"
-        style={{ position: 'absolute', top: -5, right: -5, zIndex: 10 }}
-      >
+      <Badge color={color} size="xs" variant="filled">
         {label}
       </Badge>
     )
@@ -192,6 +189,10 @@ export const Browse: React.FC = () => {
   const filteredItems = useMemo(() => {
     return getFilteredItems()
   }, [onlyLearned, searchQuery, ignoreLimit, items])
+
+  const groups = useMemo(() => {
+    return _.groupBy(filteredItems, item => item.subject.object)
+  }, [filteredItems])
 
   const SRS_GROUPS = ['Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']
 
@@ -282,66 +283,100 @@ export const Browse: React.FC = () => {
           <p>No items match your filters.</p>
         </div>
       ) : (
-        <SimpleGrid cols={{ base: 2, xs: 3, sm: 4, md: 6 }} spacing="sm">
-          {filteredItems.map(({ subject, assignment }, index) => {
-            const color = getTypeColor(subject.object || 'vocabulary')
+        <Stack gap="xl">
+          {types.map(type => {
+            const groupItems = groups[type]
+
+            if (!groupItems) return null
+
             return (
-              <UnstyledButton
-                key={subject.id}
-                onClick={() =>
-                  openFlashcardModal(
-                    filteredItems.map(item => item.subject),
-                    index,
-                  )
-                }
-                style={theme => ({
-                  position: 'relative',
-                  aspectRatio: '1/1',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: theme.radius.md,
-                  color: 'white',
-                  transition: 'transform 0.2s',
-                  '&:hover': { transform: 'scale(1.05)' },
-                })}
-                className={color}
-              >
-                {getSRSBadge(assignment?.srs_stage)}
-                <Text size="xl" fw={700}>
-                  {subject.characters || (
-                    <div className="w-8 h-8">
-                      {subject.character_images?.find(i => i.content_type === 'image/svg+xml')
-                        ?.url && (
-                        <img
-                          src={
-                            subject.character_images?.find(i => i.content_type === 'image/svg+xml')
-                              ?.url
-                          }
-                          alt=""
-                          className="w-full h-full brightness-0 invert"
-                        />
-                      )}
-                    </div>
-                  )}
-                </Text>
-                <Box
-                  style={{
-                    backgroundColor: 'rgba(0,0,0,0.15)',
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                    maxWidth: '90%',
-                  }}
-                >
-                  <Text size="xs" truncate>
-                    {subject.meanings?.[0]?.meaning}
-                  </Text>
-                </Box>
-              </UnstyledButton>
+              <Box key={type}>
+                <Group justify="space-between" mb="sm">
+                  <Title order={3}>{_.startCase(type)}</Title>
+                  <Badge variant="light" color="gray">
+                    {groupItems.length} items
+                  </Badge>
+                </Group>
+                <Paper withBorder radius="md" className="overflow-hidden">
+                  {groupItems.map(({ subject, assignment }, index) => {
+                    const color = getTypeColor(subject.object || 'vocabulary')
+                    const isLast = index === groupItems.length - 1
+
+                    return (
+                      <React.Fragment key={subject.id}>
+                        <UnstyledButton
+                          onClick={() => openFlashcardModal([subject], 0)}
+                          className="w-full text-left hover:!bg-gray-50 transition-colors"
+                        >
+                          <Group className="p-3 md:p-4 flex-nowrap">
+                            <Box
+                              className={clsx(
+                                `${color} flex items-center justify-center rounded-lg font-bold shrink-0 h-12 min-w-12 w-fit p-1 text-2xl`,
+                                (subject.characters?.length || 0) > 2 && 'text-sm font-semibold',
+                                (subject.characters?.length || 0) > 4 && 'text-xs font-semibold',
+                              )}
+                            >
+                              {subject.characters || (
+                                <div className="size-12">
+                                  {subject.character_images?.find(
+                                    i => i.content_type === 'image/svg+xml',
+                                  )?.url && (
+                                    <img
+                                      src={
+                                        subject.character_images?.find(
+                                          i => i.content_type === 'image/svg+xml',
+                                        )?.url
+                                      }
+                                      alt=""
+                                      className="w-full h-full brightness-0 invert"
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </Box>
+
+                            <div className="flex-1 min-w-0">
+                              <Group gap="xs" align="center" mb={4}>
+                                <Text fw={700} truncate>
+                                  {subject.meanings?.[0]?.meaning}
+                                </Text>
+                                <Group gap={4}>
+                                  {subject.readings
+                                    ?.filter(r => r.primary)
+                                    .map((r, i) => (
+                                      <Badge key={i} size="sm" variant="dot" color="gray">
+                                        {r.reading}
+                                      </Badge>
+                                    ))}
+                                </Group>
+                              </Group>
+
+                              <Text size="xs" c="dimmed" lineClamp={1}>
+                                {subject.meanings
+                                  ?.slice(1)
+                                  .map(m => m.meaning)
+                                  .join(', ')}
+                              </Text>
+                            </div>
+
+                            <Group gap="xs" wrap="nowrap">
+                              {assignment?.srs_stage !== undefined && (
+                                <div className="shrink-0">{getSRSBadge(assignment.srs_stage)}</div>
+                              )}
+                              <Icons.ChevronRight size={18} className="text-gray-400" />
+                            </Group>
+                          </Group>
+                        </UnstyledButton>
+
+                        {!isLast && <Divider className="mx-1" c="dimmed" />}
+                      </React.Fragment>
+                    )
+                  })}
+                </Paper>
+              </Box>
             )
           })}
-        </SimpleGrid>
+        </Stack>
       )}
 
       {!ignoreLimit && items.length > limit && (
