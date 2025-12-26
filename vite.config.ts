@@ -6,13 +6,14 @@ import mkcert from 'vite-plugin-mkcert'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { comlink } from 'vite-plugin-comlink'
+import vercel from 'vite-plugin-vercel'
 
 const isDev = process.env.NODE_ENV === 'development'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   return {
-    base: '/SukiStudy/',
+    base: '/',
     server: {
       port: 3000,
       host: '0.0.0.0',
@@ -22,6 +23,7 @@ export default defineConfig(({ mode }) => {
       isDev && mkcert(),
       tailwindcss(),
       comlink(),
+      vercel(),
       VitePWA({
         mode: 'production',
         registerType: 'autoUpdate',
@@ -88,7 +90,8 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      '__BUILD_DATE__': JSON.stringify(new Date().toISOString()),
+      __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+      __APP_ENV__: process.env.VITE_VERCEL_ENV,
     },
     resolve: {
       alias: {
