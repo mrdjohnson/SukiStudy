@@ -61,6 +61,23 @@ export async function syncSubjects(lastSubjectSync: string | null) {
   )
 }
 
+export async function migrateAssignments() {
+  const emptyAssignments = assignments.find({ srs_stage: -1 }).fetch()
+
+  console.log('migrating %s assignments', emptyAssignments.length)
+
+  assignments.batch(() => {
+    emptyAssignments.forEach(assignment => {
+      assignments.updateOne({ id: assignment.id }, { $set: { ...assignment, srs_stage: 1 } })
+    })
+  })
+
+  console.log(
+    'migration complete, %s broken assignments left',
+    assignments.find({ srs_stage: -1 }).count(),
+  )
+}
+
 export async function syncAssignments(lastAssignSync: string | null) {
   await fetchAllPages<Assignment>(
     () => waniKaniService.getAssignmentsUpdatedAfter(lastAssignSync || undefined),

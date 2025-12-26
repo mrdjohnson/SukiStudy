@@ -4,6 +4,7 @@ const SYNC_KEYS = {
   USER: 'wk_last_sync_user',
   SUBJECTS: 'wk_last_sync_subjects',
   SUBJECTS_MIGRATION: 'wk_last_sync_subjects_migration',
+  ASSIGNMENTS_MIGRATION: 'wk_last_sync_assignments_migration',
   ASSIGNMENTS: 'wk_last_sync_assignments',
   MATERIALS: 'wk_last_sync_materials',
 }
@@ -34,6 +35,7 @@ export const syncService = {
 
       await this.migrateSubjects()
       await this.syncSubjects()
+      await this.migrateAssignments()
       await this.syncAssignments()
       await this.syncStudyMaterials()
 
@@ -82,6 +84,19 @@ export const syncService = {
     localStorage.setItem(SYNC_KEYS.SUBJECTS, subjectsStart)
   },
 
+  async migrateAssignments() {
+    const lastAssignMigration = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS_MIGRATION)
+    const assignStart = new Date().toISOString()
+
+    if (lastAssignMigration) {
+      return
+    }
+
+    await syncServiceWorker.migrateAssignments()
+
+    localStorage.setItem(SYNC_KEYS.ASSIGNMENTS_MIGRATION, assignStart)
+  },
+  
   async syncAssignments() {
     const lastAssignSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
     const assignStart = new Date().toISOString()
