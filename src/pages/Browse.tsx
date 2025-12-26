@@ -40,13 +40,7 @@ export const Browse: React.FC = () => {
   const [srsFilter, setSrsFilter] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [showLevelSelect, setShowLevelSelect] = useState(false)
-  const [includeHiragana, setIncludeHiragana] = useState(isGuest)
-  const [includeKatakana, setIncludeKatakana] = useState(isGuest)
-  const [types, setTypes] = useState<string[]>([
-    SubjectType.KANJI,
-    SubjectType.VOCABULARY,
-    SubjectType.RADICAL,
-  ])
+  const [types, setTypes] = useState<string[]>([])
 
   const limit = useMatches({
     base: 20,
@@ -57,7 +51,18 @@ export const Browse: React.FC = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const baseItems = generateKanaGameItems(includeHiragana, includeKatakana)
+    if (isGuest) {
+      setTypes([SubjectType.HIRAGANA, SubjectType.KATAKANA])
+    } else {
+      setTypes([SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL])
+    }
+  }, [isGuest])
+
+  useEffect(() => {
+    const baseItems = generateKanaGameItems(
+      types.includes(SubjectType.HIRAGANA),
+      types.includes(SubjectType.KATAKANA),
+    )
 
     if (!user || isGuest) {
       setItems(baseItems)
@@ -89,7 +94,7 @@ export const Browse: React.FC = () => {
     }
 
     fetchData()
-  }, [user, includeHiragana, includeKatakana, types])
+  }, [user, types])
 
   const toggleLevel = (l: number) => {
     if (levels.includes(l)) {
@@ -253,47 +258,20 @@ export const Browse: React.FC = () => {
 
             <Chip.Group multiple value={types} onChange={setTypes}>
               <Group gap="xs">
-                <Chip
-                  value={SubjectType.RADICAL}
-                  color={SubjectColor[SubjectType.RADICAL]}
-                  variant="outline"
-                >
-                  Radical
-                </Chip>
-
-                <Chip
-                  value={SubjectType.KANJI}
-                  color={SubjectColor[SubjectType.KANJI]}
-                  variant="outline"
-                >
-                  Kanji
-                </Chip>
-
-                <Chip
-                  value={SubjectType.VOCABULARY}
-                  color={SubjectColor[SubjectType.VOCABULARY]}
-                  variant="outline"
-                >
-                  Vocab
-                </Chip>
+                {_.map(SubjectType, subjectType => {
+                  return (
+                    <Chip
+                      key={subjectType}
+                      value={subjectType}
+                      variant="outline"
+                      color={SubjectColor[subjectType]}
+                    >
+                      {_.startCase(subjectType)}
+                    </Chip>
+                  )
+                })}
               </Group>
             </Chip.Group>
-          </Box>
-
-          <Box>
-            <Input.Label mb="xs">Kana </Input.Label>
-            <Group>
-              <Checkbox
-                label="Hiragana"
-                checked={includeHiragana}
-                onChange={e => setIncludeHiragana(e.currentTarget.checked)}
-              />
-              <Checkbox
-                label="Katakana"
-                checked={includeKatakana}
-                onChange={e => setIncludeKatakana(e.currentTarget.checked)}
-              />
-            </Group>
           </Box>
         </Stack>
       </Paper>

@@ -1,9 +1,9 @@
 export enum SubjectType {
+  HIRAGANA = 'hiragana',
+  KATAKANA = 'katakana',
   RADICAL = 'radical',
   KANJI = 'kanji',
   VOCABULARY = 'vocabulary',
-  HIRAGANA = 'hiragana',
-  KATAKANA = 'katakana',
 }
 
 export interface WKResource<T> {
