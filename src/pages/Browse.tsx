@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { GameItem, SubjectType } from '../types'
 import { Icons } from '../components/Icons'
@@ -20,10 +20,13 @@ import {
   Stack,
   Checkbox,
   Input,
+  useMatches,
+  Center,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
 import { assignments, subjects } from '../services/db'
+import { SubjectColor } from '../utils/subject'
 
 export const Browse: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -31,6 +34,7 @@ export const Browse: React.FC = () => {
   const [loading, setLoading] = useState(true)
 
   // Filters
+  const [ignoreLimit, setIgnoreLimit] = useState(false)
   const [levels, setLevels] = useState<number[]>(user ? [user.level] : [])
   const [onlyLearned, setOnlyLearned] = useState(false)
   const [srsFilter, setSrsFilter] = useState<string[]>([])
@@ -38,6 +42,17 @@ export const Browse: React.FC = () => {
   const [showLevelSelect, setShowLevelSelect] = useState(false)
   const [includeHiragana, setIncludeHiragana] = useState(isGuest)
   const [includeKatakana, setIncludeKatakana] = useState(isGuest)
+  const [types, setTypes] = useState<string[]>([
+    SubjectType.KANJI,
+    SubjectType.VOCABULARY,
+    SubjectType.RADICAL,
+  ])
+
+  const limit = useMatches({
+    base: 20,
+    sm: 32,
+    md: 60,
+  })
 
   const navigate = useNavigate()
 
@@ -53,7 +68,7 @@ export const Browse: React.FC = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const allSubjects = subjects.find({}, { sort: { id: 1 } }).fetch()
+        const allSubjects = subjects.find({ object: { $in: types } }, { sort: { id: 1 } }).fetch()
 
         let allAssignments = _.chain(assignments.find({}).fetch()).keyBy('subject_id').value()
 
@@ -72,8 +87,9 @@ export const Browse: React.FC = () => {
         setLoading(false)
       }
     }
+
     fetchData()
-  }, [user, levels.join(','), includeHiragana, includeKatakana])
+  }, [user, includeHiragana, includeKatakana, types])
 
   const toggleLevel = (l: number) => {
     if (levels.includes(l)) {
@@ -84,40 +100,43 @@ export const Browse: React.FC = () => {
   }
 
   const getFilteredItems = () => {
-    return items.filter(item => {
-      if (onlyLearned) {
-        const stage = item.assignment?.srs_stage
-        if (stage === undefined || stage === 0) return false
-      }
+    return _.chain(items)
+      .filter(item => {
+        if (onlyLearned) {
+          const stage = item.assignment?.srs_stage
+          if (stage === undefined || stage === 0) return false
+        }
 
-      if (srsFilter.length > 0) {
-        const stage = item.assignment?.srs_stage || 0
-        let stageLabel = 'Lesson'
-        if (stage > 0 && stage < 5) stageLabel = 'Apprentice'
-        else if (stage >= 5 && stage < 7) stageLabel = 'Guru'
-        else if (stage === 7) stageLabel = 'Master'
-        else if (stage === 8) stageLabel = 'Enlightened'
-        else if (stage === 9) stageLabel = 'Burned'
+        if (srsFilter.length > 0) {
+          const stage = item.assignment?.srs_stage || 0
+          let stageLabel = 'Lesson'
+          if (stage > 0 && stage < 5) stageLabel = 'Apprentice'
+          else if (stage >= 5 && stage < 7) stageLabel = 'Guru'
+          else if (stage === 7) stageLabel = 'Master'
+          else if (stage === 8) stageLabel = 'Enlightened'
+          else if (stage === 9) stageLabel = 'Burned'
 
-        if (!srsFilter.includes(stageLabel)) return false
-      }
+          if (!srsFilter.includes(stageLabel)) return false
+        }
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim()
-        const qKana = toHiragana(q)
-        const s = item.subject
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim()
+          const qKana = toHiragana(q)
+          const s = item.subject
 
-        const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q))
-        const matchReading = s.readings?.some(
-          r => r.reading.includes(qKana) || r.reading.includes(q),
-        )
-        const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana)
+          const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q))
+          const matchReading = s.readings?.some(
+            r => r.reading.includes(qKana) || r.reading.includes(q),
+          )
+          const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana)
 
-        if (!matchMeaning && !matchReading && !matchChar) return false
-      }
+          if (!matchMeaning && !matchReading && !matchChar) return false
+        }
 
-      return true
-    })
+        return true
+      })
+      .take(ignoreLimit ? items.length : limit)
+      .value()
   }
 
   const getTypeColor = (object: string) => {
@@ -165,7 +184,9 @@ export const Browse: React.FC = () => {
     )
   }
 
-  const filteredItems = getFilteredItems()
+  const filteredItems = useMemo(() => {
+    return getFilteredItems()
+  }, [onlyLearned, searchQuery, ignoreLimit, items])
 
   const SRS_GROUPS = ['Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']
 
@@ -228,6 +249,38 @@ export const Browse: React.FC = () => {
           )}
 
           <Box>
+            <Input.Label>Subject Types</Input.Label>
+
+            <Chip.Group multiple value={types} onChange={setTypes}>
+              <Group gap="xs">
+                <Chip
+                  value={SubjectType.RADICAL}
+                  color={SubjectColor[SubjectType.RADICAL]}
+                  variant="outline"
+                >
+                  Radical
+                </Chip>
+
+                <Chip
+                  value={SubjectType.KANJI}
+                  color={SubjectColor[SubjectType.KANJI]}
+                  variant="outline"
+                >
+                  Kanji
+                </Chip>
+
+                <Chip
+                  value={SubjectType.VOCABULARY}
+                  color={SubjectColor[SubjectType.VOCABULARY]}
+                  variant="outline"
+                >
+                  Vocab
+                </Chip>
+              </Group>
+            </Chip.Group>
+          </Box>
+
+          <Box>
             <Input.Label mb="xs">Kana </Input.Label>
             <Group>
               <Checkbox
@@ -257,7 +310,12 @@ export const Browse: React.FC = () => {
             return (
               <UnstyledButton
                 key={subject.id}
-                onClick={() => openFlashcardModal(filteredItems.map(item => item.subject), index)}
+                onClick={() =>
+                  openFlashcardModal(
+                    filteredItems.map(item => item.subject),
+                    index,
+                  )
+                }
                 style={theme => ({
                   position: 'relative',
                   aspectRatio: '1/1',
@@ -306,6 +364,14 @@ export const Browse: React.FC = () => {
             )
           })}
         </SimpleGrid>
+      )}
+
+      {!ignoreLimit && items.length > limit && (
+        <Center>
+          <Button onClick={() => setIgnoreLimit(true)} variant="outline" className="mt-4">
+            See All {items.length} items
+          </Button>
+        </Center>
       )}
 
       {/* Level Select Modal */}
