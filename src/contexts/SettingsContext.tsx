@@ -1,5 +1,13 @@
 import { useLocalStorage } from '@mantine/hooks'
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useMemo,
+  useEffect,
+} from 'react'
 import { SubjectType } from '../types'
 import _ from 'lodash'
 import { useUser } from './UserContext'
@@ -125,6 +133,15 @@ const useSettingsContext = () => {
       })
     }
   }
+
+  useEffect(() => {
+    if (
+      user?.subscription.max_level_granted &&
+      gameLevelMax > user.subscription.max_level_granted
+    ) {
+      setGameLevelMax(user.subscription.max_level_granted)
+    }
+  }, [user?.subscription.max_level_granted, gameLevelMax])
 
   return {
     soundEnabled,

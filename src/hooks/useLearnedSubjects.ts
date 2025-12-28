@@ -10,7 +10,8 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
   const { user, isGuest } = useUser()
-  const { availableSubjects, disabledSubjects, getGameSettings } = useSettings()
+  const { gameLevelMin, gameLevelMax, availableSubjects, disabledSubjects, getGameSettings } =
+    useSettings()
 
   const runQuery = useCallback(() => {
     if (!enabled) {
@@ -58,7 +59,11 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
 
     // Fetch corresponding subjects
     const learnedSubjects = subjects
-      .find({ id: { $in: learnedSubjectIds }, object: { $in: subjectTypes } })
+      .find({
+        id: { $in: learnedSubjectIds },
+        object: { $in: subjectTypes },
+        level: { $gte: gameLevelMin, $lte: gameLevelMax },
+      })
       .fetch()
 
     const subjectMap = new Map<number, Subject>()
