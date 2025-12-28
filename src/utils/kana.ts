@@ -1,4 +1,4 @@
-import { GameItem, Subject } from '../types'
+import { GameItem, Subject, SubjectType } from '../types'
 import { isHiragana, toHiragana, toKatakana, toRomaji as toRomanji } from 'wanakana'
 
 const HIRAGANA_LIST = [
@@ -144,7 +144,7 @@ export const generateKanaGameItems = (
 
     const versions = [toRomanji, toHiragana, toKatakana].map(f => f(item))
 
-    const type = itemIsHiragana ? 'hiragana' : 'katakana'
+    const type = itemIsHiragana ? SubjectType.HIRAGANA : SubjectType.KATAKANA
 
     // Determine type by looking at char code range roughly, or just assume vocab-like behavior
     const subject: Subject = {
