@@ -1,4 +1,4 @@
-A WaniKani study app with more learning strategies. Built foremost by Gemini! (ost of the games were built directly by gemini with minimal human input).
+A WaniKani study app with more learning strategies. Built foremost by Gemini! (most of the games were built directly by gemini with minimal human input).
 
 Unfortunately, the illustrations provided by WK are not included here but you can find them on the official page.
 

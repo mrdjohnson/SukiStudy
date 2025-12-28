@@ -88,8 +88,6 @@ export default defineConfig(({ mode }) => {
       plugins: () => [comlink()], // Enable Comlink for workers
     },
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
       __APP_ENV__: process.env.VITE_VERCEL_ENV,
     },

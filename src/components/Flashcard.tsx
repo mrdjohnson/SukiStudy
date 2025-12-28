@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Subject, SubjectType, StudyMaterial } from '../types'
 import { Icons } from './Icons'
-import { generateExplanation } from '../services/geminiService'
-import ReactMarkdown from 'react-markdown'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
@@ -145,8 +143,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   onIndexChanged,
   isPopup = false,
 }: FlashcardProps) => {
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null)
-  const [loadingAi, setLoadingAi] = useState(false)
   const [components, setComponents] = useState<Subject[]>([])
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null)
   const [audioIndex, setAudioIndex] = useState(0)
@@ -164,8 +160,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const hasPrev = itemIndex > 0
 
   useEffect(() => {
-    setAiExplanation(null)
-    setLoadingAi(false)
     setAudioIndex(0)
     setStudyMaterial(null)
     setComponents([])
@@ -213,16 +207,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   }
 
   const type = getSubjectType(subject)
-
-  const handleAiExplain = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (aiExplanation) return
-
-    setLoadingAi(true)
-    const explanation = await generateExplanation(subject, type)
-    setAiExplanation(explanation)
-    setLoadingAi(false)
-  }
 
   const playAudio = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -447,26 +431,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </div>
             </div>
           )}
-
-          <div className="pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider flex items-center gap-2">
-                <Icons.Sparkles className="w-4 h-4" />
-                AI Tutor
-              </h3>
-              {!aiExplanation && (
-                <Button variant="outline" size="xs" onClick={handleAiExplain} isLoading={loadingAi}>
-                  Ask Gemini
-                </Button>
-              )}
-            </div>
-
-            {aiExplanation && (
-              <div className="bg-indigo-50 rounded-lg p-4 text-sm text-gray-700 prose prose-indigo max-w-none">
-                <ReactMarkdown>{aiExplanation}</ReactMarkdown>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
