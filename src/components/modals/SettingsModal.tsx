@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import {
   Modal,
   Switch,
@@ -16,13 +16,9 @@ import {
   Anchor,
   Center,
   ActionIcon,
-  ScrollArea,
-  Code,
-  Badge,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
 import { useSettings } from '../../contexts/SettingsContext'
-import { useLogs } from '../../hooks/useLogs'
 import { useGames } from '../../hooks/useGames'
 import { SubjectColor } from '../../utils/subject'
 import { SubjectType } from '../../types'
