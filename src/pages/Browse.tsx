@@ -29,6 +29,7 @@ import _ from 'lodash'
 import { assignments, subjects } from '../services/db'
 import { SubjectColor } from '../utils/subject'
 import { GameItemIcon } from '../components/GameItemIcon'
+import { useLocalStorage } from '@mantine/hooks'
 
 export const Browse: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -42,7 +43,12 @@ export const Browse: React.FC = () => {
   const [srsFilter, setSrsFilter] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [showLevelSelect, setShowLevelSelect] = useState(false)
-  const [types, setTypes] = useState<string[]>([])
+  const [types, setTypes] = useLocalStorage<string[]>({
+    key: 'browseTypes',
+    defaultValue: isGuest
+      ? [SubjectType.HIRAGANA, SubjectType.KATAKANA]
+      : [SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL],
+  })
 
   const limit = useMatches({
     base: 20,
@@ -51,14 +57,6 @@ export const Browse: React.FC = () => {
   })
 
   const navigate = useNavigate()
-
-  useEffect(() => {
-    if (isGuest) {
-      setTypes([SubjectType.HIRAGANA, SubjectType.KATAKANA])
-    } else {
-      setTypes([SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL])
-    }
-  }, [isGuest])
 
   useEffect(() => {
     const baseItems = generateKanaGameItems(
