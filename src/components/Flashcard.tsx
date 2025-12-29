@@ -345,7 +345,9 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               Meaning Mnemonic
             </h3>
             {type === SubjectType.HIRAGANA ? (
-              <Markdown>{subject.meaning_mnemonic}</Markdown>
+              <div className="prose prose-spacing">
+                <Markdown>{subject.meaning_mnemonic}</Markdown>
+              </div>
             ) : (
               <div
                 className="text-gray-700 leading-relaxed text-sm md:text-base"
