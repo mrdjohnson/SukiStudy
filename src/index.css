@@ -1,2 +1,12 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+  --color-hiragana: #0d9488;
+  --color-katakana: #d97706;
+  --color-radical: #0284c7;
+  --color-kanji: #db2777;
+  --color-vocab: #9333ea;
+}
