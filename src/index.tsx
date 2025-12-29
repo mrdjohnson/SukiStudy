@@ -30,11 +30,11 @@ root.render(
   <React.StrictMode>
     <UserProvider>
       <MantineProvider theme={theme}>
-        <ModalsProvider>
-          <SettingsProvider>
+        <SettingsProvider>
+          <ModalsProvider>
             <App />
-          </SettingsProvider>
-        </ModalsProvider>
+          </ModalsProvider>
+        </SettingsProvider>
       </MantineProvider>
     </UserProvider>
   </React.StrictMode>,
