@@ -17,6 +17,8 @@ import { CustomSession } from './pages/games/CustomSession'
 import { Landing } from './pages/Landing'
 import PWABadge from './PWABadge'
 
+import logo from '@/src/assets/apple-touch-icon.png'
+
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation()
 
@@ -44,9 +46,12 @@ export default function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="bg-white p-4 rounded-full shadow-lg mb-4">
-          <Icons.Brain className="w-12 h-12 text-indigo-600 animate-pulse" />
+        <div className="bg-white p-2 rounded-full shadow-lg mb-4">
+          <div className=" rounded-full shadow-md shadow-red-400 ">
+            <img src={logo} className="size-16 animate-pulse" />
+          </div>
         </div>
+
         <p className="text-gray-500 font-medium">Loading SukiStudy...</p>
       </div>
     )
