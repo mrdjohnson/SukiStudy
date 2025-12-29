@@ -11,6 +11,7 @@ import { openFlashcardModal } from './modals/FlashcardModal'
 import { studyMaterials, subjects } from '../services/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
+import Markdown from 'react-markdown'
 
 const colors = {
   [SubjectType.RADICAL]: '!bg-sky-600 text-white',
@@ -343,10 +344,14 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
               Meaning Mnemonic
             </h3>
-            <div
-              className="text-gray-700 leading-relaxed text-sm md:text-base"
-              dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
-            />
+            {type === SubjectType.HIRAGANA ? (
+              <Markdown>{subject.meaning_mnemonic}</Markdown>
+            ) : (
+              <div
+                className="text-gray-700 leading-relaxed text-sm md:text-base"
+                dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
+              />
+            )}
           </div>
 
           {subject.reading_mnemonic && (
@@ -395,7 +400,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {(type !== SubjectType.VOCABULARY) && (
+          {type !== SubjectType.VOCABULARY && (
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Visuals

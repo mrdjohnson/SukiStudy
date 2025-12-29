@@ -1,6 +1,18 @@
 import { GameItem, Subject, SubjectType } from '../types'
 import { isHiragana, toHiragana, toKatakana, toRomaji as toRomanji } from 'wanakana'
 
+import _hiragana from '../data/hiragana.json'
+import _katakana from '../data/katakana.json'
+
+type ScrapedKanaItem = {
+  imagePath: string
+  audioPath?: string
+  text: string
+}
+
+const hiragana = _hiragana as Record<string, ScrapedKanaItem>
+const katakana = _katakana as Record<string, ScrapedKanaItem>
+
 const HIRAGANA_LIST = [
   'あ',
   'い',
@@ -146,6 +158,16 @@ export const generateKanaGameItems = (
 
     const type = itemIsHiragana ? SubjectType.HIRAGANA : SubjectType.KATAKANA
 
+    const kanaItem = itemIsHiragana ? hiragana[item] : katakana[item]
+
+    const character_images: Subject['character_images'] = kanaItem?.imagePath
+      ? [{ url: kanaItem?.imagePath, metadata: {}, content_type: 'image' }]
+      : []
+
+    const pronunciation_audios: Subject['pronunciation_audios'] = kanaItem?.audioPath
+      ? [{ url: kanaItem?.audioPath, content_type: 'audio' }]
+      : []
+
     // Determine type by looking at char code range roughly, or just assume vocab-like behavior
     const subject: Subject = {
       id: -1000 - index, // Negative IDs to avoid conflict with real items
@@ -157,7 +179,7 @@ export const generateKanaGameItems = (
       hidden_at: null,
       document_url: '',
       characters: item,
-      character_images: [],
+      character_images,
       meanings: versions.map(version => ({
         meaning: version,
         primary: false,
@@ -171,9 +193,10 @@ export const generateKanaGameItems = (
       component_subject_ids: [],
       amalgamation_subject_ids: [],
       visually_similar_subject_ids: [],
-      meaning_mnemonic: `This is the ${type} for ${romanji}`,
+      meaning_mnemonic: kanaItem?.text || `This is the ${type} for ${romanji}`,
       lesson_position: 0,
       spaced_repetition_system_id: 0,
+      pronunciation_audios,
     }
 
     return {
