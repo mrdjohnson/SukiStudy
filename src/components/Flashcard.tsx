@@ -46,12 +46,20 @@ type FlashcardProps = {
 // Global cache for failed image URLs to prevent flickering/re-checking in same session
 const failedImages = new Set<string>()
 
-const MnemonicImage: React.FC<{ id: string; type: SubjectType }> = ({ id, type }) => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+const MnemonicImage: React.FC<{ id: string; type: SubjectType; url?: string }> = ({
+  id,
+  type,
+  url: initialUrl = null,
+}) => {
+  const [imageUrl, setImageUrl] = useState<string | null>(initialUrl)
   const [error, setError] = useState(false)
   const [opened, { open, close }] = useDisclosure(false)
 
   useEffect(() => {
+    if (initialUrl) {
+      return
+    }
+
     if (type === SubjectType.VOCABULARY) {
       setError(true)
       return
@@ -95,9 +103,11 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType }> = ({ id, type }
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-lg pointer-events-none">
           <Icons.Maximize2 className="w-8 h-8 text-white drop-shadow-lg" />
         </div>
-        <p className="text-xs text-center text-gray-400 mt-1">
-          Community Mnemonic Artwork (Tap to expand)
-        </p>
+        {!initialUrl && (
+          <p className="text-xs text-center text-gray-400 mt-1">
+            Community Mnemonic Artwork (Tap to expand)
+          </p>
+        )}
       </div>
 
       <Modal
@@ -385,12 +395,27 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {(type === SubjectType.KANJI || type === SubjectType.RADICAL) && (
+          {(type !== SubjectType.VOCABULARY) && (
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Visuals
               </h3>
-              <MnemonicImage id={String(subject.id)} type={type} />
+
+              <Stack>
+                <MnemonicImage id={String(subject.id)} type={type} />
+
+                {subject.character_images.map(
+                  (image, index) =>
+                    image.url && (
+                      <MnemonicImage
+                        key={index}
+                        id={String(subject.id)}
+                        type={type}
+                        url={image.url}
+                      />
+                    ),
+                )}
+              </Stack>
             </div>
           )}
 
