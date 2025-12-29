@@ -93,7 +93,7 @@ export interface Subject {
   pronunciation_audios?: {
     url: string
     content_type: string
-    metadata: {
+    metadata?: {
       gender: string
       source_id: number
       pronunciation: string
