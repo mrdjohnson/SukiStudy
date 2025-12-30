@@ -340,21 +340,16 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Meaning Mnemonic
-            </h3>
-            {type === SubjectType.HIRAGANA ? (
-              <div className="prose prose-spacing">
-                <Markdown>{subject.meaning_mnemonic}</Markdown>
-              </div>
-            ) : (
-              <div
-                className="text-gray-700 leading-relaxed text-sm md:text-base"
-                dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
-              />
-            )}
-          </div>
+          {type === SubjectType.HIRAGANA || type === SubjectType.KATAKANA ? (
+            <div className="prose prose-spacing">
+              <Markdown>{subject.meaning_mnemonic}</Markdown>
+            </div>
+          ) : (
+            <div
+              className="text-gray-700 leading-relaxed text-sm md:text-base"
+              dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
+            />
+          )}
 
           {subject.reading_mnemonic && (
             <div>
