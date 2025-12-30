@@ -12,22 +12,7 @@ import { studyMaterials, subjects } from '../services/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
 import Markdown from 'react-markdown'
-
-const colors = {
-  [SubjectType.RADICAL]: '!bg-sky-600 text-white',
-  [SubjectType.KANJI]: '!bg-pink-600 text-white',
-  [SubjectType.HIRAGANA]: '!bg-teal-600 text-white',
-  [SubjectType.KATAKANA]: '!bg-amber-600 text-white',
-  [SubjectType.VOCABULARY]: '!bg-purple-600 text-white',
-}
-
-const borderColors = {
-  [SubjectType.RADICAL]: 'border-sky-200 bg-sky-50',
-  [SubjectType.KANJI]: 'border-pink-200 bg-pink-50',
-  [SubjectType.HIRAGANA]: 'border-teal-200 bg-teal-50',
-  [SubjectType.KATAKANA]: 'border-amber-200 bg-amber-50',
-  [SubjectType.VOCABULARY]: 'border-purple-200 bg-purple-50',
-}
+import { colorByType, themeByType } from '../utils/subject'
 
 type FlashcardProps = {
   index?: number
@@ -269,7 +254,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         onClick={e => e.stopPropagation()}
       >
         {/* Back Header */}
-        <div className={`p-6 border-b ${borderColors[type]} relative`}>
+        <div className={clsx(`p-6 border-b relative`, themeByType[type])}>
           <div className="flex gap-4">
             <GameItemIcon subject={subject} size="lg" />
 
@@ -299,7 +284,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
 
             <Stack className="absolute top-2 right-2" gap="xs">
-              <Badge className={colors[type]}>{type}</Badge>
+              <Badge color={colorByType[type]}>{type}</Badge>
 
               {subject.level > 0 && (
                 <div className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200 w-fit ml-auto">
@@ -406,7 +391,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <Stack>
                 <MnemonicImage id={String(subject.id)} type={type} />
 
-                {subject.character_images.map(
+                {subject.character_images?.map(
                   (image, index) =>
                     image.url && (
                       <MnemonicImage

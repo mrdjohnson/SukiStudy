@@ -20,7 +20,7 @@ import {
 import { useUser } from '../../contexts/UserContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useGames } from '../../hooks/useGames'
-import { SubjectColor } from '../../utils/subject'
+import { colorByType } from '../../utils/subject'
 import { SubjectType } from '../../types'
 import _ from 'lodash'
 import clsx from 'clsx'
@@ -106,7 +106,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                 key={subjectType}
                 checked={!isHidden}
                 variant="outline"
-                color={isHidden ? undefined : SubjectColor[SubjectType.HIRAGANA]}
+                color={colorByType[SubjectType.HIRAGANA]}
                 onChange={() =>
                   updateGameSettings(gameId, {
                     hiddenSubjects: _.xor(settings.hiddenSubjects, [subjectType]),
@@ -183,7 +183,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                   key={subjectType}
                   checked={!isHidden}
                   variant="outline"
-                  color={isHidden ? undefined : SubjectColor[subjectType]}
+                  color={isHidden ? undefined : colorByType[subjectType]}
                   onChange={() => toggleHiddenSubject(subjectType)}
                   hidden={disabledSubjects.includes(subjectType)}
                 >

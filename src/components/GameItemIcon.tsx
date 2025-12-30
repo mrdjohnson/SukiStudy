@@ -1,22 +1,17 @@
 import { Box } from '@mantine/core'
 import clsx from 'clsx'
-import { Subject, SubjectType } from '../types'
+import { Subject } from '../types'
 import { useMemo } from 'react'
+import { bgColorByType } from '../utils/subject'
 
-const getTypeColor = (object: string) => {
-  return (
-    {
-      [SubjectType.RADICAL]: '!bg-sky-600 !text-white',
-      [SubjectType.KANJI]: '!bg-pink-600 !text-white',
-      [SubjectType.HIRAGANA]: '!bg-teal-600 !text-white',
-      [SubjectType.KATAKANA]: '!bg-amber-600 !text-white',
-      [SubjectType.VOCABULARY]: '!bg-purple-600 !text-white',
-    }[object] || '!bg-purple-600 !text-white'
-  )
-}
-
-export const GameItemIcon = ({ subject, size = 'sm' }: { subject: Subject; size?: 'lg' | 'sm' }) => {
-  const color = getTypeColor(subject.object || 'vocabulary')
+export const GameItemIcon = ({
+  subject,
+  size = 'sm',
+}: {
+  subject: Subject
+  size?: 'lg' | 'sm'
+}) => {
+  const color = bgColorByType[subject.object || 'vocabulary']
 
   const classes = useMemo(() => {
     if (size === 'sm') {
@@ -39,7 +34,8 @@ export const GameItemIcon = ({ subject, size = 'sm' }: { subject: Subject; size?
   return (
     <Box
       className={clsx(
-        `${color} flex items-center justify-center font-bold shrink-0 w-fit p-1`,
+        color,
+        'flex items-center justify-center font-bold shrink-0 w-fit p-1 text-white',
         classes.icon,
         classes.large,
         (subject.characters?.length || 0) > 2 && classes.medium,

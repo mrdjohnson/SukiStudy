@@ -24,7 +24,7 @@ import {
   Input,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
-import { SubjectColor } from '../../utils/subject'
+import { colorByType } from '../../utils/subject'
 
 export const CustomGameSetup: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -183,7 +183,7 @@ export const CustomGameSetup: React.FC = () => {
                         <Group gap="xs">
                           <Chip
                             value={SubjectType.RADICAL}
-                            color={SubjectColor[SubjectType.RADICAL]}
+                            color={colorByType[SubjectType.RADICAL]}
                             variant="outline"
                           >
                             Radical
@@ -191,7 +191,7 @@ export const CustomGameSetup: React.FC = () => {
 
                           <Chip
                             value={SubjectType.KANJI}
-                            color={SubjectColor[SubjectType.KANJI]}
+                            color={colorByType[SubjectType.KANJI]}
                             variant="outline"
                           >
                             Kanji
@@ -199,7 +199,7 @@ export const CustomGameSetup: React.FC = () => {
 
                           <Chip
                             value={SubjectType.VOCABULARY}
-                            color={SubjectColor[SubjectType.VOCABULARY]}
+                            color={colorByType[SubjectType.VOCABULARY]}
                             variant="outline"
                           >
                             Vocab
@@ -216,7 +216,7 @@ export const CustomGameSetup: React.FC = () => {
                   <Group>
                     <Chip
                       checked={includeHiragana}
-                      color={SubjectColor[SubjectType.HIRAGANA]}
+                      color={colorByType[SubjectType.HIRAGANA]}
                       variant="outline"
                       onChange={() => setIncludeHiragana(!includeHiragana)}
                     >
@@ -225,7 +225,7 @@ export const CustomGameSetup: React.FC = () => {
 
                     <Chip
                       checked={includeKatakana}
-                      color={SubjectColor[SubjectType.KATAKANA]}
+                      color={colorByType[SubjectType.KATAKANA]}
                       variant="outline"
                       onChange={() => setIncludeKatakana(!includeKatakana)}
                     >

@@ -27,7 +27,7 @@ import {
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
 import { assignments, subjects } from '../services/db'
-import { SubjectColor } from '../utils/subject'
+import { colorByType } from '../utils/subject'
 import { GameItemIcon } from '../components/GameItemIcon'
 import { useLocalStorage } from '@mantine/hooks'
 
@@ -251,7 +251,7 @@ export const Browse: React.FC = () => {
                       key={subjectType}
                       value={subjectType}
                       variant="outline"
-                      color={SubjectColor[subjectType]}
+                      color={colorByType[subjectType]}
                     >
                       {_.startCase(subjectType)}
                     </Chip>
