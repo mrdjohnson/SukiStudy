@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { GameItem, GameResultData } from '../../types'
+import { GameItem, GameResultData, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 import { GameContainer } from '../../components/GameContainer'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import _ from 'lodash'
+import { toItemWithAnswer } from '../../utils/multiChoiceGame'
 
 interface QuizGameProps {
   items?: GameItem[]
@@ -16,16 +17,19 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
 
   const items = useMemo(() => {
-    return (propItems || fetchedItems).filter(
-      item => propItems || item.subject.meanings[0].meaning && item.subject.readings?.[0]?.reading,
-    )
+    let itemOptions = propItems || fetchedItems
+
+    return _.chain(itemOptions)
+      .map(item => toItemWithAnswer(item))
+      .compact()
+      .value()
   }, [propItems, fetchedItems])
 
   const [selectedAnswer, setSelectedAnswer] = useState<{ value: string; correct: boolean } | null>(
     null,
   )
 
-  const gameLogic = useGameLogic({
+  const gameLogic = useGameLogic<MultiChoiceGameItem>({
     gameId: 'quiz',
     totalRounds: propItems?.length || 10,
     canSkip: true,
@@ -39,28 +43,21 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
 
   const currentItem = gameItems[roundNumber - 1]
 
-  const type = useMemo(() => {
-    return propItems || Math.random() > 0.5 ? 'meaning' : 'reading'
-  }, [currentItem?.subject])
-
   const options = useMemo(() => {
     if (!currentItem) return []
 
-    const answer =
-      type === 'reading'
-        ? currentItem.subject.readings![0].reading
-        : currentItem.subject.meanings[0].meaning
+    const answer = currentItem.answer
+
+    if (!answer) return []
 
     return _.chain(items)
-      .map(item =>
-        type === 'reading' ? item.subject.readings![0].reading : item.subject.meanings[0].meaning,
-      )
+      .map('answer')
       .without(answer)
       .sampleSize(3)
       .concat(answer)
       .shuffle()
       .value()
-  }, [currentItem?.subject, items, type])
+  }, [currentItem?.subject.id, items])
 
   useEffect(() => {
     setHelpSteps([
@@ -88,7 +85,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     startGame()
     setSelectedAnswer(null)
 
-    _.chain(items).sampleSize(maxRoundNumber).tap(setGameItems).value()
+    _.chain(items).sampleSize(maxRoundNumber).shuffle().tap(setGameItems).value()
   }
 
   useEffect(() => {
@@ -102,11 +99,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   }, [gameState.roundNumber])
 
   const handleAnswer = (value: string) => {
-    if (selectedAnswer) return
+    if (selectedAnswer || !currentItem) return
 
-    const correct =
-      value === currentItem.subject.readings?.[0].reading ||
-      value === currentItem.subject.meanings[0].meaning
+    const correct = value === currentItem.answer
 
     setSelectedAnswer({ value, correct })
 
@@ -127,7 +122,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   return (
     <GameContainer
       gameLogic={gameLogic}
-      skip={() => skip(currentItem)}
+      skip={() => skip(currentItem!)}
       children={
         currentItem && (
           <>
@@ -137,11 +132,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
                   REVIEW
                 </div>
               )}
-              <div className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-4">
-                Select the Correct {type}
-              </div>
+
               <div className="text-6xl font-bold text-gray-800 mb-4">
-                {currentItem.subject.characters || (
+                {currentItem.question || (
                   <img
                     src={currentItem.subject.character_images[0].url}
                     className="w-16 h-16 mx-auto"

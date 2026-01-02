@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { GameItem, Subject } from '../../types'
+import { GameItem, MultiChoiceGameItem, Subject, SubjectType } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -8,17 +8,15 @@ import { MemoryGameCardContent } from '../../components/MemoryGameCardContent'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
+import _ from 'lodash'
+import { selectUniqueItems } from '../../utils/multiChoiceGame'
 
-interface GameCard {
+type GameCard = MultiChoiceGameItem & {
   id: string
-  subjectId: number
-  subject: Subject
   content: string
-  type: 'character' | 'meaning' | 'reading'
-  isFlipped: boolean
-  isMatched: boolean
-  subjectType: string
-  gameItem: GameItem
+  isQuestion?: boolean
+  isFlipped?: boolean
+  isMatched?: boolean
 }
 
 interface MemoryGameProps {
@@ -71,67 +69,35 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
     startGame()
     setFlippedIndices([])
 
-    const selected = [...items].sort(() => 0.5 - Math.random()).slice(0, 20)
+    // Select 6 unique items with non-colliding questions/answers
+    const selectedItems = selectUniqueItems(items, 6)
+
     const gameCards: GameCard[] = []
-    const gameItems: GameItem[] = []
+    const finalGameItems: GameItem[] = []
 
-    for (const gameItem of selected) {
-      if (gameCards.length === 12) break
-
-      const s = gameItem.subject
-
-      const sType = s.object || 'vocabulary'
-      let charContent = s.characters
-      if (!charContent && s.character_images) {
-        const svg = s.character_images.find(i => i.content_type === 'image/svg+xml')
-        charContent = svg ? svg.url : '?'
-      }
-
-      let pairType: 'meaning' | 'reading' = 'meaning'
-      if (sType !== 'radical') {
-        pairType = Math.random() > 0.5 ? 'reading' : 'meaning'
-      }
-
-      let pairContent = ''
-      if (pairType === 'meaning') {
-        pairContent = s.meanings.find(m => m.primary)?.meaning || s.meanings[0].meaning
-      } else {
-        pairContent = s.readings?.find(r => r.primary)?.reading || s.readings?.[0]?.reading || '?'
-      }
-
-      if (pairContent === '?') continue
+    for (const gameItem of selectedItems) {
+      const subject = gameItem.subject
 
       gameCards.push({
-        id: `${s.id}-char`,
-        subjectId: s.id!,
-        subject: s,
-        content: charContent || '?',
-        type: 'character',
-        isFlipped: false,
-        isMatched: false,
-        subjectType: sType,
-        gameItem,
+        id: `${subject.id}-question`,
+        content: gameItem.question,
+        isQuestion: true,
+        ...gameItem,
       })
 
       gameCards.push({
-        id: `${s.id}-pair`,
-        subjectId: s.id!,
-        subject: s,
-        content: pairContent,
-        type: pairType,
-        isFlipped: false,
-        isMatched: false,
-        subjectType: sType,
-        gameItem,
+        id: `${subject.id}-answer`,
+        content: gameItem.answer,
+        ...gameItem,
       })
 
-      gameItems.push(gameItem)
+      finalGameItems.push(gameItem)
     }
 
     if (gameCards.length < 6) return
 
-    setCards(gameCards.sort(() => 0.5 - Math.random()))
-    setGameItems(gameItems)
+    setCards(_.shuffle(gameCards))
+    setGameItems(finalGameItems)
   }
 
   useEffect(() => {
@@ -158,8 +124,10 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
       const card1 = cards[idx1]
       const card2 = cards[idx2]
 
-      if (card1.subjectId === card2.subjectId) {
-        gameLogic.recordAttempt(card1.gameItem, true)
+      if (card1.answer === card2.answer) {
+        const questionCard = card1.isQuestion ? card1 : card2
+
+        gameLogic.recordAttempt(questionCard, true)
 
         setTimeout(() => {
           const matchedCards = [...cards]

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { GameItem } from '../../types'
+import React, { useState, useEffect } from 'react'
+import { GameItem, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -7,10 +7,17 @@ import { playSound } from '../../utils/sound'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
+import { selectUniqueItems } from '../../utils/multiChoiceGame'
+import { useSet } from '@mantine/hooks'
 
 interface MatchingGameProps {
   items?: GameItem[]
   onComplete?: (data?: any) => void
+}
+
+type GameCard = MultiChoiceGameItem & {
+  id: string
+  isQuestion?: boolean
 }
 
 export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, onComplete }) => {
@@ -27,44 +34,30 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
 
   const { startGame, setGameItems, recordAttempt } = gameLogic
 
-  const [leftItems, setLeftItems] = useState<GameItem[]>([])
-  const [rightItems, setRightItems] = useState<GameItem[]>([])
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [leftItems, setLeftItems] = useState<GameCard[]>([])
+  const [rightItems, setRightItems] = useState<GameCard[]>([])
+  const [selectedItem, setSelectedItem] = useState<GameCard | null>(null)
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null)
-  const [matchedIds, setMatchedIds] = useState<number[]>([])
+  const matchedIds = useSet<string>()
 
   const { soundEnabled, setHelpSteps } = useSettings()
 
-  const type = useMemo(() => {
-    return propItems || Math.random() > 0.5 ? 'meaning' : 'reading'
-  }, [propItems])
-
-  const getItemValue = useCallback(
-    (gameItem: GameItem) => {
-      if (type === 'meaning') {
-        return gameItem.subject.meanings[0]?.meaning
-      }
-
-      return gameItem.subject.readings?.[0]?.reading
-    },
-    [type],
-  )
-
   const initGame = () => {
     startGame()
-    setSelectedId(null)
+    setSelectedItem(null)
     setSelectedSide(null)
-    setMatchedIds([])
 
-    _.chain(items)
-      .uniqBy(getItemValue)
-      .filter(({ subject }) => !!subject.id && !!subject.characters)
-      .filter(item => !!getItemValue(item))
-      .sampleSize(5)
+    const selectedItems = selectUniqueItems(items, 6)
+
+    _.chain(selectedItems)
       .tap(setGameItems)
-      .tap(setLeftItems)
+      .tap(items =>
+        setLeftItems(
+          items.map(item => ({ ...item, id: String(item.subject.id), isQuestion: true })),
+        ),
+      )
       .shuffle() // randomize answers
-      .tap(setRightItems)
+      .tap(items => setRightItems(items.map(item => ({ ...item, id: `${item.subject.id}-right` }))))
       .value()
   }
 
@@ -96,44 +89,49 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     return () => setHelpSteps(null)
   }, [])
 
-  const handleSelection = (gameItem: GameItem, side: 'left' | 'right') => {
-    const id = gameItem.subject.id
+  const handleSelection = (gameItem: GameCard, side: 'left' | 'right') => {
+    const id = gameItem.id
 
-    if (matchedIds.includes(id)) return
+    if (matchedIds.has(id)) return
 
     // First selection
-    if (selectedId === null) {
-      setSelectedId(id)
+    if (selectedItem === null) {
+      setSelectedItem(gameItem)
       setSelectedSide(side)
       playSound('pop', soundEnabled)
       return
     }
 
     // Deselect if same item clicked
-    if (selectedId === id && selectedSide === side) {
-      setSelectedId(null)
+    if (selectedItem.id === gameItem.id) {
+      setSelectedItem(null)
       setSelectedSide(null)
       return
     }
 
     // Switch selection if same side clicked
     if (selectedSide === side) {
-      setSelectedId(id)
+      setSelectedItem(gameItem)
       playSound('pop', soundEnabled)
       return
     }
 
     // Check match
-    if (selectedId === id) {
+    if (selectedItem.answer === gameItem.answer) {
+      const questionItem = selectedItem.isQuestion ? selectedItem : gameItem
+
       // Match found
-      recordAttempt(gameItem, true)
-      setMatchedIds(prev => [...prev, id])
-      setSelectedId(null)
+      recordAttempt(questionItem, true)
+
+      matchedIds.add(selectedItem.id)
+      matchedIds.add(gameItem.id)
+
+      setSelectedItem(null)
       setSelectedSide(null)
     } else {
       // Wrong match
       playSound('error', soundEnabled)
-      setSelectedId(null)
+      setSelectedItem(null)
       setSelectedSide(null)
     }
   }
@@ -148,14 +146,13 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     )
   }
 
-  const createItemCard = (side: 'left' | 'right') => (item: GameItem) => {
-    const id = item.subject.id
-    const isMatched = matchedIds.includes(id)
-    const isSelected = selectedId === id && selectedSide === side
+  const createItemCard = (side: 'left' | 'right') => (item: GameCard) => {
+    const isMatched = matchedIds.has(item.id)
+    const isSelected = selectedItem?.id === item.id
 
     return (
       <button
-        key={id}
+        key={item.subject.id}
         onClick={() => handleSelection(item, side)}
         disabled={isMatched}
         className={`
@@ -164,7 +161,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
                    ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}
                  `}
       >
-        {side === 'left' ? item.subject.characters : getItemValue(item)}
+        {side === 'left' ? item.question : item.answer}
       </button>
     )
   }
@@ -181,4 +178,3 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     </GameContainer>
   )
 }
-

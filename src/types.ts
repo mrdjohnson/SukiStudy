@@ -142,6 +142,11 @@ export interface GameItem {
   correct?: boolean
 }
 
+export type MultiChoiceGameItem = GameItem & {
+  question: string
+  answer: string
+}
+
 export interface GameResultData {
   gameId: string
   score: number
@@ -150,13 +155,13 @@ export interface GameResultData {
   history: GameItem[]
 }
 
-export interface GameState {
+export interface GameState<T extends GameItem> {
   gameId: string
   isActive: boolean
   isFinished: boolean
   score: number
   maxScore: number
-  gameItems: GameItem[]
+  gameItems: T[]
   startTime: number
   time: string | null
   roundNumber: number

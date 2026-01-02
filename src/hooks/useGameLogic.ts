@@ -19,13 +19,13 @@ type UseGameLogicProps = {
   scoreDelay?: number
 }
 
-export type GameStep = GameItem & {
+export type GameLogic<T extends GameItem> = ReturnType<typeof useGameLogic<T>>
+
+export type GameStep<T extends GameItem> = T & {
   correct?: boolean
 }
 
-export type GameLogic = ReturnType<typeof useGameLogic>
-
-export const useGameLogic = ({
+export const useGameLogic = <T extends GameItem>({
   gameId,
   onComplete,
   maxScore: initialMaxScore = 0,
@@ -40,7 +40,7 @@ export const useGameLogic = ({
 
   const [score, setScore] = useState(0)
   const [maxScore, setMaxScore] = useState(initialMaxScore)
-  const [gameItems, gameItemsHandlers] = useListState<GameStep>()
+  const [gameItems, gameItemsHandlers] = useListState<GameStep<T>>()
   const [isFinished, setIsFinished] = useState(false)
   const [isActive, setIsActive] = useState(false)
   const [roundNumber, setRoundNumber] = useState(initialRoundNumber ?? 1)
@@ -66,7 +66,7 @@ export const useGameLogic = ({
     return games.find(({ id }) => id === gameId)
   }, [gameId])
 
-  const recordAttempt = (item: GameItem, correct: boolean = false, skip = false) => {
+  const recordAttempt = (item: T, correct: boolean = false, skip = false) => {
     const index = gameItems.findIndex(prevItem => prevItem.subject.id === item.subject.id)
 
     if (index === -1) {
@@ -102,7 +102,7 @@ export const useGameLogic = ({
     setIsAnswerIncorrect(false)
   }
 
-  const skip = (item: GameItem) => {
+  const skip = (item: T) => {
     recordAttempt(item, false, true)
     finishRound()
   }
@@ -138,7 +138,7 @@ export const useGameLogic = ({
     }
   }, [gameId, onComplete, score, maxScore, gameItems])
 
-  const setGameItems = (items: GameItem[]) => {
+  const setGameItems = (items: T[]) => {
     setMaxRounds(items.length)
     setMaxScore(items.length)
     gameItemsHandlers.setState(items)
@@ -150,7 +150,7 @@ export const useGameLogic = ({
     }
   }, [roundNumber, maxRounds])
 
-  const gameState: GameState = {
+  const gameState: GameState<GameStep<T>> = {
     gameId,
     isActive,
     isFinished,
