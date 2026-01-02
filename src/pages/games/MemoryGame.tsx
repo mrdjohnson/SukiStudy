@@ -3,6 +3,7 @@ import { GameItem, Subject } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
+import { MemoryGameCardContent } from '../../components/MemoryGameCardContent'
 
 import logo from '@/src/assets/apple-touch-icon.png'
 import { useGameLogic } from '../../hooks/useGameLogic'
@@ -207,15 +208,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
               <div
                 className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
               >
-                {card.content.startsWith('http') ? (
-                  <img src={card.content} className="w-16 h-16 object-contain" alt="" />
-                ) : (
-                  <span
-                    className={`${card.type === 'character' ? 'text-4xl font-bold' : 'text-lg font-medium'}`}
-                  >
-                    {card.content}
-                  </span>
-                )}
+                <MemoryGameCardContent content={card.content} />
               </div>
             </div>
           </div>
