@@ -250,7 +250,6 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
       setGrid(prev =>
         prev.map(cell => (selectedCells.includes(cell.id) ? { ...cell, correct: true } : cell)),
       )
-
     } else {
       if (selectedCells.length > 1) playSound('error', soundEnabled)
       setGrid(prev =>

@@ -1,4 +1,4 @@
-export { toRomaji as toRomanji } from 'wanakana';
+export { toRomaji as toRomanji } from 'wanakana'
 
 // export const toRomanji = (kana: string): string => {
 //   const table: Record<string, string> = {

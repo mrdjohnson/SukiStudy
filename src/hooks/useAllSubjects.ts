@@ -11,23 +11,23 @@ export const useAllSubjects = (enabled: boolean = true) => {
   const { user, isGuest } = useUser()
 
   const runQuery = useCallback(() => {
-      if (!enabled) {
-        setItems([])
-        setLoading(false)
-        return
-      }
-  
-      // GUEST MODE
-      if (isGuest) {
-        setItems(generateKanaGameItems(true, true))
-        setLoading(false)
-        return
-      }
-  
-      if (!user) {
-        setLoading(false)
-        return
-      }
+    if (!enabled) {
+      setItems([])
+      setLoading(false)
+      return
+    }
+
+    // GUEST MODE
+    if (isGuest) {
+      setItems(generateKanaGameItems(true, true))
+      setLoading(false)
+      return
+    }
+
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const allAssignments = assignments.find({}).fetch()
 

@@ -10,7 +10,6 @@ export const useGames = ({ includeHidden = false } = {}) => {
   const { hiddenGames, hiddenSubjects, disabledSubjects, getGameSettings } = useSettings()
 
   const availableGames = useMemo(() => {
-
     return games.filter(game => {
       if (game.enabled === false) return false
 

@@ -1,6 +1,6 @@
 import { modals } from '@mantine/modals'
 import { Flashcard } from '../Flashcard'
-import {  Subject } from '../../types'
+import { Subject } from '../../types'
 
 export const openFlashcardModal = (items: Subject[], index = 0) => {
   modals.open({
@@ -15,11 +15,7 @@ export const openFlashcardModal = (items: Subject[], index = 0) => {
     },
     children: (
       <div onClick={() => modals.closeAll()}>
-        <Flashcard
-          items={items}
-          index={index}
-          isPopup
-        />
+        <Flashcard items={items} index={index} isPopup />
       </div>
     ),
   })

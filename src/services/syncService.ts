@@ -14,7 +14,6 @@ const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.
   {},
 )
 
-
 export const syncService = {
   async sync() {
     if (!navigator.onLine) {
@@ -96,7 +95,7 @@ export const syncService = {
 
     localStorage.setItem(SYNC_KEYS.ASSIGNMENTS_MIGRATION, assignStart)
   },
-  
+
   async syncAssignments() {
     const lastAssignSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
     const assignStart = new Date().toISOString()
