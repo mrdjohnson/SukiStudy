@@ -8,7 +8,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 assets/apple-touch-icon.png",
-    "scrape-kana": "tsx scripts/scrape-hiragana.ts && tsx scripts/scrape-katakana.ts"
+    "scrape-kana": "tsx scripts/scrape-hiragana.ts && tsx scripts/scrape-katakana.ts",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,css,md,html,json}": [
+      "yarn prettier --write"
+    ]
   },
   "dependencies": {
     "@google/genai": "^1.32.0",
@@ -55,6 +61,8 @@
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "tsx": "^4.21.0",
     "turndown": "^7.2.2",
