@@ -25,23 +25,20 @@ import {
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
 import { colorByType } from '../../utils/subject'
+import { useSettings } from '../../contexts/SettingsContext'
+import _ from 'lodash'
 
 export const CustomGameSetup: React.FC = () => {
-  const { user, isGuest } = useUser()
+  const { user } = useUser()
+  const { availableSubjects, disabledSubjects } = useSettings()
   const { items: learnedItems, loading } = useAllSubjects(true)
 
   const [selectedGames, setSelectedGames] = useState<string[]>(['quiz'])
   const [itemCount, setItemCount] = useState(25)
   const [levels, setLevels] = useState<number[]>([])
-  const [types, setTypes] = useState<string[]>([
-    SubjectType.KANJI,
-    SubjectType.VOCABULARY,
-    SubjectType.RADICAL,
-  ])
+  const [types, setTypes] = useState<string[]>(availableSubjects)
   const [manualSelection, setManualSelection] = useState<number[]>([])
   const [isManualMode, setIsManualMode] = useState(false)
-  const [includeHiragana, setIncludeHiragana] = useState(isGuest)
-  const [includeKatakana, setIncludeKatakana] = useState(isGuest)
   const [previewFlashcard, setPreviewFlashcard] = useState<GameItem | null>(null)
   const [showLevelSelect, setShowLevelSelect] = useState(false)
 
@@ -75,6 +72,9 @@ export const CustomGameSetup: React.FC = () => {
 
       return true
     })
+
+    const includeHiragana = types.includes(SubjectType.HIRAGANA)
+    const includeKatakana = types.includes(SubjectType.KATAKANA)
 
     if (includeHiragana || includeKatakana) {
       pool = [...pool, ...generateKanaGameItems(includeHiragana, includeKatakana)]
@@ -181,58 +181,24 @@ export const CustomGameSetup: React.FC = () => {
 
                       <Chip.Group multiple value={types} onChange={setTypes}>
                         <Group gap="xs">
-                          <Chip
-                            value={SubjectType.RADICAL}
-                            color={colorByType[SubjectType.RADICAL]}
-                            variant="outline"
-                          >
-                            Radical
-                          </Chip>
-
-                          <Chip
-                            value={SubjectType.KANJI}
-                            color={colorByType[SubjectType.KANJI]}
-                            variant="outline"
-                          >
-                            Kanji
-                          </Chip>
-
-                          <Chip
-                            value={SubjectType.VOCABULARY}
-                            color={colorByType[SubjectType.VOCABULARY]}
-                            variant="outline"
-                          >
-                            Vocab
-                          </Chip>
+                          {_.map(SubjectType, subjectType => {
+                            return (
+                              <Chip
+                                key={subjectType}
+                                value={subjectType}
+                                variant="outline"
+                                color={colorByType[subjectType]}
+                                disabled={disabledSubjects.includes(subjectType)}
+                              >
+                                {_.startCase(subjectType)}
+                              </Chip>
+                            )
+                          })}
                         </Group>
                       </Chip.Group>
                     </Box>
                   </>
                 )}
-
-                <Box>
-                  <Input.Label>Kana Practice</Input.Label>
-
-                  <Group>
-                    <Chip
-                      checked={includeHiragana}
-                      color={colorByType[SubjectType.HIRAGANA]}
-                      variant="outline"
-                      onChange={() => setIncludeHiragana(!includeHiragana)}
-                    >
-                      Hiragana
-                    </Chip>
-
-                    <Chip
-                      checked={includeKatakana}
-                      color={colorByType[SubjectType.KATAKANA]}
-                      variant="outline"
-                      onChange={() => setIncludeKatakana(!includeKatakana)}
-                    >
-                      Katakana
-                    </Chip>
-                  </Group>
-                </Box>
 
                 <Box>
                   <Text size="sm" fw={500} mb="xs">
