@@ -64,7 +64,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     sm: false,
   })
 
-  const { user, logout } = useUser()
+  const { user, isGuest, logout } = useUser()
 
   const games = useGames({ includeHidden: true })
   const enabledGames = useMemo(() => {
@@ -194,7 +194,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
             })}
           </SimpleGrid>
 
-          {user && (
+          {user && !isGuest && (
             <Stack gap="xs" mt="sm">
               <Text fw={500}>
                 Level Range ({gameLevelMin} - {gameLevelMax})

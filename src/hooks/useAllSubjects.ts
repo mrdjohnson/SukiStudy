@@ -17,14 +17,14 @@ export const useAllSubjects = (enabled: boolean = true) => {
       return
     }
 
-    // GUEST MODE
-    if (isGuest) {
-      setItems(generateKanaGameItems(true, true))
+    if (!user) {
       setLoading(false)
       return
     }
 
-    if (!user) {
+    // GUEST MODE
+    if (isGuest) {
+      setItems(generateKanaGameItems(true, true))
       setLoading(false)
       return
     }

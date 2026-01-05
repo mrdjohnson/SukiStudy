@@ -16,26 +16,41 @@ interface UserContextType {
   loginAsGuest: () => void
 }
 
+const GUEST_USER: User = {
+  username: 'Guest',
+  level: 1,
+  started_at: new Date().toISOString(),
+  current_vacation_started_at: null,
+  profile_url: '',
+  subscription: {
+    max_level_granted: 3,
+  },
+  is_guest: true,
+}
+
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [isGuest, setIsGuest] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
 
   useEffect(() => {
     const init = async () => {
+      await users.isReady()
+      const dbUser = users.findOne({ id: 'current' })
+
+      if (dbUser) {
+        setUser(dbUser)
+
+        setLoading(false)
+
+        return
+      }
+
       const storedToken = localStorage.getItem('wk_token')
       if (storedToken) {
         waniKaniService.setToken(storedToken)
-        await users.isReady()
-
-        const dbUser = users.findOne({ id: 'current' })
-        if (dbUser) {
-          setUser(dbUser)
-          setLoading(false)
-        }
 
         try {
           if (!dbUser) {
@@ -60,26 +75,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await syncService.clearData()
           }
         }
+      } else {
+        // No token and no db user - truly logged out
+        setLoading(false)
       }
-      setLoading(false)
     }
     init()
   }, [])
 
   const login = (token: string, userData: User) => {
     localStorage.setItem('wk_token', token)
-    const newUser = { ...userData, id: 'current' }
+    const newUser = { ...userData, is_guest: false, id: 'current' }
     setUser(newUser)
-    users.insert(newUser)
+    users.updateOne({ id: 'current' }, { $set: newUser }, { upsert: true })
 
     setIsSyncing(true)
     syncService.sync().then(() => setIsSyncing(false))
   }
 
   const logout = () => {
-    if (isGuest) {
-      setIsGuest(false)
-
+    if (user?.is_guest) {
+      setUser(null)
+      users.removeOne({ id: 'current' })
       return
     }
 
@@ -94,16 +111,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('wk_token')
         setUser(null)
         syncService.clearData()
+        users.removeOne({ id: 'current' })
       },
     })
   }
 
   const loginAsGuest = () => {
-    setIsGuest(true)
-    setUser(null)
+    if (user) return
+
+    const guestUser = { ...GUEST_USER, id: 'current' }
+    setUser(guestUser)
+    users.insert(guestUser)
   }
 
-  const value = { user, isGuest, loading, isSyncing, login, logout, loginAsGuest }
+  const value = {
+    user,
+    isGuest: user?.is_guest || false,
+    loading,
+    isSyncing,
+    login,
+    logout,
+    loginAsGuest,
+  }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }

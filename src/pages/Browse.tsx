@@ -64,7 +64,7 @@ export const Browse: React.FC = () => {
       types.includes(SubjectType.KATAKANA),
     )
 
-    if (!user || isGuest) {
+    if (isGuest) {
       setItems(baseItems)
       setLoading(false)
       return
@@ -198,7 +198,7 @@ export const Browse: React.FC = () => {
         <Group justify="space-between" mb="md">
           <Group>
             <Title order={2}>Browse</Title>
-            {user && (
+            {user && !isGuest && (
               <Button
                 variant="outline"
                 size="xs"

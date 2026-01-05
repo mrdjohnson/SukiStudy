@@ -1,12 +1,10 @@
 import { useMemo } from 'react'
 import { games } from '../utils/games'
-import { useUser } from '../contexts/UserContext'
 import { useSettings } from '../contexts/SettingsContext'
 import _ from 'lodash'
 import { SubjectType } from '../types'
 
 export const useGames = ({ includeHidden = false } = {}) => {
-  const { isGuest } = useUser()
   const { hiddenGames, hiddenSubjects, disabledSubjects, getGameSettings } = useSettings()
 
   const availableGames = useMemo(() => {
@@ -29,7 +27,7 @@ export const useGames = ({ includeHidden = false } = {}) => {
 
       return !emptySubjects
     })
-  }, [isGuest, hiddenGames, hiddenSubjects, getGameSettings])
+  }, [hiddenGames, disabledSubjects, hiddenSubjects, getGameSettings])
 
   return availableGames
 }

@@ -24,7 +24,7 @@ export interface GameSettings {
 }
 
 const useSettingsContext = () => {
-  const { user } = useUser()
+  const { user, isGuest } = useUser()
 
   const [soundEnabled, setSoundEnabled] = useLocalStorage({ key: 'suki_sound', defaultValue: true })
   const [romanjiEnabled, setRomanjiEnabled] = useLocalStorage({
@@ -68,10 +68,10 @@ const useSettingsContext = () => {
   const [helpSteps, setHelpSteps] = useState<Step[] | null>(null)
 
   const disabledSubjects = useMemo(() => {
-    if (user) return []
+    if (!isGuest) return []
 
     return [SubjectType.RADICAL, SubjectType.KANJI, SubjectType.VOCABULARY]
-  }, [user, hiddenSubjects])
+  }, [isGuest, hiddenSubjects])
 
   const availableSubjects = useMemo(() => {
     return _.chain(SubjectType)

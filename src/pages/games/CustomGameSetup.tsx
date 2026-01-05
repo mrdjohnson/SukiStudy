@@ -29,7 +29,7 @@ import { useSettings } from '../../contexts/SettingsContext'
 import _ from 'lodash'
 
 export const CustomGameSetup: React.FC = () => {
-  const { user } = useUser()
+  const { user, isGuest } = useUser()
   const { availableSubjects, disabledSubjects } = useSettings()
   const { items: learnedItems, loading } = useAllSubjects(true)
 
@@ -48,6 +48,8 @@ export const CustomGameSetup: React.FC = () => {
 
   // Initialize levels to current level
   useEffect(() => {
+    if (user?.is_guest) return
+
     if (user && levels.length === 0) {
       const initialLevels = [1]
       let level = 2
@@ -163,7 +165,7 @@ export const CustomGameSetup: React.FC = () => {
               </Group>
 
               <Stack gap="md">
-                {user && (
+                {user && !isGuest && (
                   <>
                     <Box>
                       <Button

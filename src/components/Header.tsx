@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
           </Group>
 
           <Group>
-            {user && (
+            {user && !isGuest && (
               <Group visibleFrom="sm" gap="xs">
                 <Text size="sm" fw={500} c="dimmed">
                   Level {user.level}

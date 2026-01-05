@@ -63,18 +63,18 @@ export default function App() {
 
       <BrowserRouter>
         <Layout>
-          {isSyncing && user && (
-            <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
-              <Icons.RotateCcw className="w-3 h-3 animate-spin" />
-              Syncing...
-            </div>
-          )}
-
           <Routes>
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={login} />} />
 
             <Route element={!user && !isGuest && <Navigate to="/landing" />}>
+              {isSyncing && user && (
+                <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
+                  <Icons.RotateCcw className="w-3 h-3 animate-spin" />
+                  Syncing...
+                </div>
+              )}
+
               <Route path="/" element={<Dashboard />} />
               <Route path="/session/lesson" element={<Session />} />
               <Route path="/session/review" element={<Review />} />

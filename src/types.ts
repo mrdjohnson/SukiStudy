@@ -36,6 +36,7 @@ export interface User {
   subscription: {
     max_level_granted: number
   }
+  is_guest?: boolean
 }
 
 export interface StudyMaterial {
