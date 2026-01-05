@@ -54,10 +54,11 @@ export const Dashboard: React.FC = () => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">Welcome {user ? user.username : 'Guest'}!</h1>
-          {user && (
+          <h1 className="text-3xl font-bold mb-2">Welcome {user!.username}!</h1>
+
+          {!isGuest && (
             <p className="text-indigo-100 text-lg">
-              You are on Level {user.level}. Keep up the momentum.
+              You are on Level {user!.level}. Keep up the momentum.
             </p>
           )}
         </div>
@@ -67,8 +68,8 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Action Cards */}
-      <SimpleGrid cols={user ? gridWidth : 1}>
-        {user && (
+      <SimpleGrid cols={isGuest ? 1 : gridWidth}>
+        {!isGuest && (
           <>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group">
               <div className="bg-pink-100 p-4 rounded-full mb-4 group-hover:bg-pink-200 transition-colors">
