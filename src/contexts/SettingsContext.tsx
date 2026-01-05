@@ -70,7 +70,7 @@ const useSettingsContext = () => {
   const disabledSubjects = useMemo(() => {
     if (user) return []
 
-    return [SubjectType.RADICAL, SubjectType.KATAKANA, SubjectType.VOCABULARY]
+    return [SubjectType.RADICAL, SubjectType.KANJI, SubjectType.VOCABULARY]
   }, [user, hiddenSubjects])
 
   const availableSubjects = useMemo(() => {

@@ -186,6 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                   color={isHidden ? undefined : colorByType[subjectType]}
                   onChange={() => toggleHiddenSubject(subjectType)}
                   hidden={disabledSubjects.includes(subjectType)}
+                  disabled={disabledSubjects.includes(subjectType)}
                 >
                   {_.startCase(subjectType)}
                 </Chip>
