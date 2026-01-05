@@ -97,6 +97,11 @@ const LogsModal = () => {
         <Text c="dimmed" size="sm" fw={700} tt="uppercase">
           Logs ({logs.length})
         </Text>
+
+        <Text c="dimmed" size="sm">
+          Build Date: {moment(__BUILD_DATE__).format('LLL')}
+        </Text>
+
         <Button
           size="xs"
           variant="light"

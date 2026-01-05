@@ -5,8 +5,9 @@ import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
-import { SimpleGrid, useMatches } from '@mantine/core'
+import { Box, SimpleGrid, useMatches } from '@mantine/core'
 import clsx from 'clsx'
+import { openLogModal } from '../components/modals/LogsModal'
 
 export const Dashboard: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -52,7 +53,10 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+      <Box
+        className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
+        onDoubleClick={openLogModal}
+      >
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2">Welcome {user!.username}!</h1>
 
@@ -65,7 +69,7 @@ export const Dashboard: React.FC = () => {
         <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-1/4 translate-x-1/4">
           <Icons.BookOpen size={300} />
         </div>
-      </div>
+      </Box>
 
       {/* Action Cards */}
       <SimpleGrid cols={isGuest ? 1 : gridWidth}>
