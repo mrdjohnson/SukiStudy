@@ -27,8 +27,13 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         mode: 'production',
         registerType: 'autoUpdate',
-        injectRegister: false,
-        includeAssets: ['favicon.svg'],
+        injectRegister: 'auto',
+        includeAssets: [
+          'src/index.tsx',
+          'src/assets/favicon.ico',
+          'apple-touch-icon.png',
+          'maskable-icon-512x512.png',
+        ],
 
         manifest: {
           name: 'SukiStudy',
@@ -37,6 +42,9 @@ export default defineConfig(({ mode }) => {
           theme_color: '#ff8800',
           background_color: '#ff0000',
           display: 'standalone',
+          scope: '/',
+          start_url: '/',
+          orientation: 'portrait',
           icons: [
             {
               src: 'pwa-192x192.png',
@@ -55,13 +63,7 @@ export default defineConfig(({ mode }) => {
               purpose: 'any',
             },
             {
-              sizes: '192x192',
-              src: 'maskable_icon_x192.png',
-              type: 'image/png',
-              purpose: 'maskable',
-            },
-            {
-              src: 'pwa-512x512.png',
+              src: 'maskable-icon-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',
@@ -71,6 +73,7 @@ export default defineConfig(({ mode }) => {
 
         workbox: {
           globPatterns: ['**/*'],
+          navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
         },
