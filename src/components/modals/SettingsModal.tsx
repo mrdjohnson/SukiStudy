@@ -283,7 +283,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
           <Text c="dimmed" size="sm" fw={700} tt="uppercase">
             Advanced Game Settings
           </Text>
-          <Accordion variant="contained" radius="md" multiple defaultValue={overriddenGames}>
+          <Accordion variant="contained" radius="md" multiple value={overriddenGames}>
             {games.map(game => {
               const isGameHidden = hiddenGames.includes(game.id)
               return (
