@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Modal,
   Switch,
@@ -58,6 +58,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     gameLevelMax,
     setGameLevelMax,
   } = useSettings()
+
+  const [showBuildTime, setShowBuildTime] = useState(false)
 
   const isMobile = useMatches({
     base: true,
@@ -314,8 +316,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
 
           <Stack>
             {/* Build Info */}
-            <Text size="xs" c="dimmed" className="text-center">
-              Last updated: {moment(__BUILD_DATE__).format('LL')}
+            <Text
+              size="xs"
+              c="dimmed"
+              className="text-center"
+              onDoubleClick={() => setShowBuildTime(true)}
+            >
+              Last updated: {moment(__BUILD_DATE__).format(showBuildTime ? 'LLL' : 'LL')}
             </Text>
 
             {/* GitHub Link */}
