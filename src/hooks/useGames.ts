@@ -22,6 +22,7 @@ export const useGames = ({ includeHidden = false } = {}) => {
         .values()
         .without(...hiddenSubjects)
         .without(...disabledSubjects)
+        .without(...game.hiddenSubjectTypes)
         .isEmpty()
         .value()
 
