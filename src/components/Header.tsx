@@ -52,7 +52,8 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group>
-            {user && <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />}
+            <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
+
             <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
               <ActionIcon size="lg" radius="xl" color="#ff0000" variant="filled">
                 <img src={logo} />
