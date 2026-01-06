@@ -27,24 +27,18 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         mode: 'production',
         registerType: 'autoUpdate',
-        injectRegister: 'auto',
-        includeAssets: [
-          'src/index.tsx',
-          'src/assets/favicon.ico',
-          'apple-touch-icon.png',
-          'maskable-icon-512x512.png',
-        ],
+        injectRegister: 'inline',
+        includeAssets: ['**/*'],
 
         manifest: {
           name: 'SukiStudy',
           short_name: 'SukiStudy',
           description: 'WaniKani backed Japanese learning app',
-          theme_color: '#ff8800',
+          theme_color: '#ff0000',
           background_color: '#ff0000',
           display: 'standalone',
           scope: '/',
           start_url: '/',
-          orientation: 'portrait',
           icons: [
             {
               src: 'pwa-192x192.png',

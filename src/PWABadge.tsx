@@ -26,6 +26,10 @@ function PWABadge() {
         console.log('SW Registered: ' + registration)
       }
     },
+
+    onOfflineReady() {
+      console.log('Offline ready')
+    },
   })
 
   useEffect(() => {
