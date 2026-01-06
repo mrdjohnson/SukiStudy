@@ -17,7 +17,7 @@ import {
   ActionIcon,
   Divider,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
+import { useDisclosure, useNetwork } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
 import { useUser } from '../contexts/UserContext'
 
@@ -38,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const availableGames = useGames()
+  const { online } = useNetwork()
 
   return (
     <AppShell
@@ -61,12 +62,19 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
               <Text size="xl" fw={700} c="dark">
                 SukiStudy
               </Text>
-              {isGuest && (
-                <Badge color="orange" variant="light">
-                  Guest
-                </Badge>
-              )}
             </Link>
+
+            {isGuest && (
+              <Badge color="orange" variant="light">
+                Guest
+              </Badge>
+            )}
+
+            {!online && (
+              <Badge color="red" variant="light">
+                Offline
+              </Badge>
+            )}
           </Group>
 
           <Group>
