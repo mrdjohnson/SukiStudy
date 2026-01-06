@@ -54,20 +54,19 @@ export const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Welcome Section */}
       <Box
-        className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
+        className="bg-gradient-to-r saturate-200 from-secondary to-primary via-secondary rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
         onDoubleClick={openLogModal}
       >
-        <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">Welcome {user!.username}!</h1>
+        <div className="relative z-10 invert-60">
+          <h1 className="text-3xl font-bold">Welcome {user!.username}!</h1>
 
           {!isGuest && (
-            <p className="text-indigo-100 text-lg">
-              You are on Level {user!.level}. Keep up the momentum.
-            </p>
+            <p className="text-lg mt-2">You are on Level {user!.level}. Keep up the momentum.</p>
           )}
         </div>
-        <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-1/4 translate-x-1/4">
-          <Icons.BookOpen size={300} />
+
+        <div className="absolute right-5 bottom-0 opacity-60 h-full">
+          <Icons.BookOpen className="size-full text-secondary" />
         </div>
       </Box>
 
