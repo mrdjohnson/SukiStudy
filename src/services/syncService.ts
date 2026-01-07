@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { flush } from '../utils/flush.ts'
 
 const SYNC_KEYS = {
   USER: 'wk_last_sync_user',
@@ -55,6 +56,8 @@ export const syncService = {
       console.log('[Sync] Synchronization complete.')
     } catch (error) {
       console.error('[Sync] Error during sync:', error)
+    } finally {
+      await flush()
     }
   },
 

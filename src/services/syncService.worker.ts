@@ -116,7 +116,7 @@ export async function populateKana() {
 
   const kanaSubjects = getKanaSubjects()
 
-  subjects.upsertMany(kanaSubjects)
+  subjects.insertMany(kanaSubjects)
 
   console.log('populated %s kana subjects', kanaSubjects.length)
 }

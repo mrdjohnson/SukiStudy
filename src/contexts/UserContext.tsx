@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useContext, createContext } from 'react'
+import React, { useState, useEffect, useContext, createContext, useTransition } from 'react'
 import { waniKaniService } from '../services/wanikaniService'
 import { syncService } from '../services/syncService'
 import { users } from '../services/db'
 import { User } from '../types'
 import { modals } from '@mantine/modals'
 import { Text } from '@mantine/core'
+import { flush } from '../utils/flush'
 
 interface UserContextType {
   user: User | null
@@ -33,7 +34,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isSyncing, setIsSyncing] = useState(false)
+  const [isSyncing, startSyncing] = useTransition()
 
   useEffect(() => {
     const init = async () => {
@@ -62,12 +63,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
 
-          setIsSyncing(true)
-          await syncService.sync()
-          setIsSyncing(false)
+          startSyncing(async () => {
+            await syncService.sync()
 
-          const updatedUser = users.findOne({ id: 'current' })
-          if (updatedUser) setUser(updatedUser)
+            const updatedUser = users.findOne({ id: 'current' })
+            if (updatedUser) setUser(updatedUser)
+
+            window.location.reload()
+          })
         } catch (e: any) {
           console.error('Auth/Sync Error', e)
           if (e.message && (e.message.includes('401') || e.message.includes('Invalid'))) {
@@ -94,8 +97,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       users.insert(newUser)
     })
 
-    setIsSyncing(true)
-    syncService.sync().then(() => setIsSyncing(false))
+    startSyncing(async () => {
+      await syncService.sync()
+
+      window.location.reload()
+    })
   }
 
   const logout = () => {
@@ -121,15 +127,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })
   }
 
-  const loginAsGuest = () => {
+  const loginAsGuest = async () => {
     if (user) return
 
     const guestUser = { ...GUEST_USER, id: 'current' }
     setUser(guestUser)
     users.insert(guestUser)
 
-    setIsSyncing(true)
-    syncService.sync().then(() => setIsSyncing(false))
+    startSyncing(async () => {
+      await syncService.sync()
+
+      window.location.reload()
+    })
   }
 
   const value = {
