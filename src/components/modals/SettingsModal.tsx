@@ -26,6 +26,8 @@ import _ from 'lodash'
 import clsx from 'clsx'
 import { Icons } from '../Icons'
 import moment from 'moment'
+import { IconWorld } from '@tabler/icons-react'
+import { useNavigate } from 'react-router'
 
 interface SettingsModalProps {
   opened: boolean
@@ -33,6 +35,8 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
+  const navigate = useNavigate()
+
   const {
     soundEnabled,
     toggleSound,
@@ -343,17 +347,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
 
         <Divider />
 
-        <Button
-          fullWidth
-          variant="light"
-          color="red"
-          onClick={() => {
-            logout()
-          }}
-          leftSection={<Icons.LogOut size={16} />}
-        >
-          Logout
-        </Button>
+        <Stack>
+          {isGuest && (
+            <Button
+              component="a"
+              href="/login"
+              fullWidth
+              onClick={() => navigate('/login')}
+              leftSection={<IconWorld size={16} />}
+            >
+              Login to WaniKani
+            </Button>
+          )}
+
+          <Button
+            fullWidth
+            variant="light"
+            color="red"
+            onClick={() => {
+              logout()
+            }}
+            leftSection={<Icons.LogOut size={16} />}
+          >
+            Logout
+          </Button>
+        </Stack>
       </Stack>
     </Modal>
   )

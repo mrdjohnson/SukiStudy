@@ -87,7 +87,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('wk_token', token)
     const newUser = { ...userData, is_guest: false, id: 'current' }
     setUser(newUser)
-    users.updateOne({ id: 'current' }, { $set: newUser }, { upsert: true })
+
+    users.batch(() => {
+      users.removeOne({ id: 'current' })
+
+      users.insert(newUser)
+    })
 
     setIsSyncing(true)
     syncService.sync().then(() => setIsSyncing(false))
