@@ -2,14 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { GameItem, Subject, SubjectType } from '../types'
 import { assignments, subjects } from '../services/db'
 import { useUser } from '../contexts/UserContext'
-import { generateKanaGameItems } from '../utils/kana'
 import { useSettings } from '../contexts/SettingsContext'
 import _ from 'lodash'
 
 export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
-  const { user, isGuest } = useUser()
+  const { user } = useUser()
   const { gameLevelMin, gameLevelMax, availableSubjects, disabledSubjects, getGameSettings } =
     useSettings()
 
@@ -25,24 +24,11 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
       return
     }
 
-    // GUEST MODE
-    if (isGuest) {
-      setItems(generateKanaGameItems(true, true))
-      setLoading(false)
-      return
-    }
-
     // Query assignments locally
     // Filter: SRS Stage > 0 (Learned)
     const learnedAssignments = assignments
       .find({ srs_stage: { $gt: 0 } }, { sort: { available_at: 1 } })
       .fetch()
-
-    if (learnedAssignments.length === 0) {
-      setItems([])
-      setLoading(false)
-      return
-    }
 
     const learnedSubjectIds = learnedAssignments.map(a => a.subject_id)
 
@@ -51,9 +37,9 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
     if (gameId) {
       const { hiddenSubjects = [] } = getGameSettings(gameId)
 
-      subjectTypes = _.chain(SubjectType)
-        .values()
-        .without(...hiddenSubjects, ...disabledSubjects)
+      subjectTypes = _.chain(availableSubjects)
+        .without(...hiddenSubjects)
+        .without(...disabledSubjects)
         .value()
     }
 
@@ -66,14 +52,30 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
       })
       .fetch()
 
-    const subjectMap = new Map<number, Subject>()
-    learnedSubjects.forEach(s => subjectMap.set(s.id, s))
+    const kanaSubjectTypes = _.intersection(subjectTypes, [
+      SubjectType.HIRAGANA,
+      SubjectType.KATAKANA,
+    ])
+
+    let kanaSubjects: Subject[] = []
+
+    if (!_.isEmpty(kanaSubjectTypes)) {
+      kanaSubjects = subjects
+        .find({
+          object: { $in: kanaSubjectTypes },
+          level: { $gte: gameLevelMin, $lte: gameLevelMax },
+        })
+        .fetch()
+    }
+
+    const subjectMap = _.keyBy(learnedSubjects, 'id')
 
     const now = new Date()
-    const combined: GameItem[] = []
+    const combined: GameItem[] = kanaSubjects.map(subject => ({ subject }))
 
     learnedAssignments.forEach(a => {
-      const sub = subjectMap.get(a.subject_id)
+      const sub = subjectMap[a.subject_id]
+
       if (sub) {
         const availableAt = a.available_at ? new Date(a.available_at) : new Date(8640000000000000)
         combined.push({
@@ -83,10 +85,6 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
         })
       }
     })
-
-    const includeHirigana = subjectTypes.includes(SubjectType.HIRAGANA)
-    const includeKatakana = subjectTypes.includes(SubjectType.HIRAGANA)
-    combined.push(...generateKanaGameItems(includeHirigana, includeKatakana))
 
     // Sort: Reviewable first
     combined.sort((a, b) => {
@@ -106,9 +104,6 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
     subjects.on('changed', runQuery)
 
     return () => {
-      // assignments.dispose()
-      // subjects.dispose()
-
       assignments.off('changed', runQuery)
       subjects.off('changed', runQuery)
     }

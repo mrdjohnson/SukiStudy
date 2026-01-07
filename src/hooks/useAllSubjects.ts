@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, GameItem, Subject } from '../types'
+import { GameItem, SubjectType } from '../types'
 import { assignments, subjects } from '../services/db'
 import _ from 'lodash'
 import { useUser } from '../contexts/UserContext'
-import { generateKanaGameItems } from '../utils/kana'
 
 export const useAllSubjects = (enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(enabled)
-  const { user, isGuest } = useUser()
+  const { user } = useUser()
 
   const runQuery = useCallback(() => {
     if (!enabled) {
@@ -22,27 +21,18 @@ export const useAllSubjects = (enabled: boolean = true) => {
       return
     }
 
-    // GUEST MODE
-    if (isGuest) {
-      setItems(generateKanaGameItems(true, true))
-      setLoading(false)
-      return
-    }
+    const allAssignments = assignments.find({}, { sort: { subject_id: 1 } }).fetch()
 
-    const allAssignments = assignments.find({}).fetch()
+    const kanaSubjects = subjects
+      .find({ object: { $in: [SubjectType.HIRAGANA, SubjectType.KATAKANA] } }, { sort: { id: 1 } })
+      .fetch()
 
-    if (allAssignments.length === 0) {
-      setItems([])
-      setLoading(false)
-      return
-    }
-
-    const subjectIds = allAssignments.map(a => a.subject_id)
-    const relatedSubjects = subjects.find({ id: { $in: subjectIds } }).fetch()
+    const subjectIds = _.map(allAssignments, 'subject_id')
+    const relatedSubjects = subjects.find({ id: { $in: subjectIds } }, { sort: { id: 1 } }).fetch()
     const subjectMap = _.keyBy(relatedSubjects, 'id')
 
     const now = new Date()
-    const combined: GameItem[] = []
+    const combined: GameItem[] = kanaSubjects.map(subject => ({ subject }))
 
     allAssignments.forEach(a => {
       const sub = subjectMap[a.subject_id]

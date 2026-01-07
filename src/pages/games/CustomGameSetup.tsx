@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { GameItem, SubjectType } from '../../types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { Flashcard } from '../../components/Flashcard'
-import { generateKanaGameItems } from '../../utils/kana'
 import { useGames } from '../../hooks/useGames'
 import {
   Grid,
@@ -64,25 +63,17 @@ export const CustomGameSetup: React.FC = () => {
   }, [user])
 
   const getFilteredItems = () => {
-    let pool = learnedItems.filter(item => {
+    return learnedItems.filter(item => {
+      const type = item.subject.object as string
+
       // Level Filter
       if (levels.length > 0 && !levels.includes(item.subject.level)) return false
 
       // Type Filter
-      const type = item.subject.object as string
       if (!types.includes(type)) return false
 
       return true
     })
-
-    const includeHiragana = types.includes(SubjectType.HIRAGANA)
-    const includeKatakana = types.includes(SubjectType.KATAKANA)
-
-    if (includeHiragana || includeKatakana) {
-      pool = [...pool, ...generateKanaGameItems(includeHiragana, includeKatakana)]
-    }
-
-    return pool
   }
 
   const filteredPool = getFilteredItems()

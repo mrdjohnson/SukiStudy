@@ -127,6 +127,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const guestUser = { ...GUEST_USER, id: 'current' }
     setUser(guestUser)
     users.insert(guestUser)
+
+    setIsSyncing(true)
+    syncService.sync().then(() => setIsSyncing(false))
   }
 
   const value = {

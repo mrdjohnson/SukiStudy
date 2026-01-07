@@ -7,6 +7,7 @@ const SYNC_KEYS = {
   ASSIGNMENTS_MIGRATION: 'wk_last_sync_assignments_migration',
   ASSIGNMENTS: 'wk_last_sync_assignments',
   MATERIALS: 'wk_last_sync_materials',
+  KANA: 'wk_last_sync_kana',
 }
 
 const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.ts')>(
@@ -15,9 +16,22 @@ const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.
 )
 
 export const syncService = {
+  async offlineSync() {
+    console.log('[Offline Sync] Starting synchronization...')
+
+    try {
+      await this.populateKana()
+
+      console.log('[Offline Sync] Synchronization complete.')
+    } catch (error) {
+      console.error('[Offline Sync] Error during sync:', error)
+    }
+  },
+
   async sync() {
+    await this.offlineSync()
+
     if (!navigator.onLine) {
-      console.log('[Sync] Offline, skipping sync.')
       return
     }
 
@@ -120,6 +134,19 @@ export const syncService = {
     await syncServiceWorker.syncStudyMaterials(lastMatSync)
 
     localStorage.setItem(SYNC_KEYS.MATERIALS, matStart)
+  },
+
+  async populateKana() {
+    const lastKanaSync = localStorage.getItem(SYNC_KEYS.KANA)
+    const kanaStart = new Date().toISOString()
+
+    if (lastKanaSync) {
+      return
+    }
+
+    await syncServiceWorker.populateKana()
+
+    localStorage.setItem(SYNC_KEYS.KANA, kanaStart)
   },
 
   async clearData() {

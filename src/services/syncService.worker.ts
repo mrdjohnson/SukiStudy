@@ -2,7 +2,9 @@ import { waniKaniService } from './wanikaniService'
 import { subjects, assignments, studyMaterials, users } from './db'
 import { WKCollection, Subject, Assignment, StudyMaterial } from '../types'
 import _ from 'lodash'
+import { getKanaSubjects } from '../utils/kana'
 import { transformSubject } from '../utils/transformSubject'
+import { flush } from '../utils/flush'
 
 async function fetchAllPages<T>(
   initialRequest: () => Promise<WKCollection<T>>,
@@ -103,4 +105,18 @@ export async function clearData() {
   assignments.removeMany({})
   studyMaterials.removeMany({})
   users.removeMany({})
+}
+
+export async function populateKana() {
+  subjects.removeMany({ id: { $lt: 0 } })
+
+  console.log('All kana removed')
+
+  await flush()
+
+  const kanaSubjects = getKanaSubjects()
+
+  subjects.upsertMany(kanaSubjects)
+
+  console.log('populated %s kana subjects', kanaSubjects.length)
 }

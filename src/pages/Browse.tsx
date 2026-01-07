@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { GameItem, SubjectType } from '../types'
+import { Assignment, GameItem, SubjectType } from '../types'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
-import { generateKanaGameItems, toHiragana } from '../utils/kana'
+import { toHiragana } from '../utils/kana'
 import { openFlashcardModal } from '../components/modals/FlashcardModal'
 import {
   TextInput,
@@ -18,7 +18,6 @@ import {
   UnstyledButton,
   Badge,
   Stack,
-  Checkbox,
   Input,
   useMatches,
   Center,
@@ -50,6 +49,8 @@ export const Browse: React.FC = () => {
       : [SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL],
   })
 
+  const assignmentMapRef = useRef<Record<number, Assignment>>({})
+
   const limit = useMatches({
     base: 20,
     sm: 32,
@@ -59,32 +60,20 @@ export const Browse: React.FC = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const baseItems = generateKanaGameItems(
-      types.includes(SubjectType.HIRAGANA),
-      types.includes(SubjectType.KATAKANA),
-    )
-
-    if (isGuest) {
-      setItems(baseItems)
-      setLoading(false)
-      return
-    }
-
     const fetchData = async () => {
       setLoading(true)
       try {
+        assignmentMapRef.current ||= _.keyBy(assignments.find({}).fetch(), 'subject_id')
+
+        const assignmentMap = assignmentMapRef.current
+
         const allSubjects = subjects.find({ object: { $in: types } }, { sort: { id: 1 } }).fetch()
 
-        let allAssignments = _.chain(assignments.find({}).fetch()).keyBy('subject_id').value()
-
         setItems(
-          baseItems.concat(
-            allSubjects.map(s => ({
-              subject: s,
-              assignment: allAssignments[s.id],
-              isReviewable: false,
-            })),
-          ),
+          allSubjects.map(s => ({
+            subject: s,
+            assignment: assignmentMap[s.id],
+          })),
         )
       } catch (err) {
         console.error('Browse Fetch Error:', err)
@@ -94,13 +83,13 @@ export const Browse: React.FC = () => {
     }
 
     fetchData()
-  }, [user, types])
+  }, [user, types, isGuest])
 
   const toggleLevel = (l: number) => {
     if (levels.includes(l)) {
       if (levels.length > 1) setLevels(prev => prev.filter(x => x !== l))
     } else {
-      setLevels(prev => [...prev, l])
+      setLevels(prev => [...prev, l].sort())
     }
   }
 
@@ -136,6 +125,10 @@ export const Browse: React.FC = () => {
           const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana)
 
           if (!matchMeaning && !matchReading && !matchChar) return false
+        }
+
+        if (levels.length > 0 && !levels.includes(item.subject.level)) {
+          return false
         }
 
         return true
@@ -174,7 +167,7 @@ export const Browse: React.FC = () => {
 
   const filteredItems = useMemo(() => {
     return getFilteredItems()
-  }, [onlyLearned, searchQuery, ignoreLimit, items])
+  }, [onlyLearned, searchQuery, ignoreLimit, items, levels])
 
   const groups = useMemo(() => {
     return _.groupBy(filteredItems, item => item.subject.object)
@@ -243,7 +236,11 @@ export const Browse: React.FC = () => {
           <Box>
             <Input.Label>Subject Types</Input.Label>
 
-            <Chip.Group multiple value={types} onChange={setTypes}>
+            <Chip.Group
+              multiple
+              value={types}
+              onChange={types => setTypes(_.intersection(_.values(SubjectType), types))}
+            >
               <Group gap="xs">
                 {_.map(SubjectType, subjectType => {
                   return (

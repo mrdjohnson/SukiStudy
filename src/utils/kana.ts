@@ -1,5 +1,6 @@
-import { GameItem, Subject, SubjectType } from '../types'
+import { Subject, SubjectType } from '../types'
 import { isHiragana, toHiragana, toKatakana, toRomaji as toRomanji } from 'wanakana'
+import _ from 'lodash'
 
 import _hiragana from '../data/hiragana.json'
 import _katakana from '../data/katakana.json'
@@ -135,19 +136,14 @@ const HIRAGANA_LIST = [
   'ぴゃ',
   'ぴゅ',
   'ぴょ',
-] as const
+]
 
 const KATAKANA_LIST = HIRAGANA_LIST.map(hiragana => toKatakana(hiragana))
 
 export { toKatakana, toHiragana, toRomanji }
 
-export const generateKanaGameItems = (
-  includeHiragana: boolean,
-  includeKatakana: boolean,
-): GameItem[] => {
-  const list: string[] = []
-  if (includeHiragana) list.push(...HIRAGANA_LIST)
-  if (includeKatakana) list.push(...KATAKANA_LIST)
+export const getKanaSubjects = (): Subject[] => {
+  const list: string[] = _.reverse(HIRAGANA_LIST.concat(...KATAKANA_LIST))
 
   return list.map((item, index) => {
     const romanji = toRomanji(item)
@@ -174,7 +170,7 @@ export const generateKanaGameItems = (
       object: type,
       url: '',
       created_at: new Date().toISOString(),
-      level: 0,
+      level: 1,
       slug: romanji,
       hidden_at: null,
       document_url: '',
@@ -199,9 +195,6 @@ export const generateKanaGameItems = (
       pronunciation_audios,
     }
 
-    return {
-      subject,
-      isReviewable: false,
-    }
+    return subject
   })
 }
