@@ -75,6 +75,7 @@ export default defineConfig(({ mode }) => {
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
+          swDest: 'public/sw.js',
 
           runtimeCaching: [
             {

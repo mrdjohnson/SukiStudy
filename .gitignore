@@ -16,6 +16,9 @@ dist-ssr
 .yarn
 resources
 
+public/sw.js
+public/workbox-*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
