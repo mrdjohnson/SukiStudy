@@ -54,10 +54,10 @@ export const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Welcome Section */}
       <Box
-        className="bg-gradient-to-r saturate-200 from-secondary to-primary via-secondary rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
+        className="bg-linear-to-r saturate-200 from-secondary to-primary via-secondary rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
         onDoubleClick={openLogModal}
       >
-        <div className="relative z-10 invert-60">
+        <div className="relative z-10 text-white">
           <h1 className="text-3xl font-bold">Welcome {user!.username}!</h1>
 
           {!isGuest && (
