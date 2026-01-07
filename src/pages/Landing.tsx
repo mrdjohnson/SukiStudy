@@ -5,6 +5,7 @@ import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
 import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper } from '@mantine/core'
 import logo from '@/src/assets/apple-touch-icon.png'
+import { IconBadgeTm, IconBadgeTmFilled } from '@tabler/icons-react'
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate()
@@ -18,18 +19,23 @@ export const Landing: React.FC = () => {
   const features = [
     {
       icon: Icons.Brain,
-      title: 'SRS Integration',
+      title: 'WaniKani Integration',
       desc: 'Seamlessly syncs with your WaniKani progress to prioritize what you need to review.',
     },
     {
       icon: Icons.Gamepad2,
       title: 'Gamified Learning',
-      desc: 'Break the monotony of reviews with Memory Match, Shiritori, Typing games, and more.',
+      desc: 'Break the monotony of reviews of the usual Typing game with Memory Match, Multi choice quiz and more.',
     },
     {
       icon: Icons.GridDots,
       title: 'Hiragana/Katakana',
-      desc: 'Just starting? Use Guest Mode to practice your basic kana without an account.',
+      desc: "Don't have a WaniKani account? Try out guest Mode to practice your basic kana without an account.",
+    },
+    {
+      icon: IconBadgeTm,
+      title: 'More Data Coming Soon',
+      desc: 'More mnemonic sources and custom learning systems to be added in future updates.',
     },
   ]
 
