@@ -23,18 +23,11 @@ export default defineConfig(({ mode }) => {
       isDev && mkcert(),
       tailwindcss(),
       comlink(),
-      vercel(),
       VitePWA({
         mode: 'production',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
-        includeAssets: [
-          'favicon.ico',
-          'apple-touch-icon.png',
-          'maskable-icon-512x512.png',
-          'sw.js',
-          'workbox-*.js',
-        ],
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'maskable-icon-512x512.png'],
 
         manifest: {
           name: 'SukiStudy',
@@ -106,6 +99,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       tsconfigPaths(),
+      vercel(),
     ],
     worker: {
       plugins: () => [comlink()], // Enable Comlink for workers
