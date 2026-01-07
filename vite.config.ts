@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => {
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
-          swDest: 'public/sw.js',
+          swDest: 'public/assets/sw.js',
           maximumFileSizeToCacheInBytes: 3000000,
 
           runtimeCaching: [
