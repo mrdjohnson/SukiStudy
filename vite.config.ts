@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
         mode: 'production',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'maskable-icon-512x512.png'],
+        includeAssets: ['**/*'],
 
         manifest: {
           name: 'SukiStudy',
@@ -69,6 +69,8 @@ export default defineConfig(({ mode }) => {
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
+          swDest: 'public/sw.js',
+          maximumFileSizeToCacheInBytes: 3000000,
 
           runtimeCaching: [
             {
