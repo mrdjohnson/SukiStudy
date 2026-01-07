@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => {
           'apple-touch-icon.png',
           'maskable-icon-512x512.png',
           'sw.js',
+          'workbox-*.js',
         ],
 
         manifest: {
@@ -75,7 +76,6 @@ export default defineConfig(({ mode }) => {
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
-          swDest: 'public/sw.js',
 
           runtimeCaching: [
             {
