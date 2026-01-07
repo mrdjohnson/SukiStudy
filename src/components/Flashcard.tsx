@@ -325,7 +325,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {type === SubjectType.HIRAGANA || type === SubjectType.KATAKANA ? (
+          {subject.isKana ? (
             <div className="prose prose-spacing">
               <Markdown>{subject.meaning_mnemonic}</Markdown>
             </div>

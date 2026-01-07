@@ -107,6 +107,7 @@ export interface Subject {
     en: string
     ja: string
   }[]
+  isKana?: boolean
 }
 
 export interface Assignment {

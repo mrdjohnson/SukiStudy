@@ -193,6 +193,7 @@ export const getKanaSubjects = (): Subject[] => {
       lesson_position: 0,
       spaced_repetition_system_id: 0,
       pronunciation_audios,
+      isKana: true,
     }
 
     return subject

@@ -23,9 +23,7 @@ export const useAllSubjects = (enabled: boolean = true) => {
 
     const allAssignments = assignments.find({}, { sort: { subject_id: 1 } }).fetch()
 
-    const kanaSubjects = subjects
-      .find({ object: { $in: [SubjectType.HIRAGANA, SubjectType.KATAKANA] } }, { sort: { id: 1 } })
-      .fetch()
+    const kanaSubjects = subjects.find({ isKana: true }, { sort: { id: 1 } }).fetch()
 
     const subjectIds = _.map(allAssignments, 'subject_id')
     const relatedSubjects = subjects.find({ id: { $in: subjectIds } }, { sort: { id: 1 } }).fetch()

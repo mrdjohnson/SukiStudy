@@ -21,8 +21,7 @@ export const toItemWithAnswer = (
     pairType = 'meaning'
   }
 
-  const readingIndex =
-    subject.object === SubjectType.HIRAGANA || subject.object === SubjectType.KATAKANA ? 1 : 0
+  const readingIndex = subject.isKana ? 1 : 0
 
   answer =
     pairType === 'reading'
