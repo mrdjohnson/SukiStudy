@@ -7,6 +7,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { comlink } from 'vite-plugin-comlink'
 import vercel from 'vite-plugin-vercel'
+import vercelPwaLink from './lib/vite-plugin-vercel-pwa-link/plugin'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -69,7 +70,6 @@ export default defineConfig(({ mode }) => {
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
-          swDest: 'public/assets/sw.js',
           maximumFileSizeToCacheInBytes: 3000000,
 
           runtimeCaching: [
@@ -102,6 +102,7 @@ export default defineConfig(({ mode }) => {
       }),
       tsconfigPaths(),
       vercel(),
+      vercelPwaLink(),
     ],
     worker: {
       plugins: () => [comlink()], // Enable Comlink for workers
