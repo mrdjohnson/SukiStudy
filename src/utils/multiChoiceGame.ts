@@ -4,7 +4,6 @@ import { GameItem, MultiChoiceGameItem, SubjectType } from '../types'
 export const toItemWithAnswer = (
   item: GameItem,
   pairType?: 'reading' | 'meaning',
-  subjectIsKana?: boolean,
 ): MultiChoiceGameItem | null => {
   const { subject } = item
   let question: string | undefined = subject.characters || undefined
@@ -17,15 +16,13 @@ export const toItemWithAnswer = (
   if (!question) return null
 
   let answer: string | undefined
-  if (!pairType) {
-    pairType = _.sample(['reading', 'meaning'])
 
-    if (subject.object === SubjectType.RADICAL) {
-      pairType = 'meaning'
-    }
+  if (subject.object === SubjectType.RADICAL) {
+    pairType = 'meaning'
   }
 
-  const readingIndex = subjectIsKana ? 1 : 0
+  const readingIndex =
+    subject.object === SubjectType.HIRAGANA || subject.object === SubjectType.KATAKANA ? 1 : 0
 
   answer =
     pairType === 'reading'
@@ -38,9 +35,11 @@ export const toItemWithAnswer = (
 }
 
 export const selectUniqueItems = (items: GameItem[], maxItems: number) => {
+  const pairType = _.sample(['reading', 'meaning'] as const)
+
   // Select 6 unique items with non-colliding questions/answers
   const candidates = _.chain(items)
-    .map(item => toItemWithAnswer(item))
+    .map(item => toItemWithAnswer(item, pairType))
     .compact()
     .shuffle()
     .value()

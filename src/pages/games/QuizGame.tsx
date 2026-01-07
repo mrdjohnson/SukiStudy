@@ -19,8 +19,10 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
   const items = useMemo(() => {
     let itemOptions = propItems || fetchedItems
 
+    const pairType = _.sample(['reading', 'meaning'] as const)
+
     return _.chain(itemOptions)
-      .map(item => toItemWithAnswer(item))
+      .map(item => toItemWithAnswer(item, pairType))
       .compact()
       .value()
   }, [propItems, fetchedItems])
