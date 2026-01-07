@@ -112,7 +112,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                 key={subjectType}
                 checked={!isHidden}
                 variant="outline"
-                color={colorByType[SubjectType.HIRAGANA]}
+                color={colorByType[subjectType]}
                 onChange={() =>
                   updateGameSettings(gameId, {
                     hiddenSubjects: _.xor(settings.hiddenSubjects, [subjectType]),
