@@ -4,9 +4,10 @@ import { Icons } from './Icons'
 import { PropsWithChildren, useMemo } from 'react'
 import { GameResults } from './GameResults'
 import { GameLogic } from '../hooks/useGameLogic'
+import { GameItem } from '../types'
 
-type GameHeaderProps = PropsWithChildren<{
-  gameLogic: GameLogic
+type GameHeaderProps<T extends GameItem> = PropsWithChildren<{
+  gameLogic: GameLogic<T>
   skip?: () => void
   onClear?: () => void
   clearDisabled?: boolean
@@ -17,7 +18,7 @@ type GameHeaderProps = PropsWithChildren<{
 
 const Back = -1 as Partial<Path>
 
-export const GameContainer = ({
+export const GameContainer = <T extends GameItem>({
   gameLogic,
   children,
   skip,
@@ -26,7 +27,7 @@ export const GameContainer = ({
   onHint,
   hintDisabled,
   shouldNavigateBack = false,
-}: GameHeaderProps) => {
+}: GameHeaderProps<T>) => {
   const navigate = useNavigate()
   const buttonSizes = useMatches({
     base: 'md',
