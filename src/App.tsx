@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Route, Routes, useLocation, BrowserRouter, Navigate } from 'react-router'
+import { Route, Routes, useLocation, BrowserRouter, Navigate, Outlet } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { useUser } from './contexts/UserContext'
@@ -39,8 +39,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <Header>{children}</Header>
 }
 
+export const AuthWrapper = () => {
+  const { user, isSyncing } = useUser()
+
+  if (!user) return <Navigate to="/landing" />
+
+  return (
+    <>
+      {isSyncing && (
+        <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
+          <Icons.RotateCcw className="w-3 h-3 animate-spin" />
+          Syncing...
+        </div>
+      )}
+
+      <PWABadge />
+
+      <Outlet />
+    </>
+  )
+}
+
 export default function App() {
-  const { user, isGuest, loading, isSyncing, login } = useUser()
+  const { user, isGuest, loading, login } = useUser()
   const availableGames = useGames()
 
   if (loading) {
@@ -58,47 +79,39 @@ export default function App() {
   }
 
   return (
-    <>
-      <PWABadge />
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/landing" element={<Landing />} />
+          <Route
+            path="/login"
+            element={user && !isGuest ? <Navigate to="/" /> : <Login onLogin={login} />}
+          />
 
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/landing" element={<Landing />} />
-            <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={login} />} />
+          <Route element={<AuthWrapper />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/session/lesson" element={<Session />} />
+            <Route path="/session/review" element={<Review />} />
 
-            <Route element={!user && !isGuest && <Navigate to="/landing" />}>
-              {isSyncing && user && (
-                <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
-                  <Icons.RotateCcw className="w-3 h-3 animate-spin" />
-                  Syncing...
-                </div>
-              )}
+            <Route path="/session/games" element={<GameMenu />} />
 
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/session/lesson" element={<Session />} />
-              <Route path="/session/review" element={<Review />} />
+            {availableGames.map(game => (
+              <Route path={'/session/games/' + game.id} element={<game.component />} />
+            ))}
 
-              <Route path="/session/games" element={<GameMenu />} />
+            {/* go to games menu if at unknown game page */}
+            <Route path="/session/games/*" element={<Navigate to="/session/games" />} />
 
-              {availableGames.map(game => (
-                <Route path={'/session/games/' + game.id} element={<game.component />} />
-              ))}
+            <Route path="/session/custom" element={<CustomGameSetup />} />
+            <Route path="/session/custom/play" element={<CustomSession />} />
 
-              {/* go to games menu if at unknown game page */}
-              <Route path="/session/games/*" element={<Navigate to="/session/games" />} />
+            <Route path="/browse" element={<Browse />} />
 
-              <Route path="/session/custom" element={<CustomGameSetup />} />
-              <Route path="/session/custom/play" element={<CustomSession />} />
-
-              <Route path="/browse" element={<Browse />} />
-
-              {/* go to dashboard if at unknown page */}
-              <Route path="*" element={<Navigate to="/" />} />
-            </Route>
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </>
+            {/* go to dashboard if at unknown page */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Route>
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   )
 }
