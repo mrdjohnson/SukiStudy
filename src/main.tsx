@@ -7,6 +7,7 @@ import { UserProvider } from './contexts/UserContext'
 import { SettingsProvider } from './contexts/SettingsContext'
 import { initLogService } from './services/logService'
 import { registerSW } from 'virtual:pwa-register'
+import { generateColors } from '@mantine/colors-generator'
 
 registerSW({ immediate: true })
 
@@ -21,7 +22,12 @@ if (!rootElement) {
 initLogService()
 
 const theme = createTheme({
-  primaryColor: 'indigo',
+  colors: {
+    secondary: generateColors('#ff0000'),
+    primary: generateColors('#b25f00'),
+  },
+
+  primaryColor: 'primary',
   fontFamily: 'Inter, sans-serif',
 })
 

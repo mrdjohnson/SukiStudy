@@ -17,6 +17,7 @@
     ]
   },
   "dependencies": {
+    "@mantine/colors-generator": "^8.3.11",
     "@mantine/core": "^8.3.10",
     "@mantine/dates": "^8.3.10",
     "@mantine/form": "^8.3.10",
@@ -28,6 +29,7 @@
     "@signaldb/maverickjs": "^1.0.0",
     "@signaldb/react": "^1.0.1",
     "@tabler/icons-react": "^3.35.0",
+    "chroma-js": "^3.2.0",
     "clsx": "2.1.0",
     "comlink": "^4.4.2",
     "dayjs": "^1.11.19",
@@ -48,6 +50,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
+    "@types/chroma-js": "^3",
     "@types/gh-pages": "^6",
     "@types/lodash": "^4.17.21",
     "@types/node": "^22.14.0",

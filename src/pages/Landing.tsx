@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
-import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper } from '@mantine/core'
+import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper, Center } from '@mantine/core'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { IconBadgeTm, IconBadgeTmFilled } from '@tabler/icons-react'
+import clsx from 'clsx'
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate()
@@ -18,21 +19,25 @@ export const Landing: React.FC = () => {
 
   const features = [
     {
+      backgroundType: 'bg-gradient-to-br!',
       icon: Icons.Brain,
       title: 'WaniKani Integration',
       desc: 'Seamlessly syncs with your WaniKani progress to prioritize what you need to review.',
     },
     {
+      backgroundType: 'bg-gradient-to-bl!',
       icon: Icons.Gamepad2,
       title: 'Gamified Learning',
       desc: 'Break the monotony of reviews of the usual Typing game with Memory Match, Multi choice quiz and more.',
     },
     {
+      backgroundType: 'bg-gradient-to-tr!',
       icon: Icons.GridDots,
       title: 'Hiragana/Katakana',
       desc: "Don't have a WaniKani account? Try out guest Mode to practice your basic kana without an account.",
     },
     {
+      backgroundType: 'bg-gradient-to-tl!',
       icon: IconBadgeTm,
       title: 'More Data Coming Soon',
       desc: 'More mnemonic sources and custom learning systems to be added in future updates.',
@@ -40,13 +45,13 @@ export const Landing: React.FC = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-300 to-white flex flex-col">
       <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
           <ThemeIcon size="lg" radius="xl" color="#ff0000" variant="filled">
             <img src={logo} />
           </ThemeIcon>
-          <Text size="xl" fw={700} c="indigo">
+          <Text size="xl" fw={700} c="secondary">
             SukiStudy
           </Text>
         </div>
@@ -56,11 +61,11 @@ export const Landing: React.FC = () => {
       </header>
 
       <main className="flex-1">
-        <Container size="lg" py={60}>
+        <Container size="lg" py={30}>
           <div className="text-center mb-16">
-            <Title className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
-              Master Japanese <br />
-              <span className="text-indigo-600">The Fun Way</span>
+            <Title className="text-4xl! md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
+              Mastering Japanese <br />
+              <span className="text-secondary/80 text-3xl">The Fun Way</span>
             </Title>
             <Text size="xl" c="dimmed" maw={600} mx="auto" mb="xl">
               A playful companion app for WaniKani users.
@@ -75,7 +80,7 @@ export const Landing: React.FC = () => {
               >
                 Connect WaniKani
               </Button>
-              <Button size="xl" variant="outline" onClick={handleGuest}>
+              <Button size="xl" variant="outline" onClick={handleGuest} color="indigo">
                 Try Guest Mode
               </Button>
             </Group>
@@ -84,16 +89,20 @@ export const Landing: React.FC = () => {
             </Text>
           </div>
 
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={40} py={40}>
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={20} py={20}>
             {features.map((f, i) => (
               <Paper
                 key={i}
                 p="xl"
                 radius="md"
                 withBorder
-                className="hover:shadow-md transition-shadow"
+                classNames={{ root: 'bg-transparent!' }}
+                className={clsx(
+                  f.backgroundType,
+                  'hover:shadow-md! transition-shadow from-transparent to-white border-slate-200!',
+                )}
               >
-                <ThemeIcon size={48} radius="md" variant="light" color="indigo" mb="md">
+                <ThemeIcon size={48} radius="md" variant="light" color="primary" mb="md">
                   <f.icon size={28} />
                 </ThemeIcon>
                 <Title order={3} mb="sm">
@@ -106,9 +115,13 @@ export const Landing: React.FC = () => {
         </Container>
       </main>
 
-      <footer className="bg-white border-t border-gray-100 py-8">
-        <Container size="lg" className="text-center text-gray-400 text-sm">
+      <footer className="py-6">
+        <Container size="lg" className="text-center text-gray-400 text-sm font-semibold">
           <p>SukiStudy is a third-party app and not affiliated with WaniKani.</p>
+
+          <br />
+
+          <p>@Copyright 2026</p>
         </Container>
       </footer>
     </div>

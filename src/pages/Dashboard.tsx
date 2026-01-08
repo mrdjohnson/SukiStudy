@@ -54,7 +54,7 @@ export const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Welcome Section */}
       <Box
-        className="bg-linear-to-r saturate-200 from-secondary to-primary via-secondary rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
+        className="bg-linear-to-r saturate-200 from-primary to-secondary via-primary rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
         onDoubleClick={openLogModal}
       >
         <div className="relative z-10 text-white">
@@ -66,7 +66,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="absolute right-5 bottom-0 opacity-60 h-full">
-          <Icons.BookOpen className="size-full text-secondary" />
+          <Icons.BookOpen className="size-full text-primary" />
         </div>
       </Box>
 
@@ -74,7 +74,7 @@ export const Dashboard: React.FC = () => {
       <SimpleGrid cols={isGuest ? 1 : gridWidth}>
         {!isGuest && (
           <>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-secondary/30 transition-colors group">
               <div className="bg-pink-100 p-4 rounded-full mb-4 group-hover:bg-pink-200 transition-colors">
                 <Icons.Layers className="w-8 h-8 text-pink-600" />
               </div>
@@ -95,7 +95,7 @@ export const Dashboard: React.FC = () => {
 
                 reviewsCount === 0
                   ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:border-indigo-200 transition-colors group',
+                  : 'hover:border-secondary/30 transition-colors group',
               )}
             >
               <div className="bg-sky-100 p-4 rounded-full mb-4 group-hover:bg-sky-200 transition-colors">
@@ -118,7 +118,7 @@ export const Dashboard: React.FC = () => {
           </>
         )}
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-secondary/30 transition-colors group">
           <div className="bg-green-100 p-4 rounded-full mb-4 group-hover:bg-green-200 transition-colors">
             <Icons.Gamepad2 className="w-8 h-8 text-green-600" />
           </div>
@@ -132,7 +132,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Quick Browse */}
       <div
-        className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors group cursor-pointer"
+        className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-secondary/30 transition-colors group cursor-pointer"
         onClick={() => navigate('/browse')}
       >
         <div className="bg-blue-100 p-4 rounded-full mb-4 group-hover:bg-blue-200 transition-colors">

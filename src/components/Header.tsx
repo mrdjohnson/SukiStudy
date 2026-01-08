@@ -178,11 +178,18 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 if (opened) toggle()
               }}
               rightSection={<Icons.Settings size={16} />}
+              color="indigo"
             >
               Settings
             </Button>
 
-            <Button variant="subtle" className="size-9! p-0!" onClick={openLogModal} size="sm">
+            <Button
+              variant="subtle"
+              className="size-9! p-0!"
+              onClick={openLogModal}
+              size="sm"
+              color="indigo"
+            >
               <IconActivity size={20} />
             </Button>
           </Group>

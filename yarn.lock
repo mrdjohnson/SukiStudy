@@ -2518,6 +2518,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mantine/colors-generator@npm:^8.3.11":
+  version: 8.3.11
+  resolution: "@mantine/colors-generator@npm:8.3.11"
+  peerDependencies:
+    chroma-js: ">=2.4.2"
+  checksum: 10/2b496744961ef8dedeefab415ac1f06e5d313eb172dadae46b62ada88c04fe1538dcc7ad86d2851983dc5fdecae9153c527ecdb836373852e545076ec6a87d58
+  languageName: node
+  linkType: hard
+
 "@mantine/core@npm:^8.3.10":
   version: 8.3.10
   resolution: "@mantine/core@npm:8.3.10"
@@ -3549,6 +3558,13 @@ __metadata:
   dependencies:
     "@babel/types": "npm:^7.28.2"
   checksum: 10/371c5e1b40399ef17570e630b2943617b84fafde2860a56f0ebc113d8edb1d0534ade0175af89eda1ae35160903c33057ed42457e165d4aa287fedab2c82abcf
+  languageName: node
+  linkType: hard
+
+"@types/chroma-js@npm:^3":
+  version: 3.1.2
+  resolution: "@types/chroma-js@npm:3.1.2"
+  checksum: 10/f94b9c398d026198c2840bd5dc7243cd0f6ace7f18843b8cdb91946be909b527455da23c1ed55a3fd46f42f57f8ec8b1f304620d3444389c5cc87fb5d3f6e3c2
   languageName: node
   linkType: hard
 
@@ -4682,6 +4698,13 @@ __metadata:
   version: 3.0.0
   resolution: "chownr@npm:3.0.0"
   checksum: 10/b63cb1f73d171d140a2ed8154ee6566c8ab775d3196b0e03a2a94b5f6a0ce7777ee5685ca56849403c8d17bd457a6540672f9a60696a6137c7a409097495b82c
+  languageName: node
+  linkType: hard
+
+"chroma-js@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "chroma-js@npm:3.2.0"
+  checksum: 10/8781f9e2469e1adbab40f74d9339023e5a327bc33024497fe1a02cfda8bc13dbc2ea212bbf8bae57e3bb3c81aa83ba51d52931016412092b3beb8c2f37048a60
   languageName: node
   linkType: hard
 
@@ -10235,6 +10258,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sukistudy@workspace:."
   dependencies:
+    "@mantine/colors-generator": "npm:^8.3.11"
     "@mantine/core": "npm:^8.3.10"
     "@mantine/dates": "npm:^8.3.10"
     "@mantine/form": "npm:^8.3.10"
@@ -10248,6 +10272,7 @@ __metadata:
     "@tabler/icons-react": "npm:^3.35.0"
     "@tailwindcss/typography": "npm:^0.5.19"
     "@tailwindcss/vite": "npm:^4.1.18"
+    "@types/chroma-js": "npm:^3"
     "@types/gh-pages": "npm:^6"
     "@types/lodash": "npm:^4.17.21"
     "@types/node": "npm:^22.14.0"
@@ -10259,6 +10284,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.0"
     axios: "npm:^1.13.2"
     cheerio: "npm:^1.1.2"
+    chroma-js: "npm:^3.2.0"
     clsx: "npm:2.1.0"
     comlink: "npm:^4.4.2"
     dayjs: "npm:^1.11.19"
