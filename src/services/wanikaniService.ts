@@ -16,6 +16,12 @@ class WaniKaniService {
   private readonly MAX_REQUESTS = 50 // Requests per minute
   private readonly TIME_WINDOW = 60000 // 1 minute in ms
 
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('wk_token')
+    }
+  }
+
   setToken(token: string) {
     this.token = token
   }
