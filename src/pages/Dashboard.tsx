@@ -87,6 +87,7 @@ export const Dashboard: React.FC = () => {
                   variant={lessonsCount > 0 ? 'primary' : 'outline'}
                   disabled={lessonsCount === 0}
                   onClick={() => navigate('/session/lesson')}
+                  className="w-36!"
                 >
                   Start Lessons
                 </Button>
@@ -106,9 +107,9 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{reviewsCount} Reviews</h3>
                 <p className="text-gray-500 mb-6">Items to recall</p>
-                <div className="flex gap-2 w-full">
+                <div>
                   <Button
-                    className="flex-1"
+                    className="flex-1 w-36!"
                     variant="light"
                     disabled={reviewsCount === 0}
                     onClick={() => navigate('/session/review')}
@@ -127,7 +128,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-1">Mini Games</h3>
             <p className="text-gray-500 mb-6">Review while having fun</p>
-            <Button variant="outline" onClick={() => navigate('/session/games')}>
+            <Button variant="outline" onClick={() => navigate('/session/games')} className="w-36!">
               Play Games
             </Button>
           </div>
