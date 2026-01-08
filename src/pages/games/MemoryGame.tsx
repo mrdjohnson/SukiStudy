@@ -170,7 +170,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}
             >
               <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
-                <img src={logo} className="size-12 opacity-40" alt={card.content} />
+                <img src={logo} className="size-12 opacity-40" alt={'flipped card ' + idx} />
               </div>
 
               <div

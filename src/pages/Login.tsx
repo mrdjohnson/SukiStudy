@@ -59,7 +59,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       >
         <Stack align="center" mb={30}>
           <ActionIcon size={64} radius="xl" color="#ff0000" variant="filled">
-            <img src={logo} />
+            <img src={logo} alt="SukiStudy Logo" />
           </ActionIcon>
 
           <Title ta="center">SukiStudy</Title>

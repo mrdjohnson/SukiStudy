@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
             <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
               <ActionIcon size="lg" radius="xl" color="#ff0000" variant="filled">
-                <img src={logo} />
+                <img src={logo} alt="SukiStudy Logo" />
               </ActionIcon>
               <Text size="xl" fw={700} c="dark">
                 SukiStudy

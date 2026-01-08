@@ -50,7 +50,7 @@ export const Landing: React.FC = () => {
       <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
           <ThemeIcon size="lg" radius="xl" color="#ff0000" variant="filled">
-            <img src={logo} />
+            <img src={logo} alt="SukiStudy Logo" />
           </ThemeIcon>
           <Text size="xl" fw={700} c="secondary">
             SukiStudy
