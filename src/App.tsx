@@ -9,6 +9,7 @@ import { useGames } from './hooks/useGames'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Browse } from './pages/Browse'
+import { About } from './pages/About'
 import { Session } from './pages/Session'
 import { Review } from './pages/Review'
 import { GameMenu } from './pages/games/GameMenu'
@@ -26,43 +27,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     window.scrollTo(0, 0)
   }, [location.pathname])
 
-  const hideHeader = location.pathname === '/login' || location.pathname === '/landing'
-
-  if (hideHeader) {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <main>{children}</main>
-      </div>
-    )
-  }
-
-  return <Header>{children}</Header>
+  return children
 }
 
 export const AuthWrapper = () => {
-  const { user, isSyncing } = useUser()
-
-  if (!user) return <Navigate to="/landing" />
-
-  return (
-    <>
-      {isSyncing && (
-        <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
-          <Icons.RotateCcw className="w-3 h-3 animate-spin" />
-          Syncing...
-        </div>
-      )}
-
-      <PWABadge />
-
-      <Outlet />
-    </>
-  )
-}
-
-export default function App() {
-  const { user, isGuest, loading, login } = useUser()
-  const availableGames = useGames()
+  const { user, isSyncing, loading } = useUser()
 
   if (loading) {
     return (
@@ -78,6 +47,29 @@ export default function App() {
     )
   }
 
+  if (!user) return <Navigate to="/landing" />
+
+  return (
+    <Header>
+      {isSyncing && (
+        <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
+          <Icons.RotateCcw className="w-3 h-3 animate-spin" />
+          Syncing...
+        </div>
+      )}
+
+      <PWABadge />
+
+      <Outlet />
+    </Header>
+  )
+}
+
+export default function App() {
+  const { user, isGuest, login } = useUser()
+
+  const availableGames = useGames()
+
   return (
     <BrowserRouter>
       <Layout>
@@ -87,6 +79,8 @@ export default function App() {
             path="/login"
             element={user && !isGuest ? <Navigate to="/" /> : <Login onLogin={login} />}
           />
+
+          {!user && <Route path="/about" element={<About />} />}
 
           <Route element={<AuthWrapper />}>
             <Route path="/" element={<Dashboard />} />
@@ -107,9 +101,11 @@ export default function App() {
 
             <Route path="/browse" element={<Browse />} />
 
-            {/* go to dashboard if at unknown page */}
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="/about" element={<About />} />
           </Route>
+
+          {/* go to dashboard if at unknown page */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -16,6 +16,8 @@ import {
   Badge,
   ActionIcon,
   Divider,
+  Stack,
+  SimpleGrid,
 } from '@mantine/core'
 import { useDisclosure, useNetwork } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
@@ -169,7 +171,35 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         <Divider />
 
         <AppShell.Section pt="md">
-          <Group className="flex-nowrap!">
+          <Stack>
+            <SimpleGrid cols={3} className="flex-nowrap!">
+              <Button
+                fullWidth
+                variant="subtle"
+                onClick={() => {
+                  navigate('/about')
+                  if (opened) toggle()
+                }}
+                color="indigo"
+              >
+                <Icons.Info />
+              </Button>
+
+              <Button
+                fullWidth
+                variant="subtle"
+                component="a"
+                href="https://github.com/mrdjohnson/SukiStudy"
+                color="indigo"
+              >
+                <Icons.GitHub />
+              </Button>
+
+              <Button variant="subtle" onClick={openLogModal} color="indigo">
+                <IconActivity size={20} />
+              </Button>
+            </SimpleGrid>
+
             <Button
               fullWidth
               variant="light"
@@ -182,17 +212,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
             >
               Settings
             </Button>
-
-            <Button
-              variant="subtle"
-              className="size-9! p-0!"
-              onClick={openLogModal}
-              size="sm"
-              color="indigo"
-            >
-              <IconActivity size={20} />
-            </Button>
-          </Group>
+          </Stack>
         </AppShell.Section>
       </AppShell.Navbar>
 

@@ -5,8 +5,9 @@ import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
 import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper, Center } from '@mantine/core'
 import logo from '@/src/assets/apple-touch-icon.png'
-import { IconBadgeTm, IconBadgeTmFilled } from '@tabler/icons-react'
+import { IconBadgeTm } from '@tabler/icons-react'
 import clsx from 'clsx'
+import { Footer } from '../components/Footer'
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate()
@@ -45,7 +46,7 @@ export const Landing: React.FC = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-300 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-300 to-white flex flex-col font-sans">
       <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
           <ThemeIcon size="lg" radius="xl" color="#ff0000" variant="filled">
@@ -81,7 +82,7 @@ export const Landing: React.FC = () => {
                 Connect WaniKani
               </Button>
               <Button size="xl" variant="outline" onClick={handleGuest} color="indigo">
-                Try Guest Mode
+                Enter as Guest
               </Button>
             </Group>
             <Text size="xs" c="dimmed" mt="sm">
@@ -115,15 +116,7 @@ export const Landing: React.FC = () => {
         </Container>
       </main>
 
-      <footer className="py-6">
-        <Container size="lg" className="text-center text-gray-400 text-sm font-semibold">
-          <p>SukiStudy is a third-party app and not affiliated with WaniKani.</p>
-
-          <br />
-
-          <p>@Copyright 2026</p>
-        </Container>
-      </footer>
+      <Footer />
     </div>
   )
 }
