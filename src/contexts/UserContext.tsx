@@ -86,7 +86,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     init()
   }, [])
 
-  const login = (token: string, userData: User) => {
+  const login = async (token: string, userData: User) => {
     localStorage.setItem('wk_token', token)
     const newUser = { ...userData, is_guest: false, id: 'current' }
     setUser(newUser)
@@ -96,6 +96,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       users.insert(newUser)
     })
+
+    await flush()
 
     startSyncing(async () => {
       await syncService.sync()
