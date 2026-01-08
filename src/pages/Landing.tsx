@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
-import { Container, Title, Text, Group, SimpleGrid, ThemeIcon, Paper, Center } from '@mantine/core'
+import { Container, Title, Text, Group, SimpleGrid, ThemeIcon } from '@mantine/core'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { IconBadgeTm } from '@tabler/icons-react'
 import clsx from 'clsx'
@@ -20,25 +20,25 @@ export const Landing: React.FC = () => {
 
   const features = [
     {
-      backgroundType: 'bg-gradient-to-br!',
+      backgroundType: 'md:bg-gradient-to-br!',
       icon: Icons.Brain,
       title: 'WaniKani Integration',
       desc: 'Seamlessly syncs with your WaniKani progress to prioritize what you need to review.',
     },
     {
-      backgroundType: 'bg-gradient-to-bl!',
+      backgroundType: 'md:bg-gradient-to-bl!',
       icon: Icons.Gamepad2,
       title: 'Gamified Learning',
       desc: 'Break the monotony of reviews of the usual Typing game with Memory Match, Multi choice quiz and more.',
     },
     {
-      backgroundType: 'bg-gradient-to-tr!',
+      backgroundType: 'md:bg-gradient-to-tr!',
       icon: Icons.GridDots,
       title: 'Hiragana/Katakana',
       desc: "Don't have a WaniKani account? Try out guest Mode to practice your basic kana without an account.",
     },
     {
-      backgroundType: 'bg-gradient-to-tl!',
+      backgroundType: 'md:bg-gradient-to-tl!',
       icon: IconBadgeTm,
       title: 'More Data Coming Soon',
       desc: 'More mnemonic sources and custom learning systems to be added in future updates.',
@@ -68,7 +68,7 @@ export const Landing: React.FC = () => {
               Mastering Japanese <br />
               <span className="text-secondary/80 text-3xl">The Fun Way</span>
             </Title>
-            <Text size="xl" c="dimmed" maw={600} mx="auto" mb="xl">
+            <Text size="xl" maw={600} mx="auto" mb="xl">
               A playful companion app for WaniKani users.
             </Text>
 
@@ -77,7 +77,7 @@ export const Landing: React.FC = () => {
                 size="xl"
                 onClick={() => navigate('/login')}
                 leftSection={<Icons.BookOpen size={20} />}
-                className="shadow-xl shadow-indigo-200"
+                className="shadow-md shadow-primary/50"
               >
                 Connect WaniKani
               </Button>
@@ -85,21 +85,19 @@ export const Landing: React.FC = () => {
                 Enter as Guest
               </Button>
             </Group>
-            <Text size="xs" c="dimmed" mt="sm">
+            <Text size="xs" mt="sm">
               Guest mode supports Hiragana & Katakana practice only.
             </Text>
           </div>
 
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={20} py={20}>
             {features.map((f, i) => (
-              <Paper
+              <div
                 key={i}
-                p="xl"
-                radius="md"
-                withBorder
-                classNames={{ root: 'bg-transparent!' }}
                 className={clsx(
                   f.backgroundType,
+                  'bg-white md:bg-transparent',
+                  'p-6 rounded-md shadow-sm text-center',
                   'hover:shadow-md! transition-shadow from-transparent to-white border-slate-200!',
                 )}
               >
@@ -110,7 +108,7 @@ export const Landing: React.FC = () => {
                   {f.title}
                 </Title>
                 <Text c="dimmed">{f.desc}</Text>
-              </Paper>
+              </div>
             ))}
           </SimpleGrid>
         </Container>
