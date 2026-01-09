@@ -87,11 +87,11 @@ export const syncService = {
     localStorage.setItem(SYNC_KEYS.SUBJECTS_MIGRATION, subjectsStart)
   },
 
-  async syncSubjects() {
+  async syncSubjects(forceSync = false) {
     const lastSubjectSync = localStorage.getItem(SYNC_KEYS.SUBJECTS)
     const subjectsStart = new Date().toISOString()
 
-    if (moment().subtract(10, 'minutes').isBefore(moment(lastSubjectSync))) {
+    if (moment().subtract(10, 'minutes').isBefore(moment(lastSubjectSync)) && !forceSync) {
       return
     }
 
@@ -139,11 +139,11 @@ export const syncService = {
     localStorage.setItem(SYNC_KEYS.MATERIALS, matStart)
   },
 
-  async populateKana() {
+  async populateKana(forcePopulate = false) {
     const lastKanaSync = localStorage.getItem(SYNC_KEYS.KANA)
     const kanaStart = new Date().toISOString()
 
-    if (lastKanaSync) {
+    if (lastKanaSync && !forcePopulate) {
       return
     }
 

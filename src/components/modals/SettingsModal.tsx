@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useTransition } from 'react'
 import {
   Modal,
   Switch,
@@ -28,6 +28,9 @@ import { Icons } from '../Icons'
 import moment from 'moment'
 import { IconWorld } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
+import { syncService } from '../../services/syncService'
+import { subjects } from '../../services/db'
+import { flush } from '../../utils/flush'
 
 interface SettingsModalProps {
   opened: boolean
@@ -36,6 +39,9 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const navigate = useNavigate()
+
+  const [isResettingKana, startResettingKana] = useTransition()
+  const [isResettingSubjects, startResettingSubjects] = useTransition()
 
   const {
     soundEnabled,
@@ -129,6 +135,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
         </SimpleGrid>
       </Stack>
     )
+  }
+
+  const resetKanaItems = () => {
+    startResettingKana(async () => {
+      subjects.removeMany({ isKana: true })
+
+      await flush()
+
+      await syncService.populateKana(true)
+    })
+  }
+
+  const resetSubjects = () => {
+    startResettingSubjects(async () => {
+      subjects.removeMany({ isKana: false })
+
+      await flush()
+
+      await syncService.syncSubjects(true)
+    })
   }
 
   return (
@@ -357,6 +383,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
               </Anchor>
             </Center>
           </Stack>
+        </Stack>
+
+        <Divider />
+
+        <Stack gap="xs">
+          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+            Data
+          </Text>
+
+          <Button variant="outline" onClick={resetKanaItems} loading={isResettingKana}>
+            Reset Kana Items
+          </Button>
+
+          <Button variant="outline" onClick={resetSubjects} loading={isResettingSubjects}>
+            Reset Subjects
+          </Button>
         </Stack>
 
         <Divider />
