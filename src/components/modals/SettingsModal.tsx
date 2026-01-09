@@ -61,6 +61,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     setGameLevelMin,
     gameLevelMax,
     setGameLevelMax,
+    gameSyncEnabled,
+    toggleGameSyncEnabled,
   } = useSettings()
 
   const [showBuildTime, setShowBuildTime] = useState(false)
@@ -166,6 +168,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
               </Text>
             </div>
             <Switch checked={romanjiEnabled} onChange={toggleRomanji} />
+          </Group>
+
+          <Group justify="space-between">
+            <div>
+              <Text fw={500}>Sync Game Progress</Text>
+              <Text size="xs" c="dimmed">
+                {gameSyncEnabled
+                  ? 'Progress will be synced to WaniKani'
+                  : 'Progress will not be synced to WaniKani'}
+              </Text>
+            </div>
+            <Switch checked={gameSyncEnabled} onChange={toggleGameSyncEnabled} disabled={isGuest} />
           </Group>
         </Stack>
 

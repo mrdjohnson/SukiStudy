@@ -11,6 +11,7 @@ import React, {
 import { SubjectType } from '../types'
 import _ from 'lodash'
 import { useUser } from './UserContext'
+import { waniKaniService } from '../services/wanikaniService'
 
 interface Step {
   title: string
@@ -53,6 +54,11 @@ const useSettingsContext = () => {
     defaultValue: 60,
   })
 
+  const [gameSyncEnabled, setGameSyncEnabled] = useLocalStorage({
+    key: 'suki_game_sync_enabled',
+    defaultValue: true,
+  })
+
   // Content Settings
   const [hiddenSubjects, setHiddenSubjects] = useLocalStorage<SubjectType[]>({
     key: 'suki_hidden_subjects',
@@ -93,6 +99,7 @@ const useSettingsContext = () => {
 
   const toggleAutoPlayAudio = () => setAutoPlayAudio(prev => !prev)
   const toggleAutoConvertTyping = () => setAutoConvertTyping(prev => !prev)
+  const toggleGameSyncEnabled = () => setGameSyncEnabled(prev => !prev)
 
   const getGameSettings = useCallback(
     (gameId: string): Partial<GameSettings> => {
@@ -143,6 +150,14 @@ const useSettingsContext = () => {
     }
   }, [user?.subscription.max_level_granted, gameLevelMax])
 
+  useEffect(() => {
+    if (isGuest) {
+      waniKaniService.setSyncEnabled(false)
+    } else {
+      waniKaniService.setSyncEnabled(gameSyncEnabled)
+    }
+  }, [gameSyncEnabled, isGuest])
+
   return {
     soundEnabled,
     toggleSound,
@@ -170,6 +185,9 @@ const useSettingsContext = () => {
     setGameLevelMin,
     gameLevelMax,
     setGameLevelMax,
+
+    gameSyncEnabled,
+    toggleGameSyncEnabled,
   }
 }
 

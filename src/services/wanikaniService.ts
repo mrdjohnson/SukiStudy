@@ -15,6 +15,7 @@ class WaniKaniService {
   private requestTimestamps: number[] = []
   private readonly MAX_REQUESTS = 50 // Requests per minute
   private readonly TIME_WINDOW = 60000 // 1 minute in ms
+  private syncEnabled = true
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -24,6 +25,10 @@ class WaniKaniService {
 
   setToken(token: string) {
     this.token = token
+  }
+
+  setSyncEnabled(enabled: boolean) {
+    this.syncEnabled = enabled
   }
 
   /**
@@ -153,6 +158,13 @@ class WaniKaniService {
   // --- Actions ---
 
   async startAssignment(assignmentId: number) {
+    if (!this.syncEnabled) {
+      console.log('[WaniKaniService] Sync disabled, skipping startAssignment')
+      return {}
+    }
+
+    console.log('[WaniKaniService] Starting assignment', assignmentId)
+
     return this.request(`/assignments/${assignmentId}/start`, {
       method: 'PUT',
     })
@@ -163,6 +175,13 @@ class WaniKaniService {
     incorrectMeaningAnswers: number,
     incorrectReadingAnswers: number,
   ) {
+    if (!this.syncEnabled) {
+      console.log('[WaniKaniService] Sync disabled, skipping createReview')
+      return {}
+    }
+
+    console.log('[WaniKaniService] Creating review', assignmentId)
+
     return this.request('/reviews', {
       method: 'POST',
       body: JSON.stringify({
