@@ -5,9 +5,9 @@ import { AudioQuizGame } from '../pages/games/AudioQuizGame'
 import { ConnectGame } from '../pages/games/ConnectGame'
 import { MemoryGame } from '../pages/games/MemoryGame'
 import { QuizGame } from '../pages/games/QuizGame'
-import { RadicalCompositionGame } from '../pages/games/RadicalCompositionGame'
+// import { RadicalCompositionGame } from '../pages/games/RadicalCompositionGame'
 import { RecallGame } from '../pages/games/RecallGame'
-import { ShiritoriGame } from '../pages/games/ShiritoriGame'
+// import { ShiritoriGame } from '../pages/games/ShiritoriGame'
 import { MatchingGame } from '../pages/games/MatchingGame'
 import { TypingGame } from '../pages/games/TypingGame'
 import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
@@ -99,38 +99,38 @@ export const games: GameDefinition[] = [
     component: RecallGame,
     hiddenSubjectTypes: [SubjectType.HIRAGANA, SubjectType.KATAKANA, SubjectType.RADICAL],
   },
-  {
-    id: 'shiritori',
-    name: 'Shiritori',
-    desc: 'Connect words by their last character.',
-    icon: Icons.Link,
-    color: 'bg-yellow-100 text-yellow-600',
-    enabled: false,
-    component: ShiritoriGame,
-    // hidden game for now
-    hiddenSubjectTypes: [
-      SubjectType.HIRAGANA,
-      SubjectType.KATAKANA,
-      SubjectType.RADICAL,
-      SubjectType.VOCABULARY,
-    ],
-  },
-  {
-    id: 'radical-composition',
-    name: 'Kanji Composition',
-    desc: 'Construct Kanji from radical parts.',
-    icon: Icons.Puzzle,
-    color: 'bg-sky-100 text-sky-600',
-    enabled: false,
-    component: RadicalCompositionGame,
-    // hidden game for now
-    hiddenSubjectTypes: [
-      SubjectType.HIRAGANA,
-      SubjectType.KATAKANA,
-      SubjectType.RADICAL,
-      SubjectType.VOCABULARY,
-    ],
-  },
+  // {
+  //   id: 'shiritori',
+  //   name: 'Shiritori',
+  //   desc: 'Connect words by their last character.',
+  //   icon: Icons.Link,
+  //   color: 'bg-yellow-100 text-yellow-600',
+  //   enabled: false,
+  //   component: ShiritoriGame,
+  //   // hidden game for now
+  //   hiddenSubjectTypes: [
+  //     SubjectType.HIRAGANA,
+  //     SubjectType.KATAKANA,
+  //     SubjectType.RADICAL,
+  //     SubjectType.VOCABULARY,
+  //   ],
+  // },
+  // {
+  //   id: 'radical-composition',
+  //   name: 'Kanji Composition',
+  //   desc: 'Construct Kanji from radical parts.',
+  //   icon: Icons.Puzzle,
+  //   color: 'bg-sky-100 text-sky-600',
+  //   enabled: false,
+  //   component: RadicalCompositionGame,
+  //   // hidden game for now
+  //   hiddenSubjectTypes: [
+  //     SubjectType.HIRAGANA,
+  //     SubjectType.KATAKANA,
+  //     SubjectType.RADICAL,
+  //     SubjectType.VOCABULARY,
+  //   ],
+  // },
   {
     id: 'audio',
     name: 'Audio Listen',
