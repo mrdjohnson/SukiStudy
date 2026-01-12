@@ -17,6 +17,7 @@ type UseGameLogicProps = {
   initialRoundNumber?: number
   canSkip?: boolean
   scoreDelay?: number
+  onRoundFinish?: () => void
 }
 
 export type GameLogic<T extends GameItem> = ReturnType<typeof useGameLogic<T>>
@@ -33,6 +34,7 @@ export const useGameLogic = <T extends GameItem>({
   initialRoundNumber,
   canSkip = true,
   scoreDelay = 1500,
+  onRoundFinish,
 }: UseGameLogicProps) => {
   const navigate = useNavigate()
 
@@ -100,6 +102,8 @@ export const useGameLogic = <T extends GameItem>({
     setRoundNumber(roundNumber => roundNumber + 1)
 
     setIsAnswerIncorrect(false)
+
+    onRoundFinish?.()
   }
 
   const skip = (item: T) => {

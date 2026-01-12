@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { GameItem } from '../../types'
+import { GameItem, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import _ from 'lodash'
 import { GameContainer } from '../../components/GameContainer'
+import { toItemWithAnswer } from '../../utils/multiChoiceGame'
+import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
 interface AudioQuizGameProps {
   items?: GameItem[]
@@ -16,36 +18,52 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   // Filter only items with audio
   const items = useMemo(() => {
-    return (propItems || fetchedItems).filter(i => i.subject.pronunciation_audios?.[0])
+    let itemOptions = propItems || fetchedItems
+
+    const pairType = _.sample(['reading', 'meaning'] as const)
+
+    return _.chain(itemOptions)
+      .filter(i => !!i.subject.pronunciation_audios?.[0])
+      .map(item => toItemWithAnswer(item, pairType))
+      .compact()
+      .value()
   }, [fetchedItems, propItems])
 
-  const gameLogic = useGameLogic({
+  const gameLogic = useGameLogic<MultiChoiceGameItem>({
     gameId: 'audio',
     totalRounds: propItems?.length || 10,
+    onRoundFinish: () => {
+      setSelectedAnswer(null)
+    },
   })
 
   const { startGame, recordAttempt, gameState, setGameItems, skip } = gameLogic
   const { roundNumber, maxRoundNumber, gameItems, isFinished } = gameState
 
-  const target = gameItems[roundNumber - 1]
-  const [submitted, setSubmitted] = useState(false)
-  const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const currentItem = gameItems[roundNumber - 1]
+
+  const [selectedAnswer, setSelectedAnswer] = useState<{ value: string; correct: boolean } | null>(
+    null,
+  )
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const { setHelpSteps } = useSettings()
 
   const options = useMemo(() => {
-    if (!target || items.length < 4) return []
+    if (!currentItem) return []
 
-    const targetCharacters = target.subject.characters
+    const answer = currentItem.answer
+
+    if (!answer) return []
 
     return _.chain(items)
-      .filter(item => item.subject.characters !== targetCharacters)
-      .uniqBy(item => item.subject.characters)
+      .map('answer')
+      .without(answer)
       .sampleSize(3)
-      .concat(target)
+      .concat(answer)
+      .shuffle()
       .value()
-  }, [target?.subject, items])
+  }, [currentItem?.subject.id, items])
 
   useEffect(() => {
     setHelpSteps([
@@ -66,10 +84,10 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
   }, [])
 
   const playQuestionAudio = () => {
-    if (target.subject.pronunciation_audios) {
-      const audios = target.subject.pronunciation_audios
+    if (currentItem.subject.pronunciation_audios) {
+      const audios = currentItem.subject.pronunciation_audios
       // Pick a random audio sample from the subject
-      const audio = audios[Math.floor(Math.random() * audios.length)]
+      const audio = _.sample(audios)!
 
       if (audioRef.current) {
         audioRef.current.src = audio.url
@@ -86,17 +104,12 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     _.chain(items).sampleSize(maxRoundNumber).tap(setGameItems).value()
   }
 
-  const initRound = () => {
-    setSelectedOption(null)
-    setSubmitted(false)
-  }
-
   // Auto play audio when question sets
   useEffect(() => {
-    if (target) {
+    if (currentItem) {
       setTimeout(playQuestionAudio, 500)
     }
-  }, [target])
+  }, [currentItem?.subject.id])
 
   useEffect(() => {
     if (!loading && items.length >= 4) {
@@ -105,18 +118,13 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     }
   }, [items, loading])
 
-  useEffect(() => {
-    initRound()
-  }, [target?.subject])
+  const handleAnswer = (value: string) => {
+    if (selectedAnswer || !currentItem) return
 
-  const handleOptionClick = (id: number) => {
-    if (submitted) return
-    setSelectedOption(id)
-    setSubmitted(true)
+    const correct = value === currentItem.answer
 
-    const isCorrect = id === target.subject.id
-
-    recordAttempt(target, isCorrect)
+    setSelectedAnswer({ value, correct })
+    recordAttempt(currentItem, correct)
   }
 
   if (loading) {
@@ -130,7 +138,7 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
   }
 
   return (
-    <GameContainer gameLogic={gameLogic} skip={() => skip(target)}>
+    <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)}>
       <div className="text-center mb-12">
         <button
           onClick={playQuestionAudio}
@@ -142,34 +150,15 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
       </div>
 
       <div className="grid grid-cols-1 gap-3 mb-8">
-        {target &&
-          options.map(opt => {
-            const isSelected = selectedOption === opt.subject.id
-            const isCorrect = opt.subject.id === target.subject.id
-
-            let styles = 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'
-            if (submitted) {
-              if (isCorrect) styles = 'bg-green-100 border-green-500 text-green-800 font-bold'
-              else if (isSelected && !isCorrect)
-                styles = 'bg-red-100 border-red-500 text-red-800 opacity-60'
-              else styles = 'bg-gray-50 border-gray-100 text-gray-400 opacity-60'
-            }
-
-            return (
-              <button
-                key={opt.subject.id}
-                onClick={() => handleOptionClick(opt.subject.id!)}
-                disabled={submitted}
-                className={`p-4 rounded-xl border-2 flex items-center justify-between transition-all ${styles}`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl font-bold">{opt.subject.characters}</span>
-                  <span className="text-sm">{opt.subject.meanings[0].meaning}</span>
-                </div>
-                {submitted && isCorrect && <Icons.Check className="w-5 h-5 text-green-600" />}
-              </button>
-            )
-          })}
+        {options.map(opt => (
+          <MultiChoiceSelectionItem
+            key={opt}
+            option={opt}
+            answer={currentItem.answer}
+            selectedAnswer={selectedAnswer}
+            handleAnswer={handleAnswer}
+          />
+        ))}
       </div>
     </GameContainer>
   )
