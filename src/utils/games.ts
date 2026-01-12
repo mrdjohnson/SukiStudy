@@ -138,6 +138,6 @@ export const games: GameDefinition[] = [
     icon: Icons.Music,
     color: 'bg-fuchsia-100 text-fuchsia-600',
     component: AudioQuizGame,
-    hiddenSubjectTypes: [SubjectType.HIRAGANA, SubjectType.KATAKANA, SubjectType.RADICAL],
+    hiddenSubjectTypes: [SubjectType.RADICAL],
   },
 ]
