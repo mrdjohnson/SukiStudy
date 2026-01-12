@@ -7,6 +7,7 @@ import { GameContainer } from '../../components/GameContainer'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import _ from 'lodash'
 import { toItemWithAnswer } from '../../utils/multiChoiceGame'
+import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
 interface QuizGameProps {
   items?: GameItem[]
@@ -147,39 +148,15 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {options.map((opt: string, idx: number) => {
-                const isSelected = selectedAnswer?.value === opt
-                const isCorrect = isSelected && selectedAnswer.correct
-
-                let btnClass =
-                  'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700'
-
-                if (selectedAnswer) {
-                  if (isCorrect) {
-                    btnClass =
-                      'border-green-500 bg-green-50 text-green-700 font-bold ring-2 ring-green-200'
-                  } else if (isSelected) {
-                    btnClass = 'border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200'
-                  } else {
-                    btnClass = 'border-gray-200 opacity-50'
-                  }
-                }
-
-                return (
-                  <button
-                    key={opt + idx}
-                    onClick={() => handleAnswer(opt)}
-                    disabled={!!selectedAnswer}
-                    className={`p-4 rounded-xl border-2 transition-all font-medium text-lg ${btnClass}`}
-                  >
-                    {opt}
-                    {selectedAnswer && isCorrect && (
-                      <Icons.Check className="inline-block ml-2 w-5 h-5" />
-                    )}
-                    {isSelected && !isCorrect && <Icons.X className="inline-block ml-2 w-5 h-5" />}
-                  </button>
-                )
-              })}
+              {options.map(opt => (
+                <MultiChoiceSelectionItem
+                  key={opt}
+                  option={opt}
+                  answer={currentItem.answer}
+                  selectedAnswer={selectedAnswer}
+                  handleAnswer={handleAnswer}
+                />
+              ))}
             </div>
           </>
         )
