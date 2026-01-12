@@ -40,16 +40,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const init = async () => {
       await users.isReady()
       const dbUser = users.findOne({ id: 'current' })
+      const storedToken = localStorage.getItem('wk_token')
 
       if (dbUser) {
         setUser(dbUser)
 
         setLoading(false)
 
+        if (storedToken) {
+          waniKaniService.setToken(storedToken)
+        }
+
         return
       }
 
-      const storedToken = localStorage.getItem('wk_token')
       if (storedToken) {
         waniKaniService.setToken(storedToken)
 
@@ -77,6 +81,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem('wk_token')
             await syncService.clearData()
           }
+        } finally {
+          setLoading(false)
         }
       } else {
         // No token and no db user - truly logged out
