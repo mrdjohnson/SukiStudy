@@ -10,6 +10,7 @@ import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
+import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
 interface VariationsQuizGameProps {
   items?: GameItem[]
@@ -184,28 +185,21 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
                 const isSelected = selectedOptions.has(opt)
                 const isCorrect = question.correctReadings.includes(opt)
 
-                let className = 'p-4 rounded-xl border-2 font-bold text-lg transition-all '
-
+                let feedbackStatus: 'correct' | 'incorrect' | undefined
                 if (submitted) {
-                  if (isSelected) className += ' opacity-30 '
-                  if (isCorrect) className += 'bg-green-100 border-green-500 text-green-800'
-                  else if (isSelected && !isCorrect)
-                    className += 'bg-red-100 border-red-500 text-red-800 opacity-50'
-                  else className += 'bg-gray-50 border-gray-200 text-gray-400'
-                } else {
-                  if (isSelected) className += 'bg-indigo-100 border-indigo-500 text-indigo-800'
-                  else className += 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'
+                  if (isCorrect) feedbackStatus = 'correct'
+                  else if (isSelected) feedbackStatus = 'incorrect'
                 }
 
                 return (
-                  <button
+                  <MultiChoiceSelectionItem
                     key={opt}
-                    onClick={() => toggleOption(opt)}
-                    className={className}
+                    option={opt}
+                    handleAnswer={() => toggleOption(opt)}
+                    isSelectedOption={isSelected}
+                    feedbackStatus={feedbackStatus}
                     disabled={submitted}
-                  >
-                    {opt}
-                  </button>
+                  />
                 )
               })}
             </div>
