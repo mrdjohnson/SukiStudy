@@ -9,6 +9,7 @@ import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
 import { selectUniqueItems } from '../../utils/multiChoiceGame'
 import { useSet } from '@mantine/hooks'
+import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
 interface MatchingGameProps {
   items?: GameItem[]
@@ -38,6 +39,10 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
   const [rightItems, setRightItems] = useState<GameCard[]>([])
   const [selectedItem, setSelectedItem] = useState<GameCard | null>(null)
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null)
+  const [feedbackState, setFeedbackState] = useState<{
+    ids: string[]
+    status: 'correct' | 'incorrect'
+  } | null>(null)
   const matchedIds = useSet<string>()
 
   const { soundEnabled, setHelpSteps } = useSettings()
@@ -90,6 +95,9 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
   }, [])
 
   const handleSelection = (gameItem: GameCard, side: 'left' | 'right') => {
+    // Block interaction during feedback delay
+    if (feedbackState) return
+
     const id = gameItem.id
 
     if (matchedIds.has(id)) return
@@ -117,23 +125,30 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     }
 
     // Check match
-    if (selectedItem.answer === gameItem.answer) {
+    const isMatch = selectedItem.answer === gameItem.answer
+    setFeedbackState({
+      ids: [selectedItem.id, gameItem.id],
+      status: isMatch ? 'correct' : 'incorrect',
+    })
+
+    if (isMatch) {
       const questionItem = selectedItem.isQuestion ? selectedItem : gameItem
-
-      // Match found
       recordAttempt(questionItem, true)
-
-      matchedIds.add(selectedItem.id)
-      matchedIds.add(gameItem.id)
-
-      setSelectedItem(null)
-      setSelectedSide(null)
     } else {
-      // Wrong match
       playSound('error', soundEnabled)
+    }
+
+    // Delay clearing/processing
+    setTimeout(() => {
+      if (isMatch) {
+        matchedIds.add(selectedItem.id)
+        matchedIds.add(gameItem.id)
+      }
+
       setSelectedItem(null)
       setSelectedSide(null)
-    }
+      setFeedbackState(null)
+    }, 1200)
   }
 
   if (loading) {
@@ -146,23 +161,44 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     )
   }
 
+  // const createItemCard = (side: 'left' | 'right') => (item: GameCard) => {
+  //   const isMatched = matchedIds.has(item.id)
+  //   const isSelected = selectedItem?.id === item.id
+
+  //   return (
+  //     <button
+  //       key={item.subject.id}
+  //       onClick={() => handleSelection(item, side)}
+  //       disabled={isMatched}
+  //       className={`
+  //                  w-full h-20 flex items-center justify-center bg-white border-2 rounded-xl font-bold text-3xl shadow-sm transition-all
+  //                  ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
+  //                  ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}
+  //                `}
+  //     >
+  //       {side === 'left' ? item.question : item.answer}
+  //     </button>
+  //   )
+  // }
+
   const createItemCard = (side: 'left' | 'right') => (item: GameCard) => {
     const isMatched = matchedIds.has(item.id)
     const isSelected = selectedItem?.id === item.id
 
+    let feedbackStatus: 'correct' | 'incorrect' | undefined
+    if (feedbackState && feedbackState.ids.includes(item.id)) {
+      feedbackStatus = feedbackState.status
+    }
+
     return (
-      <button
-        key={item.subject.id}
-        onClick={() => handleSelection(item, side)}
+      <MultiChoiceSelectionItem
+        key={item.id}
+        handleAnswer={() => handleSelection(item, side)}
         disabled={isMatched}
-        className={`
-                   w-full h-20 flex items-center justify-center bg-white border-2 rounded-xl font-bold text-3xl shadow-sm transition-all
-                   ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
-                   ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}
-                 `}
-      >
-        {side === 'left' ? item.question : item.answer}
-      </button>
+        option={side === 'left' ? item.question : item.answer}
+        isSelectedOption={isSelected}
+        feedbackStatus={feedbackStatus}
+      />
     )
   }
 
