@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { QuestionDisplay } from '../../components/QuestionDisplay'
 import { useSet } from '@mantine/hooks'
 import _ from 'lodash'
 
@@ -6,7 +7,6 @@ import { GameItem, SubjectType } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { useSettings } from '../../contexts/SettingsContext'
-import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
@@ -150,32 +150,17 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
   return (
     <GameContainer
       gameLogic={gameLogic}
-      skip={() => skip(question.target)}
+      skip={() => skip(question!.target)}
       onClear={() => selectedOptions.clear()}
       clearDisabled={selectedOptions.size === 0}
       children={
         question && (
           <>
-            <div className="text-center mb-8">
-              <div className="text-xs font-bold uppercase text-indigo-500 tracking-widest mb-2">
-                Select ALL correct readings
-              </div>
-
-              <div
-                onClick={() => submitted && openFlashcardModal([question.target.subject])}
-                className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-12' : 'text-gray-900'}`}
-                title={submitted ? 'Click to view flashcard' : ''}
-              >
-                {question.target.subject.characters}
-              </div>
-
-              {/* Meaning revealed after submit */}
-              <div
-                className={`text-lg font-medium transition-opacity duration-500 ${submitted ? 'opacity-100 text-gray-700' : 'opacity-0'}`}
-              >
-                {question.target.subject.meanings[0].meaning}
-              </div>
-            </div>
+            <QuestionDisplay
+              subject={question.target.subject}
+              isReviewable={!!question.target.isReviewable}
+              isInteractionEnabled={submitted}
+            />
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
               {question.options.map((opt: string) => {

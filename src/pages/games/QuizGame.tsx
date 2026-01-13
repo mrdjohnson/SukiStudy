@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { QuestionDisplay } from '../../components/QuestionDisplay'
 import { GameItem, GameResultData, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
@@ -37,6 +38,9 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     totalRounds: propItems?.length || 10,
     canSkip: true,
     onComplete,
+    onRoundFinish() {
+      setSelectedAnswer(null)
+    },
   })
 
   const { gameState, skip, recordAttempt, startGame, setGameItems } = gameLogic
@@ -129,23 +133,13 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
       children={
         currentItem && (
           <>
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-8 relative overflow-hidden">
-              {currentItem.isReviewable && (
-                <div className="absolute top-0 right-0 bg-yellow-400 text-white text-xs font-bold px-2 py-1">
-                  REVIEW
-                </div>
-              )}
-
-              <div className="text-6xl font-bold text-gray-800 mb-4">
-                {currentItem.question || (
-                  <img
-                    src={currentItem.subject.character_images[0].url}
-                    className="w-16 h-16 mx-auto"
-                    alt=""
-                  />
-                )}
-              </div>
-            </div>
+            <QuestionDisplay
+              key={currentItem.subject.id}
+              subject={currentItem.subject}
+              question={currentItem.question}
+              isReviewable={!!currentItem.isReviewable}
+              isInteractionEnabled={!!selectedAnswer}
+            />
 
             <div className="grid grid-cols-1 gap-3">
               {options.map(opt => (

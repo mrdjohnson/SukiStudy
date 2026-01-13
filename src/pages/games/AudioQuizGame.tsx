@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { GameItem, MultiChoiceGameItem } from '../../types'
+import React, { useState, useEffect, useRef, useMemo, MouseEventHandler } from 'react'
+import { QuestionDisplay } from '../../components/QuestionDisplay'
+import { GameItem, MultiChoiceGameItem, SubjectType } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -8,6 +9,8 @@ import _ from 'lodash'
 import { GameContainer } from '../../components/GameContainer'
 import { toItemWithAnswer } from '../../utils/multiChoiceGame'
 import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
+import { ActionIcon } from '@mantine/core'
+import { colorByType } from '../../utils/subject'
 
 interface AudioQuizGameProps {
   items?: GameItem[]
@@ -83,7 +86,9 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     return () => setHelpSteps(null)
   }, [])
 
-  const playQuestionAudio = () => {
+  const playQuestionAudio: MouseEventHandler = e => {
+    e?.stopPropagation()
+
     if (currentItem.subject.pronunciation_audios) {
       const audios = currentItem.subject.pronunciation_audios
       // Pick a random audio sample from the subject
@@ -139,15 +144,23 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
 
   return (
     <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)}>
-      <div className="text-center mb-12">
-        <button
-          onClick={playQuestionAudio}
-          className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 hover:bg-indigo-200 transition-colors shadow-sm animate-pulse-slow"
-        >
-          <Icons.Volume className="w-16 h-16 text-indigo-600" />
-        </button>
-        <div className="text-sm text-gray-500 font-medium">Tap to replay audio</div>
-      </div>
+      <QuestionDisplay
+        subject={currentItem?.subject}
+        isReviewable={!!currentItem?.isReviewable}
+        isInteractionEnabled={!!selectedAnswer}
+        customContent={
+          <div className="flex flex-col items-center">
+            <ActionIcon
+              color={colorByType[currentItem?.subject.object || SubjectType.VOCABULARY]}
+              onClick={playQuestionAudio}
+              variant="light"
+              className="size-18! rounded-full! suppress-card-hover hover:scale-120 transition-transform"
+            >
+              <Icons.Volume />
+            </ActionIcon>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-3 mb-8">
         {options.map(opt => (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { QuestionDisplay } from '../../components/QuestionDisplay'
 import { GameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
@@ -6,7 +7,6 @@ import { playSound } from '../../utils/sound'
 import { useSettings } from '../../contexts/SettingsContext'
 import { toHiragana } from '../../utils/kana'
 import { levenshteinDistance } from '../../utils/string'
-import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
@@ -149,23 +149,11 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
       children={
         currentItem && (
           <>
-            <div className="text-center mb-8">
-              <div
-                onClick={() =>
-                  answered && openFlashcardModal(currentItem.subject, currentItem.assignment)
-                }
-                className={`text-7xl font-bold mb-6 inline-block transition-all ${answered ? 'text-indigo-600 cursor-pointer scale-110' : 'text-gray-900'}`}
-              >
-                {currentItem.subject.characters || '?'}
-              </div>
-
-              <div
-                className={`h-8 text-lg font-medium ${answered ? 'transition-opacity opacity-100 text-gray-600' : 'opacity-0'}`}
-              >
-                {currentItem.subject.meanings[0].meaning} •{' '}
-                {currentItem.subject.readings?.[0]?.reading}
-              </div>
-            </div>
+            <QuestionDisplay
+              subject={currentItem.subject}
+              isReviewable={!!currentItem.isReviewable}
+              isInteractionEnabled={answered}
+            />
 
             <div className="max-w-sm mx-auto">
               <form onSubmit={checkAnswer} className="relative">
