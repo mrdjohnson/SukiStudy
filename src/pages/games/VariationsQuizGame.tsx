@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useSet } from '@mantine/hooks'
 import _ from 'lodash'
 
-import { GameItem } from '../../types'
+import { GameItem, SubjectType } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -68,9 +68,10 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
   }, [])
 
   const kanjiItems = useMemo(() => {
-    return items.filter(
-      i => i.assignment.subject_type === 'kanji' && !_.isEmpty(i.subject.readings),
-    )
+    return _.chain(items)
+      .filter(i => i.subject.object === SubjectType.KANJI && !_.isEmpty(i.subject.readings))
+      .compact()
+      .value()
   }, [items])
 
   const initGame = () => {
@@ -81,14 +82,14 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     selectedOptions.clear()
     setSubmitted(false)
 
-    const correctReadings = target.subject.readings.map(r => r.reading)
+    const correctReadings = target.subject.readings!.map(r => r.reading)
 
     const options = _.chain(kanjiItems)
       .sampleSize(8) // grab 8 random items
-      .flatMap(i => i.subject.readings.map(r => r.reading)) // grab the readings of those items
+      .flatMap(i => i.subject.readings!.map(r => r.reading)) // grab the readings of those items
       .without(...correctReadings) // remove the correct readings
       .uniq() // remove duplicates
-      .sampleSize(6 - target.subject.readings.length) // grab X amount that totals to 6
+      .sampleSize(6 - target.subject.readings!.length) // grab X amount that totals to 6
       .concat(correctReadings) // re-add the correct readings
       .shuffle() // dance
       .value()
@@ -124,13 +125,15 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
 
   const handleSubmit = () => {
     setSubmitted(true)
-    const correctSet = new Set(question.correctReadings)
+    const correctSet = new Set(question!.correctReadings)
 
-    const allCorrectSelected = question.correctReadings.every((r: string) => selectedOptions.has(r))
+    const allCorrectSelected = question!.correctReadings.every((r: string) =>
+      selectedOptions.has(r),
+    )
     const noExtras = correctSet.size === selectedOptions.size
     const isCorrect = allCorrectSelected && noExtras
 
-    recordAttempt(question.target, isCorrect)
+    recordAttempt(question!.target, isCorrect)
   }
 
   if (loading) {
