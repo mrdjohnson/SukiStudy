@@ -162,11 +162,8 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
               </div>
 
               <div
-                onClick={() =>
-                  submitted &&
-                  openFlashcardModal(question.target.subject, question.target.assignment)
-                }
-                className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-8' : 'text-gray-900'}`}
+                onClick={() => submitted && openFlashcardModal([question.target.subject])}
+                className={`text-6xl font-bold mb-4 inline-block transition-colors ${submitted ? 'text-indigo-600 cursor-pointer underline decoration-dotted underline-offset-12' : 'text-gray-900'}`}
                 title={submitted ? 'Click to view flashcard' : ''}
               >
                 {question.target.subject.characters}
