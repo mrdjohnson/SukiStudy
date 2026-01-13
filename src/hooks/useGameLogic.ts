@@ -60,6 +60,7 @@ export const useGameLogic = <T extends GameItem>({
     if (calculatedMaxScore !== undefined) {
       setMaxScore(calculatedMaxScore)
     }
+    setRoundNumber(initialRoundNumber ?? 1)
     startTimeRef.current = Date.now()
     timeTakenRef.current = null
   }, [])
@@ -134,7 +135,7 @@ export const useGameLogic = <T extends GameItem>({
         gameId,
         score,
         maxScore: finalMaxScore,
-        timeTaken: timeTakenRef.current,
+        timeTaken: timeTakenRef.current || '0:00',
         history: gameItems,
       })
     } else {

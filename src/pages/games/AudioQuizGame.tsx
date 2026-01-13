@@ -142,37 +142,46 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
     )
   }
 
-  return (
-    <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)}>
-      <QuestionDisplay
-        subject={currentItem?.subject}
-        isReviewable={!!currentItem?.isReviewable}
-        isInteractionEnabled={!!selectedAnswer}
-        customContent={
-          <div className="flex flex-col items-center">
-            <ActionIcon
-              color={colorByType[currentItem?.subject.object || SubjectType.VOCABULARY]}
-              onClick={playQuestionAudio}
-              variant="light"
-              className="size-18! rounded-full! suppress-card-hover hover:scale-120 transition-transform"
-            >
-              <Icons.Volume />
-            </ActionIcon>
-          </div>
-        }
-      />
+  const restartGame = () => {
+    startGame()
+    initGame()
+  }
 
-      <div className="grid grid-cols-1 gap-3 mb-8">
-        {options.map(opt => (
-          <MultiChoiceSelectionItem
-            key={opt}
-            option={opt}
-            answer={currentItem.answer}
-            selectedAnswer={selectedAnswer}
-            handleAnswer={handleAnswer}
+  return (
+    <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)} onPlayAgain={restartGame}>
+      {currentItem && (
+        <>
+          <QuestionDisplay
+            subject={currentItem.subject}
+            isReviewable={!!currentItem.isReviewable}
+            isInteractionEnabled={!!selectedAnswer}
+            customContent={
+              <div className="flex flex-col items-center">
+                <ActionIcon
+                  color={colorByType[currentItem.subject.object || SubjectType.VOCABULARY]}
+                  onClick={playQuestionAudio}
+                  variant="light"
+                  className="size-18! rounded-full! suppress-card-hover hover:scale-120 transition-transform"
+                >
+                  <Icons.Volume />
+                </ActionIcon>
+              </div>
+            }
           />
-        ))}
-      </div>
+
+          <div className="grid grid-cols-1 gap-3 mb-8">
+            {options.map(opt => (
+              <MultiChoiceSelectionItem
+                key={opt}
+                option={opt}
+                answer={currentItem.answer}
+                selectedAnswer={selectedAnswer}
+                handleAnswer={handleAnswer}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </GameContainer>
   )
 }

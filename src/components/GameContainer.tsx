@@ -14,6 +14,7 @@ type GameHeaderProps<T extends GameItem> = PropsWithChildren<{
   onHint?: () => void
   hintDisabled?: boolean
   shouldNavigateBack?: boolean
+  onPlayAgain?: () => void
 }>
 
 const Back = -1 as Partial<Path>
@@ -27,6 +28,7 @@ export const GameContainer = <T extends GameItem>({
   onHint,
   hintDisabled,
   shouldNavigateBack = false,
+  onPlayAgain,
 }: GameHeaderProps<T>) => {
   const navigate = useNavigate()
   const buttonSizes = useMatches({
@@ -92,6 +94,7 @@ export const GameContainer = <T extends GameItem>({
     return (
       <GameResults
         gameLogic={gameLogic}
+        onPlayAgain={onPlayAgain}
         // isLastGame={!propItems} // Standard mode implies last game, propItems usually implies custom/lesson queue
       />
     )

@@ -4,13 +4,20 @@ import { Button } from './ui/Button'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import { GameLogic } from '../hooks/useGameLogic'
 import { GameItemIcon } from './GameItemIcon'
+import { IconReload } from '@tabler/icons-react'
+import { GameItem } from '../types'
 
-interface GameResultsProps {
-  gameLogic: GameLogic
+interface GameResultsProps<T extends GameItem> {
+  gameLogic: GameLogic<T>
   isLastGame?: boolean
+  onPlayAgain?: () => void
 }
 
-export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame = true }) => {
+export const GameResults = <T extends GameItem>({
+  gameLogic,
+  isLastGame = true,
+  onPlayAgain,
+}: GameResultsProps<T>) => {
   const { game: gameInfo, gameState } = gameLogic
   const { maxScore, score, time: timeTaken, gameItems } = gameState
 
@@ -56,7 +63,7 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame 
                   idx,
                 )
               }
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left cursor-pointer"
             >
               <div className="flex items-center gap-4">
                 <GameItemIcon subject={item.subject} />
@@ -78,7 +85,18 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameLogic, isLastGame 
         </div>
       </div>
 
-      <div className="text-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        {onPlayAgain && (
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={onPlayAgain}
+            className="w-full sm:w-auto min-w-[200px]"
+          >
+            <IconReload className="mr-2 w-5 h-5" />
+            Play Again
+          </Button>
+        )}
         <Button size="lg" onClick={gameLogic.finishGame} className="w-full sm:w-auto min-w-[200px]">
           {isLastGame ? 'Finish Session' : 'Next Game'}
           <Icons.ChevronRight className="ml-2 w-5 h-5" />

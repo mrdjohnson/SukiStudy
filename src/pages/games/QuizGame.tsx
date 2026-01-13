@@ -130,6 +130,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
     <GameContainer
       gameLogic={gameLogic}
       skip={() => skip(currentItem!)}
+      onPlayAgain={initGame}
       children={
         currentItem && (
           <>

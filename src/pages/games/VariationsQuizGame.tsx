@@ -147,12 +147,18 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     )
   }
 
+  const restartGame = () => {
+    startGame()
+    initGame()
+  }
+
   return (
     <GameContainer
       gameLogic={gameLogic}
       skip={() => skip(question!.target)}
       onClear={() => selectedOptions.clear()}
       clearDisabled={selectedOptions.size === 0}
+      onPlayAgain={restartGame}
       children={
         question && (
           <>

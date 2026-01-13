@@ -142,10 +142,16 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
     )
   }
 
+  const restartGame = () => {
+    startGame()
+    initGame()
+  }
+
   return (
     <GameContainer
       gameLogic={gameLogic}
       skip={() => skip(currentItem)}
+      onPlayAgain={restartGame}
       children={
         currentItem && (
           <>
