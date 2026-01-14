@@ -244,6 +244,15 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     )
   }
 
+  const meanings = useMemo(() => {
+    return _.chain(subject.meanings)
+      .map('meaning')
+      .concat(..._.map(subject.auxiliary_meanings, 'meaning'))
+      .without(primaryMeaning || '')
+      .uniq()
+      .value()
+  }, [])
+
   return (
     <div
       className={`w-full max-w-2xl mx-auto perspective-1000 ${isPopup ? 'h-auto' : ''}`}
@@ -348,7 +357,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {subject.readings && (
+          {subject.readings?.[0] && (
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Readings
@@ -359,6 +368,20 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                   <div key={reading.reading}>
                     {reading.reading}, {toRomanji(reading.reading)}
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {meanings[0] && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Meanings
+              </h3>
+
+              <div className="space-y-3">
+                {meanings.map(meanings => (
+                  <div key={meanings}>{meanings}</div>
                 ))}
               </div>
             </div>
@@ -382,7 +405,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {type !== SubjectType.VOCABULARY && (
+          {type !== SubjectType.VOCABULARY && subject.character_images?.[0] && (
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Visuals
@@ -391,7 +414,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <Stack>
                 <MnemonicImage id={String(subject.id)} type={type} />
 
-                {subject.character_images?.map(
+                {subject.character_images.map(
                   (image, index) =>
                     image.url && (
                       <MnemonicImage
