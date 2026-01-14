@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { Summary } from '../types'
-import { waniKaniService } from '../services/wanikaniService'
+import { assignments } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
 import { Box, SimpleGrid, useMatches } from '@mantine/core'
 import clsx from 'clsx'
 
+import useReactivity from '../hooks/useReactivity'
+
 import { openLogModal } from '../components/modals/LogsModal'
 import { Footer } from '../components/Footer'
 
 export const Dashboard: React.FC = () => {
   const { user, isGuest } = useUser()
-  const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const gridWidth = useMatches({
@@ -22,23 +22,29 @@ export const Dashboard: React.FC = () => {
   })
 
   useEffect(() => {
-    if (isGuest) {
-      setLoading(false)
-      return
-    }
-
-    const loadData = async () => {
-      try {
-        const data = await waniKaniService.getSummary()
-        setSummary(data.data)
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadData()
+    assignments.isReady().then(() => setLoading(false))
   }, [])
+
+  const lessonsCount = useReactivity(() => {
+    return assignments
+      .find({
+        srs_stage: 0,
+        hidden: false,
+        unlocked_at: { $ne: null },
+      })
+      .count()
+  })
+
+  const reviewsCount = useReactivity(() => {
+    const now = new Date().toISOString()
+
+    return assignments
+      .find({
+        available_at: { $lte: now },
+        hidden: false,
+      })
+      .count()
+  })
 
   if (loading)
     return (
@@ -48,9 +54,6 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
     )
-
-  const lessonsCount = summary?.lessons?.[0]?.subject_ids?.length || 0
-  const reviewsCount = summary?.reviews?.[0]?.subject_ids?.length || 0
 
   return (
     <>
