@@ -203,7 +203,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
   }
 
   return (
-    <GameContainer gameLogic={gameLogic}>
+    <GameContainer gameLogic={gameLogic} onPlayAgain={initGame}>
       <div className="flex gap-8 justify-center">
         {/* Left Column */}
         <div className="flex-1 space-y-4">{leftItems.map(createItemCard('left'))}</div>
