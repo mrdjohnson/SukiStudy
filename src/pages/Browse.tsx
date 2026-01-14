@@ -37,7 +37,10 @@ export const Browse: React.FC = () => {
 
   // Filters
   const [ignoreLimit, setIgnoreLimit] = useState(false)
-  const [levels, setLevels] = useState<number[]>(user ? [user.level] : [])
+  const [levels, setLevels] = useLocalStorage<number[]>({
+    key: 'browseLevels',
+    defaultValue: [],
+  })
   const [onlyLearned, setOnlyLearned] = useState(false)
   const [srsFilter, setSrsFilter] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -87,7 +90,7 @@ export const Browse: React.FC = () => {
 
   const toggleLevel = (l: number) => {
     if (levels.includes(l)) {
-      if (levels.length > 1) setLevels(prev => prev.filter(x => x !== l))
+      setLevels(prev => prev.filter(x => x !== l))
     } else {
       setLevels(prev => [...prev, l].sort())
     }
@@ -173,6 +176,13 @@ export const Browse: React.FC = () => {
     return _.groupBy(filteredItems, item => item.subject.object)
   }, [filteredItems])
 
+  const levelsLabel = useMemo(() => {
+    if (levels.length === 0) return 'All'
+    if (levels.length > 3) return `${levels.length} selected`
+
+    return levels.join(', ')
+  }, [levels])
+
   const SRS_GROUPS = ['Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']
 
   if (loading && items.length === 0)
@@ -198,7 +208,7 @@ export const Browse: React.FC = () => {
                 onClick={() => setShowLevelSelect(true)}
                 rightSection={<Icons.ChevronRight size={14} />}
               >
-                Levels: {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
+                Levels: {levelsLabel}
               </Button>
             )}
           </Group>
