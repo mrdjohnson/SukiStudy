@@ -76,7 +76,7 @@ export interface Subject {
   }[]
   auxiliary_meanings: {
     meaning: string
-    type: string
+    type: 'whitelist' | 'blacklist'
   }[]
   readings?: {
     type: string

@@ -102,7 +102,10 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
     if (!attempt) return
 
     const meanings = currentItem.subject.meanings.map(m => m.meaning.toLowerCase())
-    const readings = currentItem.subject.readings?.map(r => r.reading) || []
+    const readings = currentItem.subject.readings?.map(r => r.reading.toLowerCase()) || []
+    const auxMeanings = currentItem.subject.auxiliary_meanings
+      .filter(m => m.type === 'whitelist')
+      .map(m => m.meaning.toLowerCase())
 
     const hiraganaAttempt = toHiragana(attempt)
 
@@ -118,7 +121,19 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
       r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1,
     )
 
-    const isCorrect = meaningExact || readingExact || meaningFuzzy || readingFuzzy
+    // Check Reading (Exact & Fuzzy on Kana)
+    const auxMeaningExact = auxMeanings.includes(hiraganaAttempt)
+    const auxMeaningFuzzy = auxMeanings.some(
+      r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1,
+    )
+
+    const isCorrect =
+      meaningExact ||
+      readingExact ||
+      meaningFuzzy ||
+      readingFuzzy ||
+      auxMeaningExact ||
+      auxMeaningFuzzy
 
     recordAttempt(currentItem, isCorrect)
 
