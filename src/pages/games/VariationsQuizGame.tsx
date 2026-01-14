@@ -71,7 +71,7 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
   const kanjiItems = useMemo(() => {
     return _.chain(items)
       .filter(i => i.subject.object === SubjectType.KANJI && !_.isEmpty(i.subject.readings))
-      .compact()
+      .map(item => ({ ...item, answers: _.map(item.subject.readings, answer => answer.reading) }))
       .value()
   }, [items])
 
@@ -86,12 +86,12 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     const correctReadings = target.subject.readings!.map(r => r.reading)
 
     const options = _.chain(kanjiItems)
-      .sampleSize(8) // grab 8 random items
-      .flatMap(i => i.subject.readings!.map(r => r.reading)) // grab the readings of those items
-      .without(...correctReadings) // remove the correct readings
+      .flatMap('answers') // grab the answers
       .uniq() // remove duplicates
-      .sampleSize(6 - target.subject.readings!.length) // grab X amount that totals to 6
+      .without(...correctReadings) // remove the correct readings
+      .sampleSize(6 - correctReadings.length) // grab X amount that totals to 6
       .concat(correctReadings) // re-add the correct readings
+      .take(6) // make sure there are only 6 total answers (just incase there are multiple correct ones)
       .shuffle() // dance
       .value()
 
