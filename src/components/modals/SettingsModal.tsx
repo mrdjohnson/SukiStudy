@@ -211,6 +211,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
 
         <Divider />
 
+        <Stack gap="xs">
+          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+            Data
+          </Text>
+
+          {isGuest && (
+            <Button
+              component="a"
+              href="/login"
+              fullWidth
+              onClick={() => navigate('/login')}
+              leftSection={<IconWorld size={16} />}
+            >
+              Login to WaniKani
+            </Button>
+          )}
+
+          <Button variant="outline" onClick={resetKanaItems} loading={isResettingKana}>
+            Reset Kana Items
+          </Button>
+
+          <Button variant="outline" onClick={resetSubjects} loading={isResettingSubjects}>
+            Reset Subjects
+          </Button>
+        </Stack>
+
+        <Divider />
+
         {/* Global Content Defaults */}
         <Stack gap="md">
           <Text c="dimmed" size="sm" fw={700} tt="uppercase">
@@ -387,35 +415,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
 
         <Divider />
 
-        <Stack gap="xs">
-          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
-            Data
-          </Text>
-
-          <Button variant="outline" onClick={resetKanaItems} loading={isResettingKana}>
-            Reset Kana Items
-          </Button>
-
-          <Button variant="outline" onClick={resetSubjects} loading={isResettingSubjects}>
-            Reset Subjects
-          </Button>
-        </Stack>
-
-        <Divider />
-
         <Stack>
-          {isGuest && (
-            <Button
-              component="a"
-              href="/login"
-              fullWidth
-              onClick={() => navigate('/login')}
-              leftSection={<IconWorld size={16} />}
-            >
-              Login to WaniKani
-            </Button>
-          )}
-
           <Button
             fullWidth
             variant="light"
