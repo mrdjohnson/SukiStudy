@@ -33,11 +33,23 @@ export const toItemWithAnswer = (
   return { ...item, answer, question }
 }
 
-export const selectUniqueItems = (items: GameItem[], maxItems: number) => {
+export const selectUniqueItems = (items: GameItem[], maxItems: number, propItems?: GameItem[]) => {
   const pairType = _.sample(['reading', 'meaning'] as const)
 
+  let itemChain = _.chain(items)
+
+  if (!propItems) {
+    const uniqType = _.chain(items)
+      .uniqBy(item => item.subject.object)
+      .sample()
+      .thru(item => item?.subject.object) // grab the object
+      .value()
+
+    itemChain = itemChain.filter(item => item.subject.object === uniqType)
+  }
+
   // Select 6 unique items with non-colliding questions/answers
-  const candidates = _.chain(items)
+  const candidates = itemChain
     .map(item => toItemWithAnswer(item, pairType))
     .compact()
     .shuffle()

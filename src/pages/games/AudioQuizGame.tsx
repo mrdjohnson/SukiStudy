@@ -59,14 +59,18 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
 
     if (!answer) return []
 
-    return _.chain(items)
-      .map('answer')
-      .without(answer)
-      .sampleSize(3)
-      .concat(answer)
-      .shuffle()
-      .value()
-  }, [currentItem?.subject.id, items])
+    let itemChain = _.chain(items)
+
+    if (!propItems) {
+      // only keep items of the same type
+
+      itemChain = itemChain.filter(
+        (item: GameItem) => item.subject.object === currentItem.subject.object,
+      )
+    }
+
+    return itemChain.map('answer').without(answer).sampleSize(3).concat(answer).shuffle().value()
+  }, [currentItem?.subject.id, items, propItems])
 
   useEffect(() => {
     setHelpSteps([

@@ -52,7 +52,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     setSelectedItem(null)
     setSelectedSide(null)
 
-    const selectedItems = selectUniqueItems(items, 6)
+    const selectedItems = selectUniqueItems(items, 6, propItems)
 
     _.chain(selectedItems)
       .tap(setGameItems)

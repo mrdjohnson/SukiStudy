@@ -70,7 +70,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
     setFlippedIndices([])
 
     // Select 6 unique items with non-colliding questions/answers
-    const selectedItems = selectUniqueItems(items, 6)
+    const selectedItems = selectUniqueItems(items, 6, propItems)
 
     const gameCards: GameCard[] = []
     const finalGameItems: GameItem[] = []
