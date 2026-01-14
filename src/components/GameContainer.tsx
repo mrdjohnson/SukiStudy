@@ -88,6 +88,7 @@ export const GameContainer = <T extends GameItem>({
     gameState.maxRoundNumber,
     buttonSizes,
     gameState.gameItems,
+    skip,
   ])
 
   if (gameState.isFinished) {
