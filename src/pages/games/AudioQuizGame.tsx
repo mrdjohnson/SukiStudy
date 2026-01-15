@@ -156,6 +156,7 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
       {currentItem && (
         <>
           <QuestionDisplay
+            key={currentItem.subject.id}
             subject={currentItem.subject}
             isReviewable={!!currentItem.isReviewable}
             isInteractionEnabled={!!selectedAnswer}
