@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { GameItem, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
@@ -44,6 +44,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     status: 'correct' | 'incorrect'
   } | null>(null)
   const matchedIds = useSet<string>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { soundEnabled, setHelpSteps } = useSettings()
 
@@ -94,9 +95,36 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     return () => setHelpSteps(null)
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
   const handleSelection = (gameItem: GameCard, side: 'left' | 'right') => {
-    // Block interaction during feedback delay
-    if (feedbackState) return
+    // Check if we are interrupting an existing feedback verification
+    if (feedbackState) {
+      if (timerRef.current) clearTimeout(timerRef.current)
+
+      // If it was a match, we need to make sure we persist it
+      if (feedbackState.status === 'correct') {
+        feedbackState.ids.forEach(id => matchedIds.add(id))
+
+        // If we clicked on one of the matched items, just reset
+        if (feedbackState.ids.includes(gameItem.id)) {
+          setFeedbackState(null)
+          setSelectedItem(null)
+          setSelectedSide(null)
+          return
+        }
+      }
+
+      setFeedbackState(null)
+      setSelectedItem(gameItem)
+      setSelectedSide(side)
+
+      return
+    }
 
     const id = gameItem.id
 
@@ -139,7 +167,9 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     }
 
     // Delay clearing/processing
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null
+
       if (isMatch) {
         matchedIds.add(selectedItem.id)
         matchedIds.add(gameItem.id)
@@ -160,26 +190,6 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
       </div>
     )
   }
-
-  // const createItemCard = (side: 'left' | 'right') => (item: GameCard) => {
-  //   const isMatched = matchedIds.has(item.id)
-  //   const isSelected = selectedItem?.id === item.id
-
-  //   return (
-  //     <button
-  //       key={item.subject.id}
-  //       onClick={() => handleSelection(item, side)}
-  //       disabled={isMatched}
-  //       className={`
-  //                  w-full h-20 flex items-center justify-center bg-white border-2 rounded-xl font-bold text-3xl shadow-sm transition-all
-  //                  ${isMatched ? 'opacity-30 grayscale cursor-default border-gray-100' : 'hover:scale-[1.02]'}
-  //                  ${isSelected ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-200 hover:border-indigo-300'}
-  //                `}
-  //     >
-  //       {side === 'left' ? item.question : item.answer}
-  //     </button>
-  //   )
-  // }
 
   const createItemCard = (side: 'left' | 'right') => (item: GameCard) => {
     const isMatched = matchedIds.has(item.id)
