@@ -171,3 +171,17 @@ export interface GameState<T extends GameItem> {
 }
 
 export type FlashcardMode = 'lesson' | 'review' | 'browse'
+
+export type MessageType = 'info' | 'alert' | 'success' | 'warning' | 'new' | 'main'
+
+export type InternalMessage = {
+  id: string
+  title: string
+  content: string
+  type: MessageType
+  actionLabel?: string
+  actionLink?: string
+  startDate?: string // ISO date string
+  endDate?: string // ISO date string
+  guestVisible?: boolean
+}

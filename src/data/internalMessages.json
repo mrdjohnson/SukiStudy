@@ -1,0 +1,10 @@
+[
+  {
+    "title": "Toggle WaniKani review syncing!",
+    "content": "You can now turn off syncing reviews to after games end!",
+    "type": "info",
+    "actionLabel": "Open Settings",
+    "actionLink": "/settings",
+    "guestVisible": false
+  }
+]

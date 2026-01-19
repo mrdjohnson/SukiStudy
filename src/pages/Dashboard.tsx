@@ -4,16 +4,16 @@ import { assignments } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
-import { Box, SimpleGrid, useMatches } from '@mantine/core'
+import { SimpleGrid, useMatches } from '@mantine/core'
 import clsx from 'clsx'
+import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessageCarousel'
 
 import useReactivity from '../hooks/useReactivity'
 
-import { openLogModal } from '../components/modals/LogsModal'
 import { Footer } from '../components/Footer'
 
 export const Dashboard: React.FC = () => {
-  const { user, isGuest } = useUser()
+  const { isGuest } = useUser()
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const gridWidth = useMatches({
@@ -58,23 +58,7 @@ export const Dashboard: React.FC = () => {
   return (
     <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 h-full">
-        {/* Welcome Section */}
-        <Box
-          className="bg-linear-to-r saturate-200 from-primary to-secondary via-primary rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
-          onDoubleClick={openLogModal}
-        >
-          <div className="relative z-10 text-white">
-            <h1 className="text-3xl font-bold">Welcome {user!.username}!</h1>
-
-            {!isGuest && (
-              <p className="text-lg mt-2">You are on Level {user!.level}. Keep up the momentum.</p>
-            )}
-          </div>
-
-          <div className="absolute right-5 bottom-0 opacity-60 h-full">
-            <Icons.BookOpen className="size-full text-primary" />
-          </div>
-        </Box>
+        <DashboardMessageCarousel />
 
         {/* Action Cards */}
         <SimpleGrid cols={isGuest ? 1 : gridWidth}>
