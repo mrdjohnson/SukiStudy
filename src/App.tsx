@@ -100,6 +100,7 @@ export default function App() {
             <Route path="/session/custom/play" element={<CustomSession />} />
 
             <Route path="/browse" element={<Browse />} />
+            <Route path="/settings" element={<Dashboard />} />
 
             <Route path="/about" element={<About />} />
           </Route>

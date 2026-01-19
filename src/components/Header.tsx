@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { Icons } from './Icons'
 import { useSettings } from '../contexts/SettingsContext'
@@ -41,6 +41,14 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const location = useLocation()
   const availableGames = useGames()
   const { online } = useNetwork()
+
+  // Handle /settings route
+  useEffect(() => {
+    if (location.pathname === '/settings') {
+      setShowSettings(true)
+      navigate('/', { replace: true })
+    }
+  }, [location.pathname, navigate])
 
   return (
     <AppShell
