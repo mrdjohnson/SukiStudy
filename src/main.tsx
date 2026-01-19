@@ -13,6 +13,7 @@ registerSW({ immediate: true })
 
 import '@mantine/core/styles.css'
 import './index.css'
+import '@mantine/carousel/styles.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {

@@ -17,6 +17,7 @@
     ]
   },
   "dependencies": {
+    "@mantine/carousel": "^8.3.12",
     "@mantine/colors-generator": "^8.3.11",
     "@mantine/core": "^8.3.10",
     "@mantine/dates": "^8.3.10",
@@ -33,6 +34,8 @@
     "clsx": "2.1.0",
     "comlink": "^4.4.2",
     "dayjs": "^1.11.19",
+    "embla-carousel": "^8.5.2",
+    "embla-carousel-react": "^8.5.2",
     "gh-pages": "^6.3.0",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
