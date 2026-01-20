@@ -66,7 +66,7 @@ export const useGameLogic = <T extends GameItem>({
   }, [])
 
   const game = useMemo(() => {
-    return games.find(({ id }) => id === gameId)
+    return games.find(({ id }) => id === gameId)!
   }, [gameId])
 
   const recordAttempt = (item: T, correct: boolean = false, skip = false) => {
