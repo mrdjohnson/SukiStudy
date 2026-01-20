@@ -22,6 +22,7 @@ import {
   useMatches,
   Center,
   Divider,
+  Container,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
@@ -195,7 +196,7 @@ export const Browse: React.FC = () => {
     )
 
   return (
-    <div className="max-w-7xl mx-auto p-2 md:p-4">
+    <Container size="lg" className="size-full max-w-full">
       {/* Filters Header */}
       <Paper p="md" withBorder radius="md" mb="xl">
         <Group justify="space-between" mb="md">
@@ -377,6 +378,6 @@ export const Browse: React.FC = () => {
           ))}
         </SimpleGrid>
       </Modal>
-    </div>
+    </Container>
   )
 }

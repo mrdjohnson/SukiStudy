@@ -18,6 +18,8 @@ import {
   Divider,
   Stack,
   SimpleGrid,
+  useMatches,
+  Center,
 } from '@mantine/core'
 import { useDisclosure, useNetwork } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
@@ -42,6 +44,11 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const availableGames = useGames()
   const { online } = useNetwork()
 
+  const logoSize = useMatches({
+    base: 'md',
+    xs: 'lg',
+  })
+
   // Handle /settings route
   useEffect(() => {
     if (location.pathname === '/settings') {
@@ -52,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: { base: 40, xs: 60 } }}
       navbar={{
         width: 300,
         breakpoint: 'md',
@@ -61,50 +68,54 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
       padding="xs"
     >
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Group>
-            <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
+        <Group h="100%" px="md" justify="space-between" className="flex-nowrap!" gap={0}>
+          <Group visibleFrom="md" className="min-w-[284px]" />
 
-            <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
-              <ActionIcon size="lg" radius="xl" color="#ff0000" variant="filled">
-                <img src={logo} alt="SukiStudy Logo" />
-              </ActionIcon>
-              <Text size="xl" fw={700} c="dark">
-                SukiStudy
-              </Text>
-            </Link>
+          <SimpleGrid cols={3} className="w-full">
+            <Group>
+              <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="md" />
+            </Group>
 
-            {isGuest && (
-              <Badge color="orange" variant="light">
-                Guest
-              </Badge>
-            )}
-
-            {!online && (
-              <Badge color="red" variant="light">
-                Offline
-              </Badge>
-            )}
-          </Group>
-
-          <Group>
-            {user && !isGuest && (
-              <Group visibleFrom="sm" gap="xs">
-                <Text size="sm" fw={500} c="dimmed">
-                  Level {user.level}
+            <Group className="justify-center!">
+              <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
+                <ActionIcon size={logoSize} radius="xl" color="#ff0000" variant="filled">
+                  <img src={logo} alt="SukiStudy Logo" />
+                </ActionIcon>
+                <Text size="xl" fw={700} c="dark">
+                  SukiStudy
                 </Text>
-                <div className="h-4 w-px bg-gray-300"></div>
-                <Text size="sm" fw={600} c="indigo">
-                  {user.username}
-                </Text>
-              </Group>
-            )}
+              </Link>
 
-            <Group gap="xs">
+              {isGuest && (
+                <Badge color="orange" variant="light">
+                  Guest
+                </Badge>
+              )}
+
+              {!online && (
+                <Badge color="red" variant="light">
+                  Offline
+                </Badge>
+              )}
+            </Group>
+
+            <Group gap="sm" justify="flex-end">
+              {user && !isGuest && (
+                <Group visibleFrom="sm" gap="xs">
+                  <Text size="sm" fw={500} c="dimmed">
+                    Level {user.level}
+                  </Text>
+                  <div className="h-4 w-px bg-gray-300"></div>
+                  <Text size="sm" fw={600} c="indigo">
+                    {user.username}
+                  </Text>
+                </Group>
+              )}
+
               {helpSteps && (
                 <ThemeIcon
                   variant="light"
-                  size="lg"
+                  size={logoSize}
                   radius="xl"
                   color="indigo"
                   style={{ cursor: 'pointer' }}
@@ -114,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 </ThemeIcon>
               )}
             </Group>
-          </Group>
+          </SimpleGrid>
         </Group>
       </AppShell.Header>
 
@@ -224,7 +235,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         </AppShell.Section>
       </AppShell.Navbar>
 
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main className="flex flex-col">{children}</AppShell.Main>
 
       {helpSteps && (
         <HowToPlayModal

@@ -106,7 +106,7 @@ export const GameContainer = <T extends GameItem>({
   }
 
   return (
-    <Container size="sm" className="mt-4">
+    <Container size="sm" className="mt-4 size-full">
       <Group className="!justify-between pb-8 -mx-2 md:mx-4 !flex-nowrap">
         <div className="flex items-center gap-2">
           <ActionIcon

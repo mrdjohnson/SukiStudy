@@ -4,7 +4,7 @@ import { assignments } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
-import { SimpleGrid, useMatches } from '@mantine/core'
+import { Container, SimpleGrid, useMatches } from '@mantine/core'
 import clsx from 'clsx'
 import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessageCarousel'
 
@@ -57,7 +57,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 h-full">
+      <Container className="mx-auto max-w-full! space-y-8 py-8">
         <DashboardMessageCarousel />
 
         {/* Action Cards */}
@@ -134,7 +134,8 @@ export const Dashboard: React.FC = () => {
             Explore all kana, radicals, kanji, and vocabulary by level.
           </p>
         </div>
-      </div>
+      </Container>
+
       <Footer />
     </>
   )
