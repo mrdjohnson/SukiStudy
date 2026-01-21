@@ -12,6 +12,7 @@ import { SubjectType } from '../types'
 import _ from 'lodash'
 import { useUser } from './UserContext'
 import { waniKaniService } from '../services/wanikaniService'
+import { JAPANESE_FONTS } from '../utils/fonts'
 
 interface Step {
   title: string
@@ -65,6 +66,12 @@ const useSettingsContext = () => {
     defaultValue: [],
   })
 
+  // Font Settings
+  const [enabledFonts, setEnabledFonts] = useLocalStorage<string[]>({
+    key: 'suki_enabled_fonts',
+    defaultValue: ['Default'],
+  })
+
   // Game Overrides
   const [gameOverrides, setGameOverrides] = useLocalStorage<Record<string, Partial<GameSettings>>>({
     key: 'suki_game_overrides',
@@ -86,6 +93,10 @@ const useSettingsContext = () => {
       .value()
   }, [hiddenSubjects, disabledSubjects])
 
+  const availableFonts = useMemo(() => {
+    return JAPANESE_FONTS.filter(f => enabledFonts.includes(f.name))
+  }, [enabledFonts])
+
   const toggleSound = () => setSoundEnabled(prev => !prev)
   const toggleRomanji = () => setRomanjiEnabled(prev => !prev)
 
@@ -100,6 +111,10 @@ const useSettingsContext = () => {
   const toggleAutoPlayAudio = () => setAutoPlayAudio(prev => !prev)
   const toggleAutoConvertTyping = () => setAutoConvertTyping(prev => !prev)
   const toggleGameSyncEnabled = () => setGameSyncEnabled(prev => !prev)
+
+  const toggleEnabledFont = (fontName: string) => {
+    setEnabledFonts(prev => _.xor(prev, [fontName]))
+  }
 
   const getGameSettings = useCallback(
     (gameId: string): Partial<GameSettings> => {
@@ -188,6 +203,10 @@ const useSettingsContext = () => {
 
     gameSyncEnabled,
     toggleGameSyncEnabled,
+
+    enabledFonts,
+    toggleEnabledFont,
+    availableFonts,
   }
 }
 

@@ -31,6 +31,7 @@ import { useNavigate } from 'react-router'
 import { syncService } from '../../services/syncService'
 import { subjects } from '../../services/db'
 import { flush } from '../../utils/flush'
+import { JAPANESE_FONTS } from '../../utils/fonts'
 
 interface SettingsModalProps {
   opened: boolean
@@ -69,6 +70,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     setGameLevelMax,
     gameSyncEnabled,
     toggleGameSyncEnabled,
+
+    enabledFonts,
+    toggleEnabledFont,
+    availableFonts,
   } = useSettings()
 
   const [showBuildTime, setShowBuildTime] = useState(false)
@@ -207,6 +212,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
             </div>
             <Switch checked={gameSyncEnabled} onChange={toggleGameSyncEnabled} disabled={isGuest} />
           </Group>
+        </Stack>
+
+        <Divider />
+
+        {/* Japanese Fonts */}
+        <Stack gap="md">
+          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+            Japanese Fonts
+          </Text>
+          <Text size="xs" c="dimmed" mt={-10}>
+            Select fonts to use for Japanese text. If multiple are selected, they will be used
+            randomly.
+          </Text>
+
+          <SimpleGrid cols={isMobile ? 1 : 2}>
+            {JAPANESE_FONTS.map(font => {
+              const isEnabled = enabledFonts.includes(font.name)
+              return (
+                <Group
+                  key={font.name}
+                  justify="space-between"
+                  align="center"
+                  className="border p-2 rounded-md"
+                >
+                  <div style={{ flex: 1, fontFamily: font.family }}>
+                    <Text fw={500}>{font.name}</Text>
+                    <Text size="xl" className="mt-1">
+                      人類社会のすべて
+                    </Text>
+                    <Text className="mt-1">あ い う え お</Text>
+                  </div>
+
+                  <Switch
+                    checked={isEnabled}
+                    onChange={() => toggleEnabledFont(font.name)}
+                    labelPosition="left"
+                  />
+                </Group>
+              )
+            })}
+          </SimpleGrid>
         </Stack>
 
         <Divider />

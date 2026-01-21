@@ -4,6 +4,7 @@ import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { useUser } from './contexts/UserContext'
 import { useGames } from './hooks/useGames'
+import { FontLoader } from './components/FontLoader'
 
 // Pages
 import { Login } from './pages/Login'
@@ -59,6 +60,7 @@ export const AuthWrapper = () => {
       )}
 
       <PWABadge />
+      <FontLoader />
 
       <Outlet />
     </Header>

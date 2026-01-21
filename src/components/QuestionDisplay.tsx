@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react'
 import clsx from 'clsx'
+import { useSettings } from '../contexts/SettingsContext'
+import _ from 'lodash'
 
 import { Subject, SubjectType } from '../types'
 import { bgColorByType, colorByType, textColorByType } from '../utils/subject'
@@ -38,12 +40,26 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   customContent,
   className,
 }) => {
+  const { availableFonts } = useSettings()
+
+  const fontStyle = useMemo(() => {
+    if (availableFonts.length === 0) return {}
+
+    const font = _.sample(availableFonts)
+
+    console.log({ font })
+
+    return font ? { fontFamily: font.family } : { fontWeight: 'bold' }
+  }, [availableFonts, subject])
+
   const renderMainContent = () => {
     if (customContent) return customContent
 
-    if (question) return question
+    if (question) return <span style={fontStyle}>{question}</span>
 
-    if (subject.characters) return subject.characters
+    if (subject.characters) {
+      return <span style={fontStyle}>{subject.characters}</span>
+    }
 
     // Fallback to image if no characters (e.g. some radicals)
     if (subject.character_images && subject.character_images.length > 0) {
@@ -126,7 +142,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         <div
           onClick={() => isInteractionEnabled && openFlashcardModal([subject])}
           className={clsx(
-            'transition-all duration-300 font-bold select-none',
+            'transition-all duration-300 select-none',
             customContent ? '' : 'text-6xl md:text-7xl', // Default size for text
             isInteractionEnabled
               ? textColorByType[subjectType] + ' cursor-pointer scale-110 hover:scale-115'

@@ -2006,6 +2006,55 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/kaisei-opti@npm:^5.2.8":
+  version: 5.2.8
+  resolution: "@fontsource/kaisei-opti@npm:5.2.8"
+  checksum: 10/e19cd65a1a462ca8158a238297b50833eaa22c872bb6858321c08da88ccd08e3e9c251b9ea2b267837786ddce9cc268c6e4e870705705b4685730580ac398517
+  languageName: node
+  linkType: hard
+
+"@fontsource/klee-one@npm:^5.2.8":
+  version: 5.2.8
+  resolution: "@fontsource/klee-one@npm:5.2.8"
+  checksum: 10/3778340066d7b0f72925f24c884eecfba934a49b4029028b9bcd161ca921d835c56078128756fdd1c23b2488daa7f52ad66f989369f301e3e7bc9220ed073857
+  languageName: node
+  linkType: hard
+
+"@fontsource/reggae-one@npm:^5.2.8":
+  version: 5.2.8
+  resolution: "@fontsource/reggae-one@npm:5.2.8"
+  checksum: 10/475a522342e866d04e07c029f53352feaf280b2ba6ffc255f2ca614f5cde0442baa5aa3c0ac0be5eb8317a3d15ba73334b3ac91ea97a16fbbe87822320ad599c
+  languageName: node
+  linkType: hard
+
+"@fontsource/yuji-boku@npm:^5.2.8":
+  version: 5.2.8
+  resolution: "@fontsource/yuji-boku@npm:5.2.8"
+  checksum: 10/787781bf5a9098247a6f978d7e5ecdbd3ab3e8d8e96386bd0359fb8e91a20c2b11b4b93c037d1d99b0a75caf6596800aa7a602394b781a88bc0951ea662a266e
+  languageName: node
+  linkType: hard
+
+"@fontsource/yuji-mai@npm:^5.2.7":
+  version: 5.2.7
+  resolution: "@fontsource/yuji-mai@npm:5.2.7"
+  checksum: 10/88cb1132c48a5c7f89a8903de32787a0795e75b08fae6f40f8bddafa5e1ba5e4b5c53f215d12536e4f60966f24fe3609a8747ea3bc26338c776588da8cf0cd71
+  languageName: node
+  linkType: hard
+
+"@fontsource/zen-kurenaido@npm:^5.2.8":
+  version: 5.2.8
+  resolution: "@fontsource/zen-kurenaido@npm:5.2.8"
+  checksum: 10/e3851e0f09dd1f42846cfe51d213c9ab9a63b85826fd6dded419c6a91f3557cdfeca54d34d16691ef35c1fb8552f79f89a8d3f34699269cec94e76c8915bff9e
+  languageName: node
+  linkType: hard
+
+"@fontsource/zen-old-mincho@npm:^5.2.8":
+  version: 5.2.8
+  resolution: "@fontsource/zen-old-mincho@npm:5.2.8"
+  checksum: 10/3856d4f5a6af4f21e1d56d12228ad97df8dd140dc93630d5e7a76cfc7b12926d1e8a1113d0f08bf21ceb37a821adf5d8698b535b87337c8647b7c972577bda7b
+  languageName: node
+  linkType: hard
+
 "@iarna/toml@npm:^2.2.5":
   version: 2.2.5
   resolution: "@iarna/toml@npm:2.2.5"
@@ -10300,6 +10349,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sukistudy@workspace:."
   dependencies:
+    "@fontsource/kaisei-opti": "npm:^5.2.8"
+    "@fontsource/klee-one": "npm:^5.2.8"
+    "@fontsource/reggae-one": "npm:^5.2.8"
+    "@fontsource/yuji-boku": "npm:^5.2.8"
+    "@fontsource/yuji-mai": "npm:^5.2.7"
+    "@fontsource/zen-kurenaido": "npm:^5.2.8"
+    "@fontsource/zen-old-mincho": "npm:^5.2.8"
     "@mantine/carousel": "npm:^8.3.12"
     "@mantine/colors-generator": "npm:^8.3.11"
     "@mantine/core": "npm:^8.3.10"

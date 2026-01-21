@@ -17,6 +17,13 @@
     ]
   },
   "dependencies": {
+    "@fontsource/kaisei-opti": "^5.2.8",
+    "@fontsource/klee-one": "^5.2.8",
+    "@fontsource/reggae-one": "^5.2.8",
+    "@fontsource/yuji-boku": "^5.2.8",
+    "@fontsource/yuji-mai": "^5.2.7",
+    "@fontsource/zen-kurenaido": "^5.2.8",
+    "@fontsource/zen-old-mincho": "^5.2.8",
     "@mantine/carousel": "^8.3.12",
     "@mantine/colors-generator": "^8.3.11",
     "@mantine/core": "^8.3.10",
