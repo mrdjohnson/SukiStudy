@@ -28,6 +28,7 @@ import { useUser } from '../contexts/UserContext'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { IconActivity } from '@tabler/icons-react'
 import { openLogModal } from './modals/LogsModal'
+import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
 
 interface HeaderProps {
   children: React.ReactNode
@@ -47,6 +48,10 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const logoSize = useMatches({
     base: 'md',
     xs: 'lg',
+  })
+
+  const handleDoubleMouseDown = useDoubleMouseDown(() => {
+    openLogModal()
   })
 
   // Handle /settings route
@@ -76,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
               <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="md" />
             </Group>
 
-            <Group className="justify-center!">
+            <Group className="justify-center! flex-nowrap!" onMouseDown={handleDoubleMouseDown}>
               <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
                 <ActionIcon size={logoSize} radius="xl" color="#ff0000" variant="filled">
                   <img src={logo} alt="SukiStudy Logo" />

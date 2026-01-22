@@ -7,6 +7,7 @@ import { Carousel, CarouselSlide } from '@mantine/carousel'
 import { openLogModal } from '../modals/LogsModal'
 import { InternalMessage } from '../../types'
 import clsx from 'clsx'
+import { useDoubleMouseDown } from '../../hooks/useDoubleMouseDown'
 
 // Helper to get icon
 const getMessageIcon = (type: InternalMessage['type']) => {
@@ -53,11 +54,15 @@ const DashboardCarouselItem = ({
     onDismiss()
   }
 
+  const handleDoubleMouseDown = useDoubleMouseDown(() => {
+    openLogModal()
+  })
+
   if (message.type === 'main') {
     return (
       <Box
         className="bg-linear-to-r saturate-200 from-primary to-secondary via-primary rounded-2xl p-8 px-12 text-white shadow-xl relative overflow-hidden h-full w-full mx-2"
-        onDoubleClick={openLogModal}
+        onMouseDown={handleDoubleMouseDown}
       >
         <div className="relative z-10 text-white">
           <h1 className="text-3xl font-bold">{message.title}</h1>
