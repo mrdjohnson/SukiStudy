@@ -4,18 +4,20 @@ import { assignments } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
-import { Container, SimpleGrid, useMatches } from '@mantine/core'
+import { Badge, Container, Group, SimpleGrid, useMatches } from '@mantine/core'
 import clsx from 'clsx'
 import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessageCarousel'
 
 import useReactivity from '../hooks/useReactivity'
 
 import { Footer } from '../components/Footer'
+import { useNetwork } from '@mantine/hooks'
 
 export const Dashboard: React.FC = () => {
   const { isGuest } = useUser()
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { online } = useNetwork()
   const gridWidth = useMatches({
     base: 1,
     sm: 3,
@@ -57,7 +59,21 @@ export const Dashboard: React.FC = () => {
 
   return (
     <>
-      <Container className="mx-auto max-w-full! space-y-8 py-8">
+      <Container className="mx-auto max-w-full! space-y-4 md:space-y-8 py-4 md:py-8">
+        <Group justify="flex-end" className="-mt-4 md:-mt-8 mb-2">
+          {isGuest && (
+            <Badge color="orange" variant="light" size="lg" radius="md">
+              Guest
+            </Badge>
+          )}
+
+          {!online && (
+            <Badge color="red" variant="light" size="lg" radius="md">
+              Offline
+            </Badge>
+          )}
+        </Group>
+
         <DashboardMessageCarousel />
 
         {/* Action Cards */}

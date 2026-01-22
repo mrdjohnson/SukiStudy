@@ -43,7 +43,6 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const availableGames = useGames()
-  const { online } = useNetwork()
 
   const logoSize = useMatches({
     base: 'md',
@@ -90,18 +89,6 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                   SukiStudy
                 </Text>
               </Link>
-
-              {isGuest && (
-                <Badge color="orange" variant="light">
-                  Guest
-                </Badge>
-              )}
-
-              {!online && (
-                <Badge color="red" variant="light">
-                  Offline
-                </Badge>
-              )}
             </Group>
 
             <Group gap="sm" justify="flex-end">
