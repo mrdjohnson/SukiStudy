@@ -38,11 +38,9 @@ export const useInternalMessages = () => {
               id: welcomeId,
               title: isGuest ? `Welcome, ${user.username}!` : `Level ${user.level} Unlocked!`,
               content: isGuest
-                ? 'Your progress is saved locally. Create an account to sync across devices.'
-                : `Welcome back, ${user.username}! You are currently on Level ${user.level}. Keep up the momentum!`,
+                ? 'Feel free to explore kana games, or sign up through wanikani to start learning Radicals, Kanjis, and Vocab'
+                : `Welcome, ${user.username}! You are currently on Level ${user.level}. Keep up the momentum!`,
               type: 'main',
-              actionLabel: 'View Progress',
-              actionLink: '/profile', // Valid route? Or just back to dashboard/lessons
             })
           }
         }
