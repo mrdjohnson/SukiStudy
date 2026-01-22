@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useTransition } from 'react'
+import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import {
   Modal,
   Switch,
@@ -161,6 +161,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
       await syncService.syncSubjects(true)
     })
   }
+
+  useEffect(() => {
+    JAPANESE_FONTS.forEach(font =>
+      font?.load().catch(err => console.error(`Failed to load font ${font.name}`, err)),
+    )
+  }, [])
 
   return (
     <Modal
