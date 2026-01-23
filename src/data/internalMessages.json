@@ -6,5 +6,13 @@
     "actionLabel": "Open Settings",
     "actionLink": "/settings",
     "guestVisible": false
+  },
+  {
+    "title": "New: Choose your Japanese font",
+    "content": "You can now pick different Japanese fonts for your study sessions. Open Settings to try them out.",
+    "type": "new",
+    "actionLabel": "Choose a Font",
+    "actionLink": "/settings",
+    "guestVisible": true
   }
 ]
