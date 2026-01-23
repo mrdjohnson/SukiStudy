@@ -13,7 +13,7 @@ import {
   Anchor,
 } from '@mantine/core'
 import { Icons } from '../components/Icons'
-import { IconHeart, IconDatabase, IconSchool } from '@tabler/icons-react'
+import { IconHeart, IconDatabase, IconSchool, IconTypography } from '@tabler/icons-react'
 import { useUser } from '../contexts/UserContext'
 import { useNavigate } from 'react-router'
 
@@ -112,7 +112,7 @@ export const About = () => {
                       <Text fw={600} size="sm">
                         Tofugu
                       </Text>
-                      <Text c="dimmed">
+                      <Text c="dimmed" size="sm">
                         <Anchor
                           href="https://www.tofugu.com/japanese/learn-hiragana/"
                           target="_blank"
@@ -137,14 +137,16 @@ export const About = () => {
                     <ThemeIcon variant="light" color="blue" size="lg">
                       <IconDatabase size={20} />
                     </ThemeIcon>
+
                     <div>
                       <Text fw={600} size="sm">
                         WaniKani Community
                       </Text>
-                      <Text c="dimmed">
+                      <Text c="dimmed" size="sm">
                         <Anchor
                           href="https://community.wanikani.com/t/wk-mnemonic-art-for-kanji-levels-1-7-radical-levels-1-10/47656"
                           target="_blank"
+                          className="font-inherit"
                         >
                           Mnemonic artwork
                         </Anchor>{' '}
@@ -158,7 +160,15 @@ export const About = () => {
                   </Group>
                 </Card>
 
-                <Card withBorder radius="md" p="sm" className="hover:bg-gray-50 transition-colors">
+                <Card
+                  component="a"
+                  href="https://github.com/mrdjohnson/SukiStudy"
+                  target="_blank"
+                  withBorder
+                  radius="md"
+                  p="sm"
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <Group wrap="nowrap">
                     <ThemeIcon variant="light" color="gray" size="lg">
                       <Icons.GitHub size={20} />
@@ -167,8 +177,28 @@ export const About = () => {
                       <Text fw={600} size="sm">
                         Open Source
                       </Text>
-                      <Text c="dimmed">
-                        Built with React, Mantine, and other great open-source tools.
+                      <Text c="dimmed" size="sm">
+                        Built with React & Mantine. View source on GitHub.
+                      </Text>
+                    </div>
+                  </Group>
+                </Card>
+
+                <Card withBorder radius="md" p="sm" className="hover:bg-gray-50 transition-colors">
+                  <Group wrap="nowrap">
+                    <ThemeIcon variant="light" color="teal" size="lg">
+                      <IconTypography size={20} />
+                    </ThemeIcon>
+                    <div>
+                      <Text fw={600} size="sm">
+                        Typography
+                      </Text>
+                      <Text c="dimmed" size="sm">
+                        Beautiful Japanese typefaces provided by{' '}
+                        <Anchor href="https://fonts.google.com/" target="_blank">
+                          Google Fonts
+                        </Anchor>
+                        .
                       </Text>
                     </div>
                   </Group>
