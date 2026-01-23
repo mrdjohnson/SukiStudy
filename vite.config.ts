@@ -66,13 +66,29 @@ export default defineConfig(({ mode }) => {
         },
 
         workbox: {
-          globPatterns: ['**/*'],
+          globPatterns: ['**/*', '!**/*.{woff,woff2,eot,ttf,otf}'],
+          // Exclude fonts from precache
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           disableDevLogs: !isDev,
           maximumFileSizeToCacheInBytes: 3000000,
 
           runtimeCaching: [
+            {
+              // Font caching
+              urlPattern: /\.(?:woff|woff2|eot|ttf|otf)$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'fonts-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
             {
               // Image caching
               urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,

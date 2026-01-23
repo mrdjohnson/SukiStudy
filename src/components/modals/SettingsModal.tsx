@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useTransition } from 'react'
+import React, { useMemo, useState, useTransition } from 'react'
 import {
   Modal,
   Switch,
@@ -73,7 +73,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
 
     enabledFonts,
     toggleEnabledFont,
-    availableFonts,
   } = useSettings()
 
   const [showBuildTime, setShowBuildTime] = useState(false)
@@ -162,12 +161,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     })
   }
 
-  useEffect(() => {
-    JAPANESE_FONTS.forEach(font =>
-      font?.load().catch(err => console.error(`Failed to load font ${font.name}`, err)),
-    )
-  }, [])
-
   return (
     <Modal
       opened={opened}
@@ -235,6 +228,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
           <SimpleGrid cols={isMobile ? 1 : 2}>
             {JAPANESE_FONTS.map(font => {
               const isEnabled = enabledFonts.includes(font.name)
+              const previewPath = `/assets/fonts/previews/${font.name.replace(/\s+/g, '_').toLowerCase()}.svg`
+
               return (
                 <Group
                   key={font.name}
@@ -242,12 +237,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                   align="center"
                   className="border p-2 rounded-md"
                 >
-                  <div style={{ flex: 1, fontFamily: font.family }}>
+                  <div style={{ flex: 1 }}>
                     <Text fw={500}>{font.name}</Text>
-                    <Text size="xl" className="mt-1">
-                      人類社会のすべて
-                    </Text>
-                    <Text className="mt-1">あ い う え お</Text>
+                    {font.name === 'Default' ? (
+                      <div className="mt-2">
+                        <Text size="xl" className="mt-1">
+                          人類社会のすべて
+                        </Text>
+                        <Text className="mt-1">あ い う え お</Text>
+                      </div>
+                    ) : (
+                      <img
+                        src={previewPath}
+                        alt={`${font.name} preview`}
+                        className="mt-2 h-16 w-auto object-contain"
+                        loading="lazy"
+                      />
+                    )}
                   </div>
 
                   <Switch
