@@ -49,6 +49,8 @@ export const useGameLogic = <T extends GameItem>({
   const [maxRounds, setMaxRounds] = useState(totalRounds)
   const [isAnswerIncorrect, setIsAnswerIncorrect] = useState(false)
 
+  const [isWaitingForNextRound, setIsWaitingForNextRound] = useState(false)
+
   const startTimeRef = useRef<number>(0)
   const timeTakenRef = useRef<string | null>(null)
 
@@ -63,6 +65,7 @@ export const useGameLogic = <T extends GameItem>({
     setRoundNumber(initialRoundNumber ?? 1)
     startTimeRef.current = Date.now()
     timeTakenRef.current = null
+    setIsWaitingForNextRound(false)
   }, [])
 
   const game = useMemo(() => {
@@ -79,6 +82,7 @@ export const useGameLogic = <T extends GameItem>({
     }
 
     if (correct) {
+      setIsWaitingForNextRound(true)
       playSound('success', soundEnabled)
       setScore(s => s + 1)
 
@@ -100,6 +104,7 @@ export const useGameLogic = <T extends GameItem>({
   }
 
   const finishRound = () => {
+    setIsWaitingForNextRound(false)
     setRoundNumber(roundNumber => roundNumber + 1)
 
     setIsAnswerIncorrect(false)
@@ -181,5 +186,6 @@ export const useGameLogic = <T extends GameItem>({
     canSkip,
     endGame,
     setMaxScore,
+    isWaitingForNextRound,
   }
 }

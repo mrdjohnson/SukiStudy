@@ -44,6 +44,7 @@ export const GameContainer = <T extends GameItem>({
     finishRound,
     canSkip,
     endGame,
+    isWaitingForNextRound,
   } = gameLogic
 
   const bottomButton = useMemo(() => {
@@ -67,7 +68,7 @@ export const GameContainer = <T extends GameItem>({
     } else {
       props = {
         children: 'Skip',
-        disabled: !canSkip,
+        disabled: !canSkip || isWaitingForNextRound,
         onClick: skip,
       }
     }
@@ -89,6 +90,7 @@ export const GameContainer = <T extends GameItem>({
     buttonSizes,
     gameState.gameItems,
     skip,
+    isWaitingForNextRound,
   ])
 
   if (gameState.isFinished) {
