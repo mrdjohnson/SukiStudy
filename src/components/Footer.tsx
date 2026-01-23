@@ -20,6 +20,7 @@ export const Footer: React.FC = () => {
             to="/about"
             c="dimmed"
             className="hover:text-indigo-500 transition-colors"
+            size="sm"
           >
             About
           </Anchor>
