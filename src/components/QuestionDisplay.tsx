@@ -47,8 +47,6 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 
     const font = _.sample(availableFonts)
 
-    console.log({ font })
-
     return font ? { fontFamily: font.family } : { fontWeight: 'bold' }
   }, [availableFonts, subject])
 
