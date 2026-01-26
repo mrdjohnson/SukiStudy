@@ -16,6 +16,54 @@ const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.
   {},
 )
 
+/**
+ * Utility function to check if a sync should be skipped based on last sync time
+ * @param syncKey - The localStorage key for this sync type
+ * @param options - Configuration options
+ * @returns true if sync should be skipped, false otherwise
+ */
+function shouldSkipSync(
+  syncKey: string,
+  options?: {
+    intervalMinutes?: number
+    forceSync?: boolean
+    beforeDate?: string // For migration checks
+    runOnce?: boolean // For one-time migrations
+  },
+): boolean {
+  const lastSync = localStorage.getItem(syncKey)
+  const { intervalMinutes = 10, forceSync = false, beforeDate, runOnce = false } = options || {}
+
+  // Force sync overrides all checks
+  if (forceSync) {
+    return false
+  }
+
+  // For one-time operations (migrations), skip if already run
+  if (runOnce && lastSync) {
+    return true
+  }
+
+  // For date-based migration checks
+  if (beforeDate) {
+    return moment(lastSync).isBefore(moment(beforeDate))
+  }
+
+  // Check if enough time has passed since last sync
+  if (lastSync && moment().subtract(intervalMinutes, 'minutes').isBefore(moment(lastSync))) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Update the sync timestamp for a given key
+ */
+function updateSyncTimestamp(syncKey: string): void {
+  localStorage.setItem(syncKey, new Date().toISOString())
+}
+
 export const syncService = {
   async offlineSync() {
     console.log('[Offline Sync] Starting synchronization...')
@@ -51,6 +99,7 @@ export const syncService = {
       await this.syncSubjects()
       await this.migrateAssignments()
       await this.syncAssignments()
+      await this.syncAssignments()
       await this.syncStudyMaterials()
 
       console.log('[Sync] Synchronization complete.')
@@ -62,94 +111,75 @@ export const syncService = {
   },
 
   async syncUser() {
-    const lastUserSync = localStorage.getItem(SYNC_KEYS.USER)
-    const userStart = new Date().toISOString()
-
-    if (moment().subtract(10, 'minutes').isBefore(moment(lastUserSync))) {
+    if (shouldSkipSync(SYNC_KEYS.USER)) {
       return
     }
 
     await syncServiceWorker.syncUser()
 
-    localStorage.setItem(SYNC_KEYS.USER, userStart)
+    updateSyncTimestamp(SYNC_KEYS.USER)
   },
 
   async migrateSubjects() {
-    const lastSubjectMigration = localStorage.getItem(SYNC_KEYS.SUBJECTS_MIGRATION)
-    const subjectsStart = new Date().toISOString()
-
-    if (moment(lastSubjectMigration).isBefore(moment('12/24/2025'))) {
+    if (shouldSkipSync(SYNC_KEYS.SUBJECTS_MIGRATION, { beforeDate: '12/24/2025' })) {
       return
     }
 
     await syncServiceWorker.migrateSubjects()
 
-    localStorage.setItem(SYNC_KEYS.SUBJECTS_MIGRATION, subjectsStart)
+    updateSyncTimestamp(SYNC_KEYS.SUBJECTS_MIGRATION)
   },
 
   async syncSubjects(forceSync = false) {
-    const lastSubjectSync = localStorage.getItem(SYNC_KEYS.SUBJECTS)
-    const subjectsStart = new Date().toISOString()
-
-    if (moment().subtract(10, 'minutes').isBefore(moment(lastSubjectSync)) && !forceSync) {
+    if (shouldSkipSync(SYNC_KEYS.SUBJECTS, { forceSync })) {
       return
     }
 
-    await syncServiceWorker.syncSubjects(lastSubjectSync)
+    const lastSync = localStorage.getItem(SYNC_KEYS.SUBJECTS)
+    await syncServiceWorker.syncSubjects(lastSync)
 
-    localStorage.setItem(SYNC_KEYS.SUBJECTS, subjectsStart)
+    updateSyncTimestamp(SYNC_KEYS.SUBJECTS)
   },
 
   async migrateAssignments() {
-    const lastAssignMigration = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS_MIGRATION)
-    const assignStart = new Date().toISOString()
-
-    if (lastAssignMigration) {
+    if (shouldSkipSync(SYNC_KEYS.ASSIGNMENTS_MIGRATION, { runOnce: true })) {
       return
     }
 
     await syncServiceWorker.migrateAssignments()
-
-    localStorage.setItem(SYNC_KEYS.ASSIGNMENTS_MIGRATION, assignStart)
+    updateSyncTimestamp(SYNC_KEYS.ASSIGNMENTS_MIGRATION)
   },
 
   async syncAssignments() {
-    const lastAssignSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
-    const assignStart = new Date().toISOString()
-
-    if (moment().subtract(10, 'minutes').isBefore(moment(lastAssignSync))) {
+    if (shouldSkipSync(SYNC_KEYS.ASSIGNMENTS)) {
       return
     }
 
-    await syncServiceWorker.syncAssignments(lastAssignSync)
+    const lastSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
+    await syncServiceWorker.syncAssignments(lastSync)
 
-    localStorage.setItem(SYNC_KEYS.ASSIGNMENTS, assignStart)
+    updateSyncTimestamp(SYNC_KEYS.ASSIGNMENTS)
   },
 
   async syncStudyMaterials() {
-    const lastMatSync = localStorage.getItem(SYNC_KEYS.MATERIALS)
-    const matStart = new Date().toISOString()
-
-    if (moment().subtract(10, 'minutes').isBefore(moment(lastMatSync))) {
+    if (shouldSkipSync(SYNC_KEYS.MATERIALS)) {
       return
     }
 
-    await syncServiceWorker.syncStudyMaterials(lastMatSync)
+    const lastSync = localStorage.getItem(SYNC_KEYS.MATERIALS)
+    await syncServiceWorker.syncStudyMaterials(lastSync)
 
-    localStorage.setItem(SYNC_KEYS.MATERIALS, matStart)
+    updateSyncTimestamp(SYNC_KEYS.MATERIALS)
   },
 
   async populateKana(forcePopulate = false) {
-    const lastKanaSync = localStorage.getItem(SYNC_KEYS.KANA)
-    const kanaStart = new Date().toISOString()
-
-    if (lastKanaSync && !forcePopulate) {
+    if (shouldSkipSync(SYNC_KEYS.KANA, { runOnce: true, forceSync: forcePopulate })) {
       return
     }
 
     await syncServiceWorker.populateKana()
 
-    localStorage.setItem(SYNC_KEYS.KANA, kanaStart)
+    updateSyncTimestamp(SYNC_KEYS.KANA)
   },
 
   async clearData() {
