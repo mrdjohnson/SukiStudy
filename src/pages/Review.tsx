@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { GameResultData } from '../types'
-import { waniKaniService } from '../services/wanikaniService'
+import { GameResultData, GameDefinition } from '../types'
 import { Center, Loader } from '@mantine/core'
 import _ from 'lodash'
-import { GameDefinition, games } from '../utils/games'
+import { games } from '../utils/games'
 import { useGames } from '../hooks/useGames'
 import { assignments } from '../services/db'
 
@@ -29,17 +28,6 @@ export const Review = () => {
   }
 
   const submitLessonBatch = async (data: GameResultData) => {
-    for (const { assignment, correct } of data.history) {
-      try {
-        if (assignment?.id) {
-          const score = correct ? 1 : 0
-          await waniKaniService.createReview(assignment.id, score, score)
-        }
-      } catch (e) {
-        console.error('Failed to start assignment', e)
-      }
-    }
-
     assignments.batch(() => {
       for (const { assignment, correct } of data.history) {
         if (!assignment?.id) continue

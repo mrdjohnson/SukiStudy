@@ -12,18 +12,7 @@ import { MatchingGame } from '../pages/games/MatchingGame'
 import { TypingGame } from '../pages/games/TypingGame'
 import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
 
-import { GameItem, GameResultData, SubjectType } from '../types'
-
-export interface GameDefinition {
-  id: string
-  name: string
-  desc: string
-  icon: any
-  color: string
-  enabled?: boolean
-  component: React.FC<{ items?: GameItem[]; onComplete?: (data: GameResultData) => void }>
-  hiddenSubjectTypes: SubjectType[]
-}
+import { SubjectType, GameDefinition } from '../types'
 
 export const games: GameDefinition[] = [
   {

@@ -185,3 +185,14 @@ export type InternalMessage = {
   endDate?: string // ISO date string
   guestVisible?: boolean
 }
+
+export interface GameDefinition {
+  id: string
+  name: string
+  desc: string
+  icon: any
+  color: string
+  enabled?: boolean
+  component: React.FC<{ items?: GameItem[]; onComplete?: (data: GameResultData) => void }>
+  hiddenSubjectTypes: SubjectType[]
+}
