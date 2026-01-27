@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router'
 import { MantineProvider, createTheme } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import App from './App'
@@ -35,15 +36,17 @@ const theme = createTheme({
 const root = ReactDOM.createRoot(rootElement)
 root.render(
   <React.StrictMode>
-    <UserProvider>
-      <MantineProvider theme={theme}>
-        <SettingsProvider>
-          <ModalsProvider>
-            <App />
-          </ModalsProvider>
-        </SettingsProvider>
-      </MantineProvider>
-    </UserProvider>
+    <BrowserRouter>
+      <UserProvider>
+        <MantineProvider theme={theme}>
+          <SettingsProvider>
+            <ModalsProvider>
+              <App />
+            </ModalsProvider>
+          </SettingsProvider>
+        </MantineProvider>
+      </UserProvider>
+    </BrowserRouter>
   </React.StrictMode>,
 )
 

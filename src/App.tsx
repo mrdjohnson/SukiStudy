@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Route, Routes, useLocation, BrowserRouter, Navigate, Outlet } from 'react-router'
+import { Route, Routes, useLocation, Navigate, Outlet } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { useUser } from './contexts/UserContext'
@@ -73,44 +73,42 @@ export default function App() {
   const availableGames = useGames()
 
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/landing" element={<Landing />} />
-          <Route
-            path="/login"
-            element={user && !isGuest ? <Navigate to="/" /> : <Login onLogin={login} />}
-          />
+    <Layout>
+      <Routes>
+        <Route path="/landing" element={<Landing />} />
+        <Route
+          path="/login"
+          element={user && !isGuest ? <Navigate to="/" /> : <Login onLogin={login} />}
+        />
 
-          {!user && <Route path="/about" element={<About />} />}
+        {!user && <Route path="/about" element={<About />} />}
 
-          <Route element={<AuthWrapper />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/session/lesson" element={<Session />} />
-            <Route path="/session/review" element={<Review />} />
+        <Route element={<AuthWrapper />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/session/lesson" element={<Session />} />
+          <Route path="/session/review" element={<Review />} />
 
-            <Route path="/session/games" element={<GameMenu />} />
+          <Route path="/session/games" element={<GameMenu />} />
 
-            {availableGames.map(game => (
-              <Route path={'/session/games/' + game.id} element={<game.component />} />
-            ))}
+          {availableGames.map(game => (
+            <Route path={'/session/games/' + game.id} element={<game.component />} />
+          ))}
 
-            {/* go to games menu if at unknown game page */}
-            <Route path="/session/games/*" element={<Navigate to="/session/games" />} />
+          {/* go to games menu if at unknown game page */}
+          <Route path="/session/games/*" element={<Navigate to="/session/games" />} />
 
-            <Route path="/session/custom" element={<CustomGameSetup />} />
-            <Route path="/session/custom/play" element={<CustomSession />} />
+          <Route path="/session/custom" element={<CustomGameSetup />} />
+          <Route path="/session/custom/play" element={<CustomSession />} />
 
-            <Route path="/browse" element={<Browse />} />
-            <Route path="/settings" element={<Dashboard />} />
+          <Route path="/browse" element={<Browse />} />
+          <Route path="/settings" element={<Dashboard />} />
 
-            <Route path="/about" element={<About />} />
-          </Route>
+          <Route path="/about" element={<About />} />
+        </Route>
 
-          {/* go to dashboard if at unknown page */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+        {/* go to dashboard if at unknown page */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Layout>
   )
 }
