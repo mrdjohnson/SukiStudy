@@ -415,10 +415,10 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                 <MnemonicImage id={String(subject.id)} type={type} />
 
                 {subject.character_images.map(
-                  (image, index) =>
+                  image =>
                     image.url && (
                       <MnemonicImage
-                        key={index}
+                        key={image.url}
                         id={String(subject.id)}
                         type={type}
                         url={image.url}
