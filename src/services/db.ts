@@ -1,7 +1,7 @@
 import { Collection, createIndex } from '@signaldb/core'
 import createIndexedDBAdapter from '@signaldb/indexeddb'
 import maverickjsReactivityAdapter from '@signaldb/maverickjs'
-import { Subject, Assignment, StudyMaterial, User } from '../types'
+import { Subject, Assignment, StudyMaterial, User, Encounter, EncounterItem } from '../types'
 
 // Extended Collection class with upsertMany method
 class ExtendedCollection<T extends { id: string | number } & object> extends Collection<T> {
@@ -55,4 +55,22 @@ export const logs = new ExtendedCollection<LogEntry>({
   persistence: createIndexedDBAdapter('logs'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id'), createIndex('timestamp'), createIndex('level')],
+})
+
+export const encounters = new ExtendedCollection<Encounter>({
+  persistence: createIndexedDBAdapter('encounters'),
+  reactivity: maverickjsReactivityAdapter,
+  indices: [createIndex('id'), createIndex('gameId'), createIndex('startedAt')],
+})
+
+export const encounterItems = new ExtendedCollection<EncounterItem>({
+  persistence: createIndexedDBAdapter('encounter_items'),
+  reactivity: maverickjsReactivityAdapter,
+  indices: [
+    createIndex('id'),
+    createIndex('sessionId'),
+    createIndex('gameId'),
+    createIndex('subjectId'),
+    createIndex('timestamp'),
+  ],
 })

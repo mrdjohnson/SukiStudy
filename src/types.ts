@@ -144,6 +144,17 @@ export interface GameItem {
   correct?: boolean
 }
 
+export type GameItemWithStat = GameItem & GameItemStat
+
+export type GameItemStat = {
+  lastReviewedAt: string | null
+  reviewCount: number
+  correctCount: number
+  averageScore: number
+  lastGameId: string | null
+  gameCounts: Record<string, number>
+}
+
 export type MultiChoiceGameItem = GameItem & {
   question: string
   answer: string
@@ -171,6 +182,27 @@ export interface GameState<T extends GameItem> {
 }
 
 export type FlashcardMode = 'lesson' | 'review' | 'browse'
+
+export type Encounter = {
+  id: string
+  gameId: string
+  startedAt: number // Unix timestamp in milliseconds
+  endedAt: number // Unix timestamp in milliseconds
+  score: number
+  maxScore: number
+}
+
+export type EncounterItem = {
+  id: string
+  sessionId: string
+  gameId: string // Denormalized for easier queries
+  subjectId: number
+  assignmentId?: number
+  timestamp: number // Unix timestamp in milliseconds
+  correctMeaning?: boolean
+  correctReading?: boolean
+  synced: boolean // True if synced to WaniKani, or if it's a kana item (which doesn't sync)
+}
 
 export type MessageType = 'info' | 'alert' | 'success' | 'warning' | 'new' | 'main'
 

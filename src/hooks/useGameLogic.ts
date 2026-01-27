@@ -8,6 +8,7 @@ import { playSound } from '../utils/sound'
 import { useSettings } from '../contexts/SettingsContext'
 import { waniKaniService } from '../services/wanikaniService'
 import moment from 'moment'
+import { encounterService } from '../services/encounterService'
 
 type UseGameLogicProps = {
   gameId: string
@@ -129,6 +130,14 @@ export const useGameLogic = <T extends GameItem>({
 
     setIsFinished(true)
     setIsActive(false)
+
+    encounterService.saveEncounter(
+      gameId,
+      score,
+      maxScore || Math.max(score, gameItems.length),
+      duration.asMilliseconds(),
+      gameItems,
+    )
   }
 
   const finishGame = useCallback(() => {
