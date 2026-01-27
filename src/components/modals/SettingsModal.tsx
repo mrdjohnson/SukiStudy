@@ -26,12 +26,13 @@ import _ from 'lodash'
 import clsx from 'clsx'
 import { Icons } from '../Icons'
 import moment from 'moment'
-import { IconWorld } from '@tabler/icons-react'
+import { IconActivity, IconWorld } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { syncService } from '../../services/syncService'
 import { subjects } from '../../services/db'
 import { flush } from '../../utils/flush'
 import { JAPANESE_FONTS } from '../../utils/fonts'
+import { openLogModal } from './LogsModal'
 
 interface SettingsModalProps {
   opened: boolean
@@ -456,7 +457,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
             </Text>
 
             {/* GitHub Link */}
-            <Center className="pt-2">
+            <Group className="pt-2" justify="space-around">
               <Anchor
                 href="https://github.com/mrdjohnson/SukiStudy"
                 target="_blank"
@@ -467,7 +468,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                   <Icons.GitHub stroke={1.5} />
                 </ActionIcon>
               </Anchor>
-            </Center>
+
+              <ActionIcon
+                variant="subtle"
+                onClick={openLogModal}
+                color="black"
+                radius="xl"
+                p={2}
+                size="lg"
+              >
+                <IconActivity />
+              </ActionIcon>
+            </Group>
           </Stack>
         </Stack>
 

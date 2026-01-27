@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
         <AppShell.Section pt="md">
           <Stack>
-            <SimpleGrid cols={3} className="flex-nowrap!">
+            <SimpleGrid cols={2} className="flex-nowrap!">
               <Button
                 fullWidth
                 variant="subtle"
@@ -204,10 +204,6 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 color="indigo"
               >
                 <Icons.GitHub />
-              </Button>
-
-              <Button variant="subtle" onClick={openLogModal} color="indigo">
-                <IconActivity size={20} />
               </Button>
             </SimpleGrid>
 

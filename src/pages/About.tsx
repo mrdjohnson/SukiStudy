@@ -1,6 +1,5 @@
 import {
   Container,
-  Title,
   Text,
   Card,
   Group,
@@ -16,6 +15,8 @@ import { Icons } from '../components/Icons'
 import { IconHeart, IconDatabase, IconSchool, IconTypography } from '@tabler/icons-react'
 import { useUser } from '../contexts/UserContext'
 import { useNavigate } from 'react-router'
+import { Footer } from '../components/Footer'
+import logo from '@/src/assets/apple-touch-icon.png'
 
 export const About = () => {
   const { loginAsGuest } = useUser()
@@ -33,9 +34,7 @@ export const About = () => {
         {/* Hero Section */}
         <Stack className="text-center! py-4 md:py-6 saturate-200 bg-gradient-to-r from-primary/70 to-secondary/70 rounded-3xl text-white shadow-xl mb-6">
           <Center>
-            <ThemeIcon variant="white" size={60} radius="xl" color="primary">
-              <IconHeart size={32} />
-            </ThemeIcon>
+            <img src={logo} alt="SukiStudy Logo" className="size-16 rounded-full" />
           </Center>
 
           <a
@@ -208,6 +207,8 @@ export const About = () => {
           </Card>
         </SimpleGrid>
       </Stack>
+
+      <Footer showAbout={false} showHome showLastUpdated />
     </Container>
   )
 }
