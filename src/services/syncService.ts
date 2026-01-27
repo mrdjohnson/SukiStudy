@@ -99,8 +99,8 @@ export const syncService = {
       await this.syncSubjects()
       await this.migrateAssignments()
       await this.syncAssignments()
-      await this.syncAssignments()
       await this.syncStudyMaterials()
+      await this.syncUnsyncedResults()
 
       console.log('[Sync] Synchronization complete.')
     } catch (error) {
@@ -180,6 +180,10 @@ export const syncService = {
     await syncServiceWorker.populateKana()
 
     updateSyncTimestamp(SYNC_KEYS.KANA)
+  },
+
+  async syncUnsyncedResults() {
+    await syncServiceWorker.syncUnsyncedResults()
   },
 
   async clearData() {
