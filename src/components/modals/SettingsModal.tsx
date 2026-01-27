@@ -236,7 +236,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                   key={font.name}
                   justify="space-between"
                   align="center"
-                  className="border p-2 rounded-md"
+                  className="border p-2 rounded-md cursor-pointer"
+                  onClick={() => toggleEnabledFont(font.name)}
                 >
                   <div style={{ flex: 1 }}>
                     <Text fw={500}>{font.name}</Text>
@@ -257,11 +258,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                     )}
                   </div>
 
-                  <Switch
-                    checked={isEnabled}
-                    onChange={() => toggleEnabledFont(font.name)}
-                    labelPosition="left"
-                  />
+                  <Switch checked={isEnabled} labelPosition="left" />
                 </Group>
               )
             })}
