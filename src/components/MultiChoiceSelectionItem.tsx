@@ -45,7 +45,7 @@ export const MultiChoiceSelectionItem = ({
   } else if (isSelectedOption) {
     btnClass = 'border-indigo-500 bg-indigo-50 text-indigo-700 font-medium ring-2 ring-indigo-200'
   } else if (disabled) {
-    btnClass = 'border-gray-200 opacity-50'
+    btnClass = 'border-gray-200 opacity-50 bg-gray-200'
   }
 
   return (
