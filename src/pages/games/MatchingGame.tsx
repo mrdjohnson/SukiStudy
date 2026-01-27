@@ -52,6 +52,8 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     startGame()
     setSelectedItem(null)
     setSelectedSide(null)
+    setFeedbackState(null)
+    matchedIds.clear()
 
     const selectedItems = selectUniqueItems(items, 6, propItems)
 
