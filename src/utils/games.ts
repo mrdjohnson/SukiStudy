@@ -1,18 +1,40 @@
 import _ from 'lodash'
+import React from 'react'
 import { Icons } from '../components/Icons'
 
-import { AudioQuizGame } from '../pages/games/AudioQuizGame'
-import { ConnectGame } from '../pages/games/ConnectGame'
-import { MemoryGame } from '../pages/games/MemoryGame'
-import { QuizGame } from '../pages/games/QuizGame'
-// import { RadicalCompositionGame } from '../pages/games/RadicalCompositionGame'
-import { RecallGame } from '../pages/games/RecallGame'
-// import { ShiritoriGame } from '../pages/games/ShiritoriGame'
-import { MatchingGame } from '../pages/games/MatchingGame'
-import { TypingGame } from '../pages/games/TypingGame'
-import { VariationsQuizGame } from '../pages/games/VariationsQuizGame'
-
 import { SubjectType, GameDefinition } from '../types'
+
+// Lazy-loaded game components (code split)
+const AudioQuizGame = React.lazy(() =>
+  import('../pages/games/AudioQuizGame').then(m => ({ default: m.AudioQuizGame })),
+)
+const ConnectGame = React.lazy(() =>
+  import('../pages/games/ConnectGame').then(m => ({ default: m.ConnectGame })),
+)
+const MemoryGame = React.lazy(() =>
+  import('../pages/games/MemoryGame').then(m => ({ default: m.MemoryGame })),
+)
+const QuizGame = React.lazy(() =>
+  import('../pages/games/QuizGame').then(m => ({ default: m.QuizGame })),
+)
+const RecallGame = React.lazy(() =>
+  import('../pages/games/RecallGame').then(m => ({ default: m.RecallGame })),
+)
+const MatchingGame = React.lazy(() =>
+  import('../pages/games/MatchingGame').then(m => ({ default: m.MatchingGame })),
+)
+const TypingGame = React.lazy(() =>
+  import('../pages/games/TypingGame').then(m => ({ default: m.TypingGame })),
+)
+const VariationsQuizGame = React.lazy(() =>
+  import('../pages/games/VariationsQuizGame').then(m => ({ default: m.VariationsQuizGame })),
+)
+// const RadicalCompositionGame = React.lazy(() =>
+//   import('../pages/games/RadicalCompositionGame').then(m => ({ default: m.RadicalCompositionGame })),
+// )
+// const ShiritoriGame = React.lazy(() =>
+//   import('../pages/games/ShiritoriGame').then(m => ({ default: m.ShiritoriGame })),
+// )
 
 export const games: GameDefinition[] = [
   {

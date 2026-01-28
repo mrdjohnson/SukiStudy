@@ -1,23 +1,34 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense } from 'react'
 import { Route, Routes, useLocation, Navigate, Outlet } from 'react-router'
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { useUser } from './contexts/UserContext'
 import { useGames } from './hooks/useGames'
 import { FontLoader } from './components/FontLoader'
+import { PageLoader } from './components/PageLoader'
 
-// Pages
+// Direct imports (no code splitting)
 import { Login } from './pages/Login'
-import { Dashboard } from './pages/Dashboard'
-import { Browse } from './pages/Browse'
 import { About } from './pages/About'
-import { Session } from './pages/Session'
-import { Review } from './pages/Review'
-import { GameMenu } from './pages/games/GameMenu'
-import { CustomGameSetup } from './pages/games/CustomGameSetup'
-import { CustomSession } from './pages/games/CustomSession'
 import { Landing } from './pages/Landing'
 import PWABadge from './PWABadge'
+
+// Lazy-loaded pages (code split)
+const Dashboard = React.lazy(() =>
+  import('./pages/Dashboard').then(m => ({ default: m.Dashboard })),
+)
+const Browse = React.lazy(() => import('./pages/Browse').then(m => ({ default: m.Browse })))
+const Session = React.lazy(() => import('./pages/Session').then(m => ({ default: m.Session })))
+const Review = React.lazy(() => import('./pages/Review').then(m => ({ default: m.Review })))
+const GameMenu = React.lazy(() =>
+  import('./pages/games/GameMenu').then(m => ({ default: m.GameMenu })),
+)
+const CustomGameSetup = React.lazy(() =>
+  import('./pages/games/CustomGameSetup').then(m => ({ default: m.CustomGameSetup })),
+)
+const CustomSession = React.lazy(() =>
+  import('./pages/games/CustomSession').then(m => ({ default: m.CustomSession })),
+)
 
 import logo from '@/src/assets/apple-touch-icon.png'
 
@@ -62,7 +73,9 @@ export const AuthWrapper = () => {
       <PWABadge />
       <FontLoader />
 
-      <Outlet />
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
     </Header>
   )
 }
