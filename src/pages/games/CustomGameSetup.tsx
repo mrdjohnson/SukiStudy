@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
-import { GameItem, SubjectType } from '../../types'
+import { SubjectType } from '../../types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
-import { Flashcard } from '../../components/Flashcard'
 import { useGames } from '../../hooks/useGames'
 import {
   Grid,
@@ -20,31 +19,73 @@ import {
   UnstyledButton,
   Stack,
   Box,
-  Input,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
 import { colorByType } from '../../utils/subject'
 import { useSettings } from '../../contexts/SettingsContext'
 import _ from 'lodash'
+import { openFlashcardModal } from '../../components/modals/FlashcardModal'
+import { useLocalStorage } from '@mantine/hooks'
+import clsx from 'clsx'
 
 export const CustomGameSetup: React.FC = () => {
   const { user, isGuest } = useUser()
   const { availableSubjects, disabledSubjects } = useSettings()
   const { items: learnedItems, loading } = useAllSubjects(true)
 
-  const [selectedGames, setSelectedGames] = useState<string[]>(['quiz'])
-  const [itemCount, setItemCount] = useState(25)
-  const [roundCount, setRoundCount] = useState(3)
-  const [levels, setLevels] = useState<number[]>([])
-  const [types, setTypes] = useState<string[]>(availableSubjects)
-  const [manualSelection, setManualSelection] = useState<number[]>([])
-  const [isManualMode, setIsManualMode] = useState(false)
-  const [previewFlashcard, setPreviewFlashcard] = useState<GameItem | null>(null)
-  const [showLevelSelect, setShowLevelSelect] = useState(false)
+  const [selectedGames, setSelectedGames] = useLocalStorage<string[]>({
+    key: 'custom-setup-selected-games',
+    defaultValue: ['quiz'],
+  })
+  const [itemCount, setItemCount] = useLocalStorage<number>({
+    key: 'custom-setup-item-count',
+    defaultValue: 25,
+  })
+  const [roundCount, setRoundCount] = useLocalStorage<number>({
+    key: 'custom-setup-round-count',
+    defaultValue: 3,
+  })
+  const [levels, setLevels] = useLocalStorage<number[]>({
+    key: 'custom-setup-levels',
+    defaultValue: [],
+  })
+  const [types, setTypes] = useLocalStorage<string[]>({
+    key: 'custom-setup-types',
+    defaultValue: availableSubjects,
+  })
+  const [manualSelection, setManualSelection] = useLocalStorage<number[]>({
+    key: 'custom-setup-manual-selection',
+    defaultValue: [],
+  })
+  const [isManualMode, setIsManualMode] = useLocalStorage<boolean>({
+    key: 'custom-setup-is-manual-mode',
+    defaultValue: false,
+  })
+  const [showLevelSelect, setShowLevelSelect] = useLocalStorage<boolean>({
+    key: 'custom-setup-show-level-select',
+    defaultValue: false,
+  })
 
   const navigate = useNavigate()
 
-  const availableGames = useGames()
+  const allGames = useGames({ includeHidden: true })
+
+  const availableGames = useMemo(() => {
+    return allGames.map(game => {
+      // if there are no subject types for this game
+      const emptySubjects = _.chain(SubjectType)
+        .values()
+        .intersection(types as SubjectType[])
+        .without(...game.hiddenSubjectTypes)
+        .isEmpty()
+        .value()
+
+      return {
+        ...game,
+        disabled: emptySubjects,
+      }
+    })
+  }, [allGames, types])
 
   // Initialize levels to current level
   useEffect(() => {
@@ -111,7 +152,18 @@ export const CustomGameSetup: React.FC = () => {
     }
   }
 
-  if (loading)
+  const reset = () => {
+    setSelectedGames(['quiz'])
+    setItemCount(25)
+    setRoundCount(3)
+    setLevels([])
+    setTypes(availableSubjects)
+    setManualSelection([])
+    setIsManualMode(false)
+    setShowLevelSelect(false)
+  }
+
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin text-indigo-600">
@@ -119,6 +171,7 @@ export const CustomGameSetup: React.FC = () => {
         </div>
       </div>
     )
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -127,6 +180,10 @@ export const CustomGameSetup: React.FC = () => {
           <Icons.ChevronLeft />
         </Button>
         <Title order={2}>Custom Session Setup</Title>
+
+        <Button size="sm" variant="light" onClick={reset} className="ml-auto">
+          Reset All
+        </Button>
       </Group>
 
       <Grid gutter="lg">
@@ -136,18 +193,59 @@ export const CustomGameSetup: React.FC = () => {
             <Paper p="md" withBorder radius="md">
               <Group mb="md">
                 <Icons.Gamepad2 className="w-5 h-5 text-indigo-600" />
-                <Title order={4}>Select Games</Title>
+                <Title order={4}>Select Types and Games</Title>
+
+                <Button
+                  size="xs"
+                  variant="light"
+                  onClick={() => {
+                    setTypes(Object.values(SubjectType))
+                    setSelectedGames(availableGames.map(g => g.id))
+                  }}
+                  className="ml-auto"
+                >
+                  Select All
+                </Button>
               </Group>
 
-              <Chip.Group multiple value={selectedGames} onChange={setSelectedGames}>
-                <Group gap="xs">
-                  {availableGames.map(g => (
-                    <Chip key={g.id} value={g.id} variant="light" radius="sm">
-                      {g.name}
-                    </Chip>
-                  ))}
-                </Group>
-              </Chip.Group>
+              <Stack>
+                <Chip.Group multiple value={types} onChange={setTypes}>
+                  <Group gap="xs">
+                    {_.map(SubjectType, subjectType => {
+                      return (
+                        <Chip
+                          key={subjectType}
+                          value={subjectType}
+                          variant="outline"
+                          color={colorByType[subjectType]}
+                          disabled={disabledSubjects.includes(subjectType)}
+                          checked={types.includes(subjectType)}
+                        >
+                          {_.startCase(subjectType)}
+                        </Chip>
+                      )
+                    })}
+                  </Group>
+                </Chip.Group>
+
+                <Chip.Group multiple value={selectedGames} onChange={setSelectedGames}>
+                  <Group gap="xs">
+                    {availableGames.map(g => (
+                      <div key={g.id} className={clsx('p-0.5 rounded-sm', g.color)}>
+                        <Chip
+                          variant={selectedGames.includes(g.id) ? 'subtle' : 'filled'}
+                          color="gray"
+                          radius="sm"
+                          value={g.id}
+                          disabled={g.disabled}
+                        >
+                          {g.name}
+                        </Chip>
+                      </div>
+                    ))}
+                  </Group>
+                </Chip.Group>
+              </Stack>
             </Paper>
 
             {/* Filters */}
@@ -170,27 +268,6 @@ export const CustomGameSetup: React.FC = () => {
                         Levels:{' '}
                         {levels.length > 3 ? `${levels.length} selected` : levels.join(', ')}
                       </Button>
-                    </Box>
-                    <Box>
-                      <Input.Label>Subject Types</Input.Label>
-
-                      <Chip.Group multiple value={types} onChange={setTypes}>
-                        <Group gap="xs">
-                          {_.map(SubjectType, subjectType => {
-                            return (
-                              <Chip
-                                key={subjectType}
-                                value={subjectType}
-                                variant="outline"
-                                color={colorByType[subjectType]}
-                                disabled={disabledSubjects.includes(subjectType)}
-                              >
-                                {_.startCase(subjectType)}
-                              </Chip>
-                            )
-                          })}
-                        </Group>
-                      </Chip.Group>
                     </Box>
                   </>
                 )}
@@ -284,15 +361,11 @@ export const CustomGameSetup: React.FC = () => {
               <SimpleGrid cols={5} spacing="xs">
                 {filteredPool.map(item => {
                   const isSelected = isManualMode && manualSelection.includes(item.subject.id!)
-                  const isKana = item.subject.id! < 0
                   return (
                     <UnstyledButton
                       key={item.subject.id}
                       onClick={() => isManualMode && toggleManualId(item.subject.id!)}
-                      onContextMenu={e => {
-                        e.preventDefault()
-                        if (!isKana) setPreviewFlashcard(item)
-                      }}
+                      onDoubleClick={() => openFlashcardModal([item.subject])}
                       style={theme => ({
                         aspectRatio: '1/1',
                         display: 'flex',
@@ -334,7 +407,7 @@ export const CustomGameSetup: React.FC = () => {
                 Start Session
               </Button>
               <Text size="xs" c="dimmed" ta="center" mt="xs">
-                Right click items to view details
+                Double click items to view details
               </Text>
             </Box>
           </Paper>
@@ -362,25 +435,6 @@ export const CustomGameSetup: React.FC = () => {
             </Button>
           ))}
         </SimpleGrid>
-      </Modal>
-
-      {/* Flashcard Preview Modal */}
-      <Modal
-        opened={!!previewFlashcard}
-        onClose={() => setPreviewFlashcard(null)}
-        size="lg"
-        centered
-        withCloseButton={false}
-        padding={0}
-        bg="transparent"
-        styles={{
-          body: { backgroundColor: 'transparent' },
-          content: { backgroundColor: 'transparent', boxShadow: 'none' },
-        }}
-      >
-        {previewFlashcard && (
-          <Flashcard subject={previewFlashcard.subject} hasPrev={false} hasNext={false} />
-        )}
       </Modal>
     </div>
   )
