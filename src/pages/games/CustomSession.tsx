@@ -13,12 +13,17 @@ import { TypingGame } from './TypingGame'
 import { AudioQuizGame } from './AudioQuizGame'
 import { GameResults } from '../../components/GameResults'
 import { useUser } from '../../contexts/UserContext'
+import _ from 'lodash'
 
 export const CustomSession = () => {
   const { user } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
-  const { games, items } = (location.state as { games: string[]; items: GameItem[] }) || {
+  const {
+    games,
+    items,
+    roundCount = 5,
+  } = (location.state as { games: string[]; items: GameItem[]; roundCount?: number }) || {
     games: [],
     items: [],
   }
@@ -36,12 +41,9 @@ export const CustomSession = () => {
       return
     }
 
-    // Build a queue of 5 rounds (or fewer if less games selected)
-    const rounds = []
-    const roundCount = Math.max(games.length, 5)
-    for (let i = 0; i < roundCount; i++) {
-      rounds.push(games[i % games.length])
-    }
+    const gameCount = Math.max(roundCount, games.length)
+    const rounds = _.sampleSize(games, gameCount)
+
     setGameQueue(rounds)
     setCurrentGame(rounds[0])
   }, [])

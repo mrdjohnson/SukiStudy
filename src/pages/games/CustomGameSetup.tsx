@@ -34,6 +34,7 @@ export const CustomGameSetup: React.FC = () => {
 
   const [selectedGames, setSelectedGames] = useState<string[]>(['quiz'])
   const [itemCount, setItemCount] = useState(25)
+  const [roundCount, setRoundCount] = useState(3)
   const [levels, setLevels] = useState<number[]>([])
   const [types, setTypes] = useState<string[]>(availableSubjects)
   const [manualSelection, setManualSelection] = useState<number[]>([])
@@ -93,6 +94,7 @@ export const CustomGameSetup: React.FC = () => {
       state: {
         games: selectedGames,
         items: finalItems,
+        roundCount,
       },
     })
   }
@@ -207,6 +209,26 @@ export const CustomGameSetup: React.FC = () => {
                       { value: 25, label: '25' },
                       { value: 50, label: '50' },
                       { value: 100, label: '100' },
+                    ]}
+                    mb="lg"
+                  />
+                </Box>
+
+                <Box>
+                  <Text size="sm" fw={500} mb="xs">
+                    Round Count: {roundCount}
+                  </Text>
+                  <Slider
+                    value={roundCount}
+                    onChange={setRoundCount}
+                    min={1}
+                    max={5}
+                    marks={[
+                      { value: 1, label: '1' },
+                      { value: 2, label: '2' },
+                      { value: 3, label: '3' },
+                      { value: 4, label: '4' },
+                      { value: 5, label: '5' },
                     ]}
                     mb="lg"
                   />
