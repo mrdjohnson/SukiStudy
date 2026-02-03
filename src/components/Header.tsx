@@ -13,20 +13,17 @@ import {
   ThemeIcon,
   ScrollArea,
   Button,
-  Badge,
   ActionIcon,
   Divider,
   Stack,
   SimpleGrid,
   useMatches,
-  Center,
 } from '@mantine/core'
-import { useDisclosure, useNetwork } from '@mantine/hooks'
+import { useDisclosure } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
 import { useUser } from '../contexts/UserContext'
 
 import logo from '@/src/assets/apple-touch-icon.png'
-import { IconActivity } from '@tabler/icons-react'
 import { openLogModal } from './modals/LogsModal'
 import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
 
@@ -177,6 +174,16 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
               />
             ))}
           </NavLink>
+
+          <NavLink
+            label="Stats"
+            leftSection={<Icons.Activity size="1rem" />}
+            onClick={() => {
+              navigate('/stats')
+              if (opened) toggle()
+            }}
+            active={location.pathname === '/stats'}
+          />
         </AppShell.Section>
 
         <Divider />
@@ -223,7 +230,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         </AppShell.Section>
       </AppShell.Navbar>
 
-      <AppShell.Main className="flex flex-col">{children}</AppShell.Main>
+      <AppShell.Main className="flex! flex-col">{children}</AppShell.Main>
 
       {helpSteps && (
         <HowToPlayModal

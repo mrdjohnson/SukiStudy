@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { useNetwork } from '@mantine/hooks'
 import { useNavigate } from 'react-router'
-import { assignments } from '../services/db'
+import { assignments, encounters } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
@@ -11,7 +12,6 @@ import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessa
 import useReactivity from '../hooks/useReactivity'
 
 import { Footer } from '../components/Footer'
-import { useNetwork } from '@mantine/hooks'
 
 export const Dashboard: React.FC = () => {
   const { isGuest } = useUser()
@@ -22,6 +22,8 @@ export const Dashboard: React.FC = () => {
     base: 1,
     sm: 3,
   })
+
+  const gameCount = useReactivity(() => encounters.find().count())
 
   useEffect(() => {
     assignments.isReady().then(() => setLoading(false))
@@ -136,6 +138,23 @@ export const Dashboard: React.FC = () => {
             </Button>
           </div>
         </SimpleGrid>
+
+        {/* Statistics Link (Conditional) */}
+        <div
+          className={clsx(
+            'bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center',
+            gameCount === 0
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:border-secondary/30 transition-colors group  cursor-pointer',
+          )}
+          onClick={() => gameCount > 0 && navigate('/stats')}
+        >
+          <div className="bg-amber-100 p-4 rounded-full mb-4 group-hover:bg-amber-200 transition-colors cursor">
+            <Icons.Activity className="w-8 h-8 text-amber-600" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">Your Stats</h3>
+          <p className="text-gray-500 mb-6">View your game history and item breakdown.</p>
+        </div>
 
         {/* Quick Browse */}
         <div

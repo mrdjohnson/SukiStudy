@@ -8,11 +8,14 @@ import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader } from '@mantine/
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
-import { studyMaterials, subjects } from '../services/db'
+import { studyMaterials, subjects, encounterItems } from '../services/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
 import Markdown from 'react-markdown'
 import { colorByType, themeByType } from '../utils/subject'
+import useReactivity from '../hooks/useReactivity'
+import { ReviewHistoryChart } from './ReviewHistoryChart'
+import { encounterService } from '../services/encounterService'
 
 type FlashcardProps = {
   index?: number
@@ -154,6 +157,17 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const hasNext = itemIndex < allItems.length - 1
 
   const hasPrev = itemIndex > 0
+
+  const itemStats = useReactivity(() => {
+    if (!isPopup) return null
+    return encounterService.getItemStats(subject.id)
+  }, [subject?.id, isPopup])
+
+  const encounterHistory = useReactivity(() => {
+    if (!isPopup || !subject) return []
+
+    return encounterItems.find({ subjectId: subject.id }, { sort: { timestamp: -1 } }).fetch()
+  }, [subject?.id, isPopup])
 
   useEffect(() => {
     setAudioIndex(0)
@@ -401,6 +415,47 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                     <p className="text-gray-500 text-xs">{s.en}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {isPopup && itemStats && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Your Stats
+              </h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-800">{itemStats.reviewCount}</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">Games</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-800">
+                      {itemStats.averageScore}%
+                    </div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">Accuracy</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-800">
+                      {itemStats.lastGameId ? (
+                        <span className="capitalize">{itemStats.lastGameId}</span>
+                      ) : (
+                        '-'
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">Last Game</div>
+                  </div>
+                </div>
+
+                {encounterHistory.length > 0 && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                      Review History
+                    </h4>
+                    <ReviewHistoryChart results={encounterHistory} />
+                  </div>
+                )}
               </div>
             </div>
           )}

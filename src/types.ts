@@ -144,7 +144,9 @@ export interface GameItem {
   correct?: boolean
 }
 
-export type GameItemWithStat = GameItem & GameItemStat
+export type GameItemWithStat = GameItem & {
+  stats?: GameItemStat
+}
 
 export type GameItemStat = {
   lastReviewedAt: string | null
