@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { GameItem, MultiChoiceGameItem } from '../../types'
+import { useState, useEffect, useRef } from 'react'
+import { GameComponent, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -11,17 +11,12 @@ import { selectUniqueItems } from '../../utils/multiChoiceGame'
 import { useSet } from '@mantine/hooks'
 import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
-interface MatchingGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
 type GameCard = MultiChoiceGameItem & {
   id: string
   isQuestion?: boolean
 }
 
-export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, onComplete }) => {
+export const MatchingGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
@@ -31,6 +26,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
     initialRoundNumber: 0,
     canSkip: false,
     scoreDelay: 0,
+    onComplete,
   })
 
   const { startGame, setGameItems, recordAttempt } = gameLogic
@@ -215,7 +211,7 @@ export const MatchingGame: React.FC<MatchingGameProps> = ({ items: propItems, on
   }
 
   return (
-    <GameContainer gameLogic={gameLogic} onPlayAgain={initGame}>
+    <GameContainer gameLogic={gameLogic} onPlayAgain={initGame} isLastGame={isLastGame}>
       <div className="flex gap-8 justify-center">
         {/* Left Column */}
         <div className="flex-1 space-y-4">{leftItems.map(createItemCard('left'))}</div>

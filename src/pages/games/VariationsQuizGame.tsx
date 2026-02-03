@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
 import { useSet } from '@mantine/hooks'
 import _ from 'lodash'
 
-import { GameItem, SubjectType } from '../../types'
+import { GameComponent, GameItem, SubjectType } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -12,21 +12,13 @@ import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
-interface VariationsQuizGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
 type Question = {
   target: GameItem
   correctReadings: string[]
   options: string[]
 }
 
-export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
-  items: propItems,
-  onComplete,
-}) => {
+export const VariationsQuizGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useAllSubjects(!propItems)
   const items = propItems || fetchedItems
 
@@ -34,6 +26,7 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
     gameId: 'variations',
     totalRounds: propItems?.length || 5,
     canSkip: true,
+    onComplete,
   })
 
   const { startGame, setGameItems, recordAttempt, gameState, skip } = gameLogic
@@ -159,6 +152,7 @@ export const VariationsQuizGame: React.FC<VariationsQuizGameProps> = ({
       onClear={() => selectedOptions.clear()}
       clearDisabled={selectedOptions.size === 0}
       onPlayAgain={restartGame}
+      isLastGame={isLastGame}
       children={
         question && (
           <>

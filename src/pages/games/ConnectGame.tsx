@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { GameItem } from '../../types'
+import { GameComponent } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -24,12 +24,7 @@ interface Cell {
   wrong: boolean
 }
 
-interface ConnectGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
-export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onComplete }) => {
+export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
@@ -304,6 +299,7 @@ export const ConnectGame: React.FC<ConnectGameProps> = ({ items: propItems, onCo
       hintDisabled={found}
       onClear={handleClear}
       clearDisabled={found || selectedCells.length === 0}
+      isLastGame={isLastGame}
     >
       <div className="text-center mb-6">
         <div className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">

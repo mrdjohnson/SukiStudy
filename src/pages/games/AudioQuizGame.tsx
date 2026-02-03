@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo, MouseEventHandler } from 'react'
+import { useState, useEffect, useRef, useMemo, MouseEventHandler } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
-import { GameItem, MultiChoiceGameItem, SubjectType } from '../../types'
+import { GameComponent, GameItem, MultiChoiceGameItem, SubjectType } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -12,12 +12,7 @@ import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionI
 import { ActionIcon } from '@mantine/core'
 import { colorByType } from '../../utils/subject'
 
-interface AudioQuizGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
-export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, onComplete }) => {
+export const AudioQuizGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   // Filter only items with audio
   const items = useMemo(() => {
@@ -35,6 +30,7 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
   const gameLogic = useGameLogic<MultiChoiceGameItem>({
     gameId: 'audio',
     totalRounds: propItems?.length || 10,
+    onComplete,
     onRoundFinish: () => {
       setSelectedAnswer(null)
     },
@@ -152,7 +148,12 @@ export const AudioQuizGame: React.FC<AudioQuizGameProps> = ({ items: propItems, 
   }
 
   return (
-    <GameContainer gameLogic={gameLogic} skip={() => skip(currentItem)} onPlayAgain={restartGame}>
+    <GameContainer
+      gameLogic={gameLogic}
+      skip={() => skip(currentItem)}
+      onPlayAgain={restartGame}
+      isLastGame={isLastGame}
+    >
       {currentItem && (
         <>
           <QuestionDisplay

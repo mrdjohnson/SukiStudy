@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { GameItem, MultiChoiceGameItem, Subject, SubjectType } from '../../types'
+import { useState, useEffect } from 'react'
+import { GameComponent, GameItem, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -19,12 +19,7 @@ type GameCard = MultiChoiceGameItem & {
   isMatched?: boolean
 }
 
-interface MemoryGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
-export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComplete }) => {
+export const MemoryGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
@@ -158,7 +153,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ items: propItems, onComp
     )
 
   return (
-    <GameContainer gameLogic={gameLogic}>
+    <GameContainer gameLogic={gameLogic} onPlayAgain={initGame} isLastGame={isLastGame}>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
         {cards.map((card, idx) => (
           <div

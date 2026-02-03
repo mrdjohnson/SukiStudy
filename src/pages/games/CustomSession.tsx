@@ -138,6 +138,7 @@ export const CustomSession = () => {
     user,
     items,
     onComplete: handleGameComplete,
+    isLastGame: completedGames === gameQueue.length - 1,
   }
 
   return (

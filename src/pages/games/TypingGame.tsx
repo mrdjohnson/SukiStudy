@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
-import { GameItem } from '../../types'
+import { GameComponent } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { playSound } from '../../utils/sound'
@@ -12,12 +12,7 @@ import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
 import clsx from 'clsx'
 
-interface TypingGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
-export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComplete }) => {
+export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
@@ -167,6 +162,7 @@ export const TypingGame: React.FC<TypingGameProps> = ({ items: propItems, onComp
       gameLogic={gameLogic}
       skip={() => skip(currentItem)}
       onPlayAgain={restartGame}
+      isLastGame={isLastGame}
       children={
         currentItem && (
           <>

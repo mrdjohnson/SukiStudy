@@ -1,4 +1,3 @@
-import React from 'react'
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { openFlashcardModal } from './modals/FlashcardModal'

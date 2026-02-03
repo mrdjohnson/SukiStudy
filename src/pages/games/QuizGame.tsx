@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
-import { GameItem, GameResultData, MultiChoiceGameItem } from '../../types'
+import { GameComponent, GameItem, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -10,12 +10,7 @@ import _ from 'lodash'
 import { toItemWithAnswer } from '../../utils/multiChoiceGame'
 import { MultiChoiceSelectionItem } from '../../components/MultiChoiceSelectionItem'
 
-interface QuizGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: GameResultData) => void
-}
-
-export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete }) => {
+export const QuizGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
 
   const items = useMemo(() => {
@@ -135,6 +130,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ items: propItems, onComplete
       gameLogic={gameLogic}
       skip={() => skip(currentItem!)}
       onPlayAgain={initGame}
+      isLastGame={isLastGame}
       children={
         currentItem && (
           <>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { GameItem } from '../../types'
+import React, { useState, useEffect, useMemo } from 'react'
+import { GameComponent, GameItem } from '../../types'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 import { playSound } from '../../utils/sound'
@@ -10,12 +10,7 @@ import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 
-interface RecallGameProps {
-  items?: GameItem[]
-  onComplete?: (data?: any) => void
-}
-
-export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComplete }) => {
+export const RecallGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
   const items = propItems || fetchedItems
 
@@ -25,6 +20,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
     initialRoundNumber: 0,
     canSkip: false,
     scoreDelay: 0,
+    onComplete,
   })
 
   const { startGame, recordAttempt, gameState, setGameItems, setMaxScore, endGame } = gameLogic
@@ -82,7 +78,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
 
     // Pick random start char from available vocab
     const randomItem = _.sample(vocab)
-    const reading = randomItem.subject.readings?.[0]?.reading
+    const reading = randomItem!.subject.readings?.[0]?.reading
     if (!reading) return
 
     const char = reading.charAt(0)
@@ -90,7 +86,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
 
     // Find all unique matches
     const matches = _.chain(vocab)
-      .filter(i => i.subject.readings?.[0]?.reading.startsWith(char))
+      .filter(i => !!i.subject.readings?.[0]?.reading.startsWith(char))
       .uniqBy(item => item.subject.id)
       .value()
 
@@ -146,6 +142,8 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
 
   const handleHint = () => {
     const hint = _.sample(availableHints)
+    if (!hint) return
+
     setRevealedHints(prev => [...prev, hint])
     playSound('pop', soundEnabled)
 
@@ -167,6 +165,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
       gameLogic={gameLogic}
       onHint={handleHint}
       hintDisabled={availableHints.length === 0}
+      isLastGame={isLastGame}
     >
       <div className="text-center mb-8">
         <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
@@ -195,7 +194,7 @@ export const RecallGame: React.FC<RecallGameProps> = ({ items: propItems, onComp
               return (
                 <button
                   key={subject.id}
-                  onClick={() => openFlashcardModal(subject)}
+                  onClick={() => openFlashcardModal([subject])}
                   className={`px-3 py-1 rounded-lg text-sm font-bold transition-all duration-300 ${isHighlight ? 'bg-yellow-300 text-yellow-900 scale-110' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
                 >
                   {subject.characters}

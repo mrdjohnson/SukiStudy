@@ -218,6 +218,12 @@ export type InternalMessage = {
   guestVisible?: boolean
 }
 
+export type GameComponent = React.FC<{
+  items?: GameItem[]
+  onComplete?: (data: GameResultData) => void
+  isLastGame?: boolean
+}>
+
 export interface GameDefinition {
   id: string
   name: string
@@ -225,6 +231,6 @@ export interface GameDefinition {
   icon: any
   color: string
   enabled?: boolean
-  component: React.FC<{ items?: GameItem[]; onComplete?: (data: GameResultData) => void }>
+  component: GameComponent
   hiddenSubjectTypes: SubjectType[]
 }
