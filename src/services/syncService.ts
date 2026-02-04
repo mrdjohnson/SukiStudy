@@ -179,6 +179,11 @@ export const syncService = {
 
     await syncServiceWorker.populateKana()
 
+    // fixes signaldb worker bug where updates are not picked up: "not enough game items"
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
+
     updateSyncTimestamp(SYNC_KEYS.KANA)
   },
 

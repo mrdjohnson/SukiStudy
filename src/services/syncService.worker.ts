@@ -121,6 +121,8 @@ export async function populateKana() {
   subjects.insertMany(kanaSubjects)
 
   console.log('populated %s kana subjects', kanaSubjects.length)
+
+  await flush()
 }
 
 export async function syncEncounterItems() {
