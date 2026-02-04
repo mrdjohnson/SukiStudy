@@ -1,4 +1,3 @@
-// @ts-ignore
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useEffect } from 'react'
 
@@ -8,7 +7,7 @@ function PWABadge() {
   // check for updates every hour
 
   const {
-    offlineReady: [offlineReady, setOfflineReady],
+    offlineReady: [offlineReady],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
@@ -36,9 +35,10 @@ function PWABadge() {
     // do not ask for prompt, immediately update for now
     if (needRefresh) {
       console.log('refreshing page')
+      setNeedRefresh(false)
       updateServiceWorker()
     }
-  }, [needRefresh])
+  }, [needRefresh, offlineReady])
 
   return null
 }
