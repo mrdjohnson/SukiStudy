@@ -174,6 +174,16 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
               />
             ))}
           </NavLink>
+
+          <NavLink
+            label="Stats"
+            leftSection={<Icons.Activity size="1rem" />}
+            onClick={() => {
+              navigate('/stats')
+              if (opened) toggle()
+            }}
+            active={location.pathname === '/stats'}
+          />
         </AppShell.Section>
 
         <Divider />
@@ -220,7 +230,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         </AppShell.Section>
       </AppShell.Navbar>
 
-      <AppShell.Main className="flex flex-col">{children}</AppShell.Main>
+      <AppShell.Main className="flex! flex-col">{children}</AppShell.Main>
 
       {helpSteps && (
         <HowToPlayModal

@@ -5,16 +5,19 @@ import { GameLogic } from '../hooks/useGameLogic'
 import { GameItemIcon } from './GameItemIcon'
 import { IconReload } from '@tabler/icons-react'
 import { GameItem } from '../types'
+import clsx from 'clsx'
 
 interface GameResultsProps<T extends GameItem> {
   gameLogic: GameLogic<T>
   isLastGame?: boolean
+  isReview?: boolean
   onPlayAgain?: () => void
 }
 
 export const GameResults = <T extends GameItem>({
   gameLogic,
   isLastGame = true,
+  isReview = false,
   onPlayAgain,
 }: GameResultsProps<T>) => {
   const { game: gameInfo, gameState } = gameLogic
@@ -24,7 +27,7 @@ export const GameResults = <T extends GameItem>({
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
 
   return (
-    <div className="max-w-2xl mx-auto p-6 animate-fade-in">
+    <div className={clsx('max-w-2xl mx-auto animate-fade-in', isReview ? 'pb-6' : 'p-6')}>
       <div className="text-center mb-8">
         <div
           className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${gameInfo?.color || 'bg-indigo-100 text-indigo-600'}`}
@@ -32,7 +35,7 @@ export const GameResults = <T extends GameItem>({
           <Icon className="w-12 h-12" />
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          {gameInfo?.name || 'Game'} Complete!
+          {gameInfo.name} {isReview ? 'Results' : 'Complete!'}
         </h2>
         <div className="flex justify-center gap-6 mt-4 text-gray-600">
           <div className="flex flex-col items-center">
@@ -96,7 +99,13 @@ export const GameResults = <T extends GameItem>({
             Play Again
           </Button>
         )}
-        <Button size="lg" onClick={gameLogic.finishGame} className="w-full sm:w-auto min-w-[200px]">
+
+        <Button
+          size="lg"
+          onClick={gameLogic.finishGame}
+          className="w-full sm:w-auto min-w-[200px]"
+          hidden={isReview}
+        >
           {isLastGame ? 'Finish Session' : 'Next Game'}
           <Icons.ChevronRight className="ml-2 w-5 h-5" />
         </Button>

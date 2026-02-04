@@ -144,8 +144,6 @@ export interface GameItem {
   correct?: boolean
 }
 
-export type GameItemWithStat = GameItem & GameItemStat
-
 export type GameItemStat = {
   lastReviewedAt: string | null
   reviewCount: number
@@ -153,6 +151,7 @@ export type GameItemStat = {
   averageScore: number
   lastGameId: string | null
   gameCounts: Record<string, number>
+  history: EncounterItem[]
 }
 
 export type MultiChoiceGameItem = GameItem & {

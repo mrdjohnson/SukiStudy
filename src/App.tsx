@@ -29,6 +29,9 @@ const CustomGameSetup = React.lazy(() =>
 const CustomSession = React.lazy(() =>
   import('./pages/games/CustomSession').then(m => ({ default: m.CustomSession })),
 )
+const Statistics = React.lazy(() =>
+  import('./pages/Statistics').then(m => ({ default: m.Statistics })),
+)
 
 import logo from '@/src/assets/apple-touch-icon.png'
 
@@ -114,6 +117,7 @@ export default function App() {
           <Route path="/session/custom/play" element={<CustomSession />} />
 
           <Route path="/browse" element={<Browse />} />
+          <Route path="/stats" element={<Statistics />} />
           <Route path="/settings" element={<Dashboard />} />
 
           <Route path="/about" element={<About />} />
