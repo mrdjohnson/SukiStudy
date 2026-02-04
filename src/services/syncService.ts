@@ -13,7 +13,7 @@ const SYNC_KEYS = {
 
 const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.ts')>(
   new URL('./syncService.worker.ts', import.meta.url),
-  {},
+  { type: 'module' },
 )
 
 /**
