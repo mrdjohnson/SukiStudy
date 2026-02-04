@@ -121,6 +121,7 @@ export default defineConfig(({ mode }) => {
       vercelPwaLink(),
     ],
     worker: {
+      format: 'es',
       plugins: () => [comlink()], // Enable Comlink for workers
     },
     define: {
