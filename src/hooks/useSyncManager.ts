@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useTransition } from 'react'
 import { syncService } from '../services/syncService'
 import { User } from '../types'
 import { useNetwork } from '@mantine/hooks'
@@ -16,11 +16,12 @@ const SYNC_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
  */
 export const useSyncManager = (user: User | null) => {
   const { online } = useNetwork()
+  const [isSyncing, startSyncing] = useTransition()
 
   useEffect(() => {
     if (user && online) {
       console.log('SyncManager: Online event detected, triggering sync...')
-      syncService.sync()
+      startSyncing(() => syncService.sync())
     }
   }, [user, online])
 
@@ -31,12 +32,12 @@ export const useSyncManager = (user: User | null) => {
     console.log('SyncManager: Starting sync manager for user:', user.username)
 
     // Initial sync
-    syncService.sync()
+    startSyncing(() => syncService.sync())
 
     // Interval sync
     const interval = setInterval(() => {
       console.log('SyncManager: Running periodic sync...')
-      syncService.sync()
+      startSyncing(() => syncService.sync())
     }, SYNC_INTERVAL_MS)
 
     return () => {
@@ -44,4 +45,6 @@ export const useSyncManager = (user: User | null) => {
       clearInterval(interval)
     }
   }, [user]) // Re-run if user changes (login/logout)
+
+  return isSyncing
 }

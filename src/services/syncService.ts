@@ -77,22 +77,22 @@ export const syncService = {
     }
   },
 
-  async sync() {
+  async sync(reloadWindow = false) {
     await this.offlineSync()
 
-    if (!navigator.onLine) {
-      return
-    }
-
-    const token = localStorage.getItem('wk_token')
-    if (!token) return
-
-    // Set the token in the worker before syncing
-    await syncServiceWorker.setToken(token)
-
-    console.log('[Sync] Starting synchronization...')
-
     try {
+      if (!navigator.onLine) {
+        return
+      }
+
+      const token = localStorage.getItem('wk_token')
+      if (!token) return
+
+      // Set the token in the worker before syncing
+      await syncServiceWorker.setToken(token)
+
+      console.log('[Sync] Starting synchronization...')
+
       await this.syncUser()
 
       await this.migrateSubjects()
@@ -107,6 +107,10 @@ export const syncService = {
       console.error('[Sync] Error during sync:', error)
     } finally {
       await flush()
+
+      if (reloadWindow) {
+        window.location.reload()
+      }
     }
   },
 

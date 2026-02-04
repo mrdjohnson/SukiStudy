@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useContext, createContext, useTransition } from 'react'
+import React, { useState, useEffect, useContext, createContext } from 'react'
 import { waniKaniService } from '../services/wanikaniService'
 import { syncService } from '../services/syncService'
 import { users } from '../services/db'
 import { User } from '../types'
 import { modals } from '@mantine/modals'
 import { Text } from '@mantine/core'
-import { flush } from '../utils/flush'
+import useReactivity from '../hooks/useReactivity'
 
 interface UserContextType {
   user: User | null
   isGuest: boolean
   loading: boolean
-  isSyncing: boolean
   login: (token: string, userData: User) => void
   logout: () => void
   loginAsGuest: () => void
@@ -32,9 +31,9 @@ const GUEST_USER: User = {
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isSyncing, startSyncing] = useTransition()
+
+  const user = useReactivity(() => users.findOne({ id: 'current' }) || null)
 
   useEffect(() => {
     const init = async () => {
@@ -43,8 +42,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const storedToken = localStorage.getItem('wk_token')
 
       if (dbUser) {
-        setUser(dbUser)
-
         setLoading(false)
 
         if (storedToken) {
@@ -60,21 +57,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           if (!dbUser) {
             const userData = await waniKaniService.getUser()
+
             if (userData && userData.data) {
               const newUser = { ...userData.data, id: 'current' }
-              setUser(newUser)
               users.insert(newUser)
             }
           }
-
-          startSyncing(async () => {
-            await syncService.sync()
-
-            const updatedUser = users.findOne({ id: 'current' })
-            if (updatedUser) setUser(updatedUser)
-
-            window.location.reload()
-          })
         } catch (e: any) {
           console.error('Auth/Sync Error', e)
           if (e.message && (e.message.includes('401') || e.message.includes('Invalid'))) {
@@ -95,26 +83,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (token: string, userData: User) => {
     localStorage.setItem('wk_token', token)
     const newUser = { ...userData, is_guest: false, id: 'current' }
-    setUser(newUser)
 
     users.batch(() => {
       users.removeOne({ id: 'current' })
 
       users.insert(newUser)
     })
-
-    await flush()
-
-    startSyncing(async () => {
-      await syncService.sync()
-
-      window.location.reload()
-    })
   }
 
   const logout = () => {
     if (user?.is_guest) {
-      setUser(null)
       users.removeOne({ id: 'current' })
       return
     }
@@ -128,9 +106,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       confirmProps: { color: 'red' },
       onConfirm: async () => {
         localStorage.removeItem('wk_token')
-        setUser(null)
         syncService.clearData()
-        users.removeOne({ id: 'current' })
       },
     })
   }
@@ -139,21 +115,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) return
 
     const guestUser = { ...GUEST_USER, id: 'current' }
-    setUser(guestUser)
     users.insert(guestUser)
-
-    startSyncing(async () => {
-      await syncService.sync()
-
-      window.location.reload()
-    })
   }
 
   const value = {
     user,
     isGuest: user?.is_guest || false,
     loading,
-    isSyncing,
     login,
     logout,
     loginAsGuest,

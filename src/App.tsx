@@ -47,22 +47,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 }
 
 export const AuthWrapper = () => {
-  const { user, isSyncing, loading } = useUser()
+  const { user, loading } = useUser()
 
-  useSyncManager(user)
+  const isSyncing = useSyncManager(user)
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="bg-white p-2 rounded-full shadow-lg mb-4">
-          <div className=" rounded-full shadow-md shadow-red-400 ">
-            <img src={logo} alt="SukiStudy Logo" className="size-16 animate-pulse" />
-          </div>
-        </div>
-
-        <p className="text-gray-500 font-medium">Loading SukiStudy...</p>
-      </div>
-    )
+    return <PageLoader />
   }
 
   if (!user) return <Navigate to="/landing" />
