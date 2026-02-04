@@ -34,6 +34,7 @@ const Statistics = React.lazy(() =>
 )
 
 import logo from '@/src/assets/apple-touch-icon.png'
+import { useSyncManager } from './hooks/useSyncManager'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation()
@@ -47,6 +48,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 export const AuthWrapper = () => {
   const { user, isSyncing, loading } = useUser()
+
+  useSyncManager(user)
 
   if (loading) {
     return (
