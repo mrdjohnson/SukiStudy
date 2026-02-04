@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { Assignment, GameItem, SubjectType } from '../types'
+import { Assignment, GameItem, GameItemStat, SubjectType } from '../types'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { toHiragana } from '../utils/kana'
@@ -23,6 +23,8 @@ import {
   Center,
   Divider,
   Container,
+  Select,
+  Tooltip,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
@@ -30,14 +32,23 @@ import { assignments, subjects } from '../services/db'
 import { colorByType } from '../utils/subject'
 import { GameItemIcon } from '../components/GameItemIcon'
 import { useLocalStorage } from '@mantine/hooks'
+import { encounterService } from '../services/encounterService'
+
+type GameItemWithStat = GameItem & {
+  stats?: GameItemStat
+}
 
 export const Browse: React.FC = () => {
   const { user, isGuest } = useUser()
-  const [items, setItems] = useState<GameItem[]>([])
+  const [items, setItems] = useState<GameItemWithStat[]>([])
   const [loading, setLoading] = useState(true)
 
   // Filters
   const [ignoreLimit, setIgnoreLimit] = useState(false)
+  const [sortBy, setSortBy] = useLocalStorage<string | null>({
+    key: 'browseSortBy',
+    defaultValue: 'default',
+  })
   const [levels, setLevels] = useLocalStorage<number[]>({
     key: 'browseLevels',
     defaultValue: [],
@@ -53,7 +64,8 @@ export const Browse: React.FC = () => {
       : [SubjectType.KANJI, SubjectType.VOCABULARY, SubjectType.RADICAL],
   })
 
-  const assignmentMapRef = useRef<Record<number, Assignment>>({})
+  const assignmentMapRef = useRef<Record<number, Assignment>>(undefined)
+  const itemStatMapRef = useRef<Record<number, GameItemStat>>(undefined)
 
   const limit = useMatches({
     base: 20,
@@ -68,8 +80,10 @@ export const Browse: React.FC = () => {
       setLoading(true)
       try {
         assignmentMapRef.current ||= _.keyBy(assignments.find({}).fetch(), 'subject_id')
+        itemStatMapRef.current ||= encounterService.getAllItemStats()
 
-        const assignmentMap = assignmentMapRef.current
+        const assignmentMap = assignmentMapRef.current || {}
+        const itemStatMap = itemStatMapRef.current || {}
 
         const allSubjects = subjects.find({ object: { $in: types } }, { sort: { id: 1 } }).fetch()
 
@@ -77,6 +91,7 @@ export const Browse: React.FC = () => {
           allSubjects.map(s => ({
             subject: s,
             assignment: assignmentMap[s.id],
+            stats: itemStatMap[s.id],
           })),
         )
       } catch (err) {
@@ -137,6 +152,31 @@ export const Browse: React.FC = () => {
 
         return true
       })
+      .sort((a, b) => {
+        if (sortBy === 'recent') {
+          const timeA = a.stats?.lastReviewedAt ? new Date(a.stats.lastReviewedAt).getTime() : 0
+          const timeB = b.stats?.lastReviewedAt ? new Date(b.stats.lastReviewedAt).getTime() : 0
+          return timeB - timeA
+        }
+        if (sortBy === 'reviews') {
+          return (b.stats?.reviewCount || 0) - (a.stats?.reviewCount || 0)
+        }
+        if (sortBy === 'score_asc') {
+          // If no reviews, push to bottom? Or treat as 0? Let's treat no reviews as neutral or bottom.
+          // Maybe push undefined stats to end
+          if (!a.stats && !b.stats) return 0
+          if (!a.stats) return 1
+          if (!b.stats) return -1
+          return a.stats.averageScore - b.stats.averageScore
+        }
+        if (sortBy === 'score_desc') {
+          if (!a.stats && !b.stats) return 0
+          if (!a.stats) return 1
+          if (!b.stats) return -1
+          return b.stats.averageScore - a.stats.averageScore
+        }
+        return 0
+      })
       .take(ignoreLimit ? items.length : limit)
       .value()
   }
@@ -171,7 +211,7 @@ export const Browse: React.FC = () => {
 
   const filteredItems = useMemo(() => {
     return getFilteredItems()
-  }, [onlyLearned, searchQuery, ignoreLimit, items, levels])
+  }, [onlyLearned, searchQuery, ignoreLimit, items, levels, sortBy, srsFilter])
 
   const groups = useMemo(() => {
     return _.groupBy(filteredItems, item => item.subject.object)
@@ -219,7 +259,23 @@ export const Browse: React.FC = () => {
         </Group>
 
         <Stack gap="md">
+          <Select
+            label="Sort By"
+            placeholder="Sort items..."
+            data={[
+              { value: 'default', label: 'Default (Level/ID)' },
+              { value: 'recent', label: 'Recently Reviewed' },
+              { value: 'reviews', label: 'Most Reviewed' },
+              { value: 'score_asc', label: 'Lowest Score' },
+              { value: 'score_desc', label: 'Highest Score' },
+            ]}
+            value={sortBy}
+            onChange={setSortBy}
+            allowDeselect={false}
+          />
+
           <TextInput
+            label="Search"
             placeholder="Search English, Kana, or Romanji..."
             leftSection={<Icons.Sparkles size={16} />}
             value={searchQuery}
@@ -292,7 +348,7 @@ export const Browse: React.FC = () => {
                   </Badge>
                 </Group>
                 <Paper withBorder radius="md" className="overflow-hidden">
-                  {groupItems.map(({ subject, assignment }, index) => {
+                  {groupItems.map(({ subject, assignment, stats }, index) => {
                     const isLast = index === groupItems.length - 1
 
                     return (
@@ -329,8 +385,36 @@ export const Browse: React.FC = () => {
                             </div>
 
                             <Group gap="xs" wrap="nowrap">
-                              {assignment?.srs_stage !== undefined && (
-                                <div className="shrink-0">{getSRSBadge(assignment.srs_stage)}</div>
+                              {assignment?.srs_stage && getSRSBadge(assignment.srs_stage)}
+
+                              {stats && (
+                                <Group gap={6}>
+                                  <Tooltip
+                                    label={
+                                      <Stack gap={2}>
+                                        <Text size="xs" fw={700}>
+                                          Games:
+                                        </Text>
+                                        {Object.entries(stats.gameCounts).map(([gameId, count]) => (
+                                          <Group key={gameId} justify="space-between" w={100}>
+                                            <Text size="xs" className="capitalize">
+                                              {gameId}:
+                                            </Text>
+                                            <Text size="xs">{count}</Text>
+                                          </Group>
+                                        ))}
+                                      </Stack>
+                                    }
+                                  >
+                                    <Badge
+                                      variant="light"
+                                      color={stats.averageScore >= 80 ? 'green' : 'orange'}
+                                      size="sm"
+                                    >
+                                      {stats.averageScore}%
+                                    </Badge>
+                                  </Tooltip>
+                                </Group>
                               )}
                               <Icons.ChevronRight size={18} className="text-gray-400" />
                             </Group>
