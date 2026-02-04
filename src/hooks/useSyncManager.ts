@@ -1,9 +1,8 @@
 import { useEffect, useTransition } from 'react'
 import { syncService } from '../services/syncService'
 import { User } from '../types'
-import { useNetwork } from '@mantine/hooks'
 
-const SYNC_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
+const SYNC_INTERVAL_MS = 30 * 60 * 1000 // 30 minutes
 
 /**
  * Hook that manages syncing for both offline and online (WaniKani) data.
@@ -15,36 +14,36 @@ const SYNC_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
  * - Sync on network reconnection
  */
 export const useSyncManager = (user: User | null) => {
-  const { online } = useNetwork()
-  const [isSyncing, startSyncing] = useTransition()
+  const [isSyncing, startTransition] = useTransition()
+
+  const sync = () => {
+    startTransition(async () => {
+      console.log('SyncManager: Running sync...')
+
+      await syncService.sync()
+    })
+  }
 
   useEffect(() => {
-    if (user && online) {
-      console.log('SyncManager: Online event detected, triggering sync...')
-      startSyncing(() => syncService.sync())
-    }
-  }, [user, online])
-
-  useEffect(() => {
-    // Don't run any sync logic if there's no user
+    // Don't run any sync logic if there's no user or offline
     if (!user) return
 
     console.log('SyncManager: Starting sync manager for user:', user.username)
 
     // Initial sync
-    startSyncing(() => syncService.sync())
+    sync()
 
     // Interval sync
     const interval = setInterval(() => {
       console.log('SyncManager: Running periodic sync...')
-      startSyncing(() => syncService.sync())
+      sync()
     }, SYNC_INTERVAL_MS)
 
     return () => {
       console.log('SyncManager: Cleaning up sync manager')
       clearInterval(interval)
     }
-  }, [user]) // Re-run if user changes (login/logout)
+  }, [user?.id]) // Re-run if user changes (login/logout)
 
   return isSyncing
 }

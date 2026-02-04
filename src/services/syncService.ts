@@ -77,7 +77,7 @@ export const syncService = {
     }
   },
 
-  async sync(reloadWindow = false) {
+  async sync() {
     await this.offlineSync()
 
     try {
@@ -107,10 +107,6 @@ export const syncService = {
       console.error('[Sync] Error during sync:', error)
     } finally {
       await flush()
-
-      if (reloadWindow) {
-        window.location.reload()
-      }
     }
   },
 
