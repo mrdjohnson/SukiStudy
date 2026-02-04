@@ -1,6 +1,7 @@
 import { encounters, encounterItems } from './db'
 import { GameItem, Encounter, EncounterItem } from '../types'
 import _ from 'lodash'
+import moment from 'moment'
 
 export const encounterService = {
   /**
@@ -29,16 +30,24 @@ export const encounterService = {
     await encounters.insert(encounter)
 
     // Create encounter item records for each item
-    const encounterItemRecords: Omit<EncounterItem, 'id'>[] = history.map(item => ({
-      sessionId: encounterId,
-      gameId, // Denormalized for easy querying
-      subjectId: item.subject.id,
-      assignmentId: item.assignment?.id,
-      timestamp: now, // Approximate timestamps
-      correctMeaning: !!item.correct,
-      correctReading: !!item.correct,
-      synced: !!item.subject.isKana, // Kana items are always "synced", others start as false
-    }))
+    const encounterItemRecords: Omit<EncounterItem, 'id'>[] = history.map(item => {
+      // is kana or not available yet
+      const skipSync =
+        !!item.subject.isKana ||
+        !item.assignment?.available_at ||
+        moment(item.assignment?.available_at).isAfter()
+
+      return {
+        sessionId: encounterId,
+        gameId, // Denormalized for easy querying
+        subjectId: item.subject.id,
+        assignmentId: item.assignment?.id,
+        timestamp: now, // Approximate timestamps
+        correctMeaning: !!item.correct,
+        correctReading: !!item.correct,
+        synced: skipSync,
+      }
+    })
 
     encounterItems.insertMany(encounterItemRecords)
 

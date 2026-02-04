@@ -6,6 +6,7 @@ import { getKanaSubjects } from '../utils/kana'
 import { transformSubject } from '../utils/transformSubject'
 import { flush } from '../utils/flush'
 import { encounterService } from './encounterService'
+import moment from 'moment'
 
 async function fetchAllPages<T>(
   initialRequest: () => Promise<WKCollection<T>>,
@@ -152,6 +153,24 @@ export async function syncEncounterItems() {
           console.warn(
             `[Sync] No assignment found for subject ${encounterItem.subjectId}, skipping...`,
           )
+          continue
+        }
+
+        const assignment = assignments.findOne({ id: encounterItem.assignmentId })
+
+        if (!assignment) {
+          console.warn(
+            `[Sync] No assignment found for subject ${encounterItem.subjectId}, skipping...`,
+          )
+          continue
+        }
+
+        if (!moment(assignment.available_at).isBefore()) {
+          console.warn(`[Sync] Assignment ${assignment.id} is not available yet, marking as synced`)
+
+          // remove from queue
+          encounterItemIdsToSync.push(encounterItem.id)
+
           continue
         }
 
