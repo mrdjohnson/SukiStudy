@@ -9,12 +9,16 @@ import { SettingsProvider } from './contexts/SettingsContext'
 import { initLogService } from './services/logService'
 import { registerSW } from 'virtual:pwa-register'
 import { generateColors } from '@mantine/colors-generator'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 
 registerSW({ immediate: true })
 
 import '@mantine/core/styles.css'
 import './index.css'
 import '@mantine/carousel/styles.css'
+import '@mantine/dates/styles.css'
+import '@mantine/charts/styles.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -22,6 +26,8 @@ if (!rootElement) {
 }
 
 initLogService()
+
+dayjs.extend(customParseFormat)
 
 const theme = createTheme({
   colors: {
