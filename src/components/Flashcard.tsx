@@ -232,7 +232,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
   const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning
   const primaryReading = subject.readings?.find(r => r.primary)?.reading
-  const character = subject.characters
 
   const renderInteractiveSentence = (jaSentence: string) => {
     const parts = jaSentence.split(/([一-龯]+)/)
@@ -277,10 +276,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             <GameItemIcon subject={subject} size="lg" />
 
             <div className="flex-1 flex flex-col justify-center">
-              <div className="sm:hidden text-3xl font-bold text-gray-800 mb-2 cursor-pointer">
-                {character}
-              </div>
-
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
                 {primaryMeaning}
               </h2>
