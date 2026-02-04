@@ -24,7 +24,7 @@ export const RecallGame: GameComponent = ({ items: propItems, onComplete, isLast
   })
 
   const { startGame, recordAttempt, gameState, setGameItems, setMaxScore, endGame } = gameLogic
-  const { gameItems, isFinished } = gameState
+  const { gameItems } = gameState
 
   const [startChar, setStartChar] = useState('')
   const [revealedHints, setRevealedHints] = useState<GameItem[]>([])

@@ -37,7 +37,7 @@ export const AudioQuizGame: GameComponent = ({ items: propItems, onComplete, isL
   })
 
   const { startGame, recordAttempt, gameState, setGameItems, skip } = gameLogic
-  const { roundNumber, maxRoundNumber, gameItems, isFinished } = gameState
+  const { roundNumber, maxRoundNumber, gameItems } = gameState
 
   const currentItem = gameItems[roundNumber - 1]
 

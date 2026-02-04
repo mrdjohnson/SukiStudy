@@ -14,7 +14,6 @@ import {
   useMatches,
   Button,
   Anchor,
-  Center,
   ActionIcon,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'

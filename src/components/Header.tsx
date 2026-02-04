@@ -13,20 +13,17 @@ import {
   ThemeIcon,
   ScrollArea,
   Button,
-  Badge,
   ActionIcon,
   Divider,
   Stack,
   SimpleGrid,
   useMatches,
-  Center,
 } from '@mantine/core'
-import { useDisclosure, useNetwork } from '@mantine/hooks'
+import { useDisclosure } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
 import { useUser } from '../contexts/UserContext'
 
 import logo from '@/src/assets/apple-touch-icon.png'
-import { IconActivity } from '@tabler/icons-react'
 import { openLogModal } from './modals/LogsModal'
 import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
 
@@ -167,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
               <NavLink
                 key={g.id}
                 label={g.name}
-                leftSection={<g.icon className={g.color + ' !bg-transparent'} />}
+                leftSection={<g.icon className={g.color + ' bg-transparent!'} />}
                 onClick={() => {
                   navigate(`/session/games/${g.id}`)
                   if (opened) toggle()

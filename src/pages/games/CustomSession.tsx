@@ -71,7 +71,7 @@ export const CustomSession = () => {
           <div className="flex gap-1">
             {gameQueue.map((g, idx) => (
               <div
-                key={idx}
+                key={g + idx}
                 className={`h-2 w-8 rounded-full transition-colors ${idx === completedGames ? 'bg-indigo-600' : idx < completedGames ? 'bg-green-400' : 'bg-gray-200'}`}
               />
             ))}

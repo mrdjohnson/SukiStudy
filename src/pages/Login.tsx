@@ -11,7 +11,6 @@ import {
   Stack,
   Alert,
   Collapse,
-  ThemeIcon,
   Card,
   LoadingOverlay,
   ActionIcon,
@@ -55,7 +54,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         shadow="lg"
         radius="lg"
         withBorder
-        className={clsx(loading && '!border-blue-500')}
+        className={clsx(loading && 'border-blue-500!')}
       >
         <Stack align="center" mb={30}>
           <ActionIcon size={64} radius="xl" color="#ff0000" variant="filled">

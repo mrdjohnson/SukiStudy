@@ -32,6 +32,7 @@ export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLas
     gameId: 'connect',
     totalRounds: propItems?.length || 5,
     canSkip: true,
+    onComplete,
   })
 
   const { startGame, setGameItems, recordAttempt, gameState, skip } = gameLogic
@@ -74,7 +75,7 @@ export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLas
     _.chain(items)
       .filter(i => {
         const reading = i.subject.readings?.[0]?.reading
-        return reading && reading.length >= 2 && reading.length <= 8
+        return !!reading && reading.length >= 2 && reading.length <= 8
       })
       .sampleSize(maxRoundNumber)
       .tap(setGameItems)

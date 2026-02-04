@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { Modal, Button, ThemeIcon, Group, Text, Stepper, Stack } from '@mantine/core'
-import { Icons } from './Icons'
+import { Modal, Button, ThemeIcon, Group, Text, Stack } from '@mantine/core'
 
 interface Step {
   title: string

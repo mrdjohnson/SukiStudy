@@ -1,7 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router'
 import { Icons } from '../../components/Icons'
-import { Button } from '../../components/ui/Button'
 import { useGames } from '../../hooks/useGames'
 import { ActionIcon, Container, Group } from '@mantine/core'
 
@@ -12,7 +11,7 @@ export const GameMenu: React.FC = () => {
 
   return (
     <Container size="md" className="mt-4">
-      <Group className="gap-4 mb-8 !justify-between -mx-2 md:-mx-4">
+      <Group className="gap-4 mb-8 justify-between! -mx-2 md:-mx-4">
         <ActionIcon variant="subtle" onClick={() => navigate('/')}>
           <Icons.ChevronLeft />
         </ActionIcon>
@@ -26,7 +25,7 @@ export const GameMenu: React.FC = () => {
       <div className="mb-8">
         <button
           onClick={() => navigate('/session/custom')}
-          className="w-full bg-gradient-to-r from-gray-900 to-gray-700 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between hover:scale-[1.01] transition-transform"
+          className="w-full bg-linear-to-r from-gray-900 to-gray-700 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between hover:scale-[1.01] transition-transform"
         >
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/10 rounded-xl">
