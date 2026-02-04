@@ -309,6 +309,20 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                   Lv {subject.level}
                 </div>
               )}
+
+              {subject.document_url && (
+                <a
+                  href={subject.document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 hover:text-pink-500 hover:border-pink-200 border border-gray-200 w-fit ml-auto flex items-center gap-1 transition-colors"
+                  onClick={e => e.stopPropagation()}
+                  title="Open in WaniKani"
+                >
+                  WK
+                  <Icons.Link className="w-3 h-3" />
+                </a>
+              )}
             </Stack>
           </div>
         </div>
