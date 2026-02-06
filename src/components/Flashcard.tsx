@@ -234,22 +234,20 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const primaryReading = subject.readings?.find(r => r.primary)?.reading
 
   const renderInteractiveSentence = (jaSentence: string) => {
-    const parts = jaSentence.split(/([一-龯]+)/)
-    return (
-      <span>
-        {parts.map((part, i) => {
-          const isKanji = /[一-龯]/.test(part)
-          if (isKanji) {
-            return (
-              <span key={i} className="font-bold text-gray-800">
-                {part}
-              </span>
-            )
-          }
-          return <span key={i}>{part}</span>
-        })}
-      </span>
-    )
+    if (!subject.characters) return jaSentence
+
+    const parts = jaSentence.split(subject.characters)
+
+    return parts.flatMap((part, i) => {
+      if (i === parts.length - 1) return part
+
+      return [
+        part,
+        <span key={i} className="font-bold text-primary">
+          {subject.characters}
+        </span>,
+      ]
+    })
   }
 
   const meanings = useMemo(() => {
