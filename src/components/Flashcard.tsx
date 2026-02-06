@@ -4,7 +4,7 @@ import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
-import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader } from '@mantine/core'
+import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
@@ -493,36 +493,24 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 {type === SubjectType.VOCABULARY ? 'Kanji Composition' : 'Radicals'}
               </h3>
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                {components.map((comp, index) => {
-                  const compType = getSubjectType(comp)
-                  const compChar = comp.characters
-                  const compImg = comp.character_images?.find(
-                    i => i.content_type === 'image/svg+xml',
-                  )?.url
-                  return (
-                    <div
-                      key={comp.id}
-                      onClick={() => openFlashcardModal(components, index)}
-                      className={`
-                          p-2 rounded-lg border text-center cursor-pointer transition-all hover:shadow-md active:scale-95
-                          ${compType === SubjectType.RADICAL ? 'bg-sky-50 border-sky-100 hover:border-sky-300' : 'bg-pink-50 border-pink-100 hover:border-pink-300'}
-                        `}
-                    >
-                      <div className="text-2xl font-bold text-gray-800 mb-1">
-                        {compChar || (
-                          <div className="w-8 h-8 mx-auto">
-                            {compImg && <img src={compImg} alt="" className="w-full h-full" />}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-[10px] leading-tight text-gray-600 truncate px-1">
-                        {comp.meanings[0].meaning}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+
+              <Group>
+                {components.map(subject => (
+                  <Stack
+                    gap="xs"
+                    className="bg-gray-200 p-2 px-4 rounded-md cursor-pointer"
+                    onClick={() => openFlashcardModal([subject])}
+                  >
+                    <GameItemIcon subject={subject} />
+
+                    {subject.meanings?.[0]?.meaning && (
+                      <Text className="text-sm! leading-tight! truncate! px-1 text-center">
+                        {subject.meanings?.[0]?.meaning}
+                      </Text>
+                    )}
+                  </Stack>
+                ))}
+              </Group>
             </div>
           )}
         </div>
