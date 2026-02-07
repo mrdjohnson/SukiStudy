@@ -93,7 +93,7 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
 
     setAnswered(true)
 
-    const attempt = input.trim()
+    const attempt = input.trim().toLowerCase()
     if (!attempt) return
 
     const meanings = currentItem.subject.meanings.map(m => m.meaning.toLowerCase())
@@ -105,10 +105,8 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
     const hiraganaAttempt = toHiragana(attempt)
 
     // Check Meaning (Exact & Fuzzy)
-    const meaningExact = meanings.includes(attempt.toLowerCase())
-    const meaningFuzzy = meanings.some(
-      m => m.length > 3 && levenshteinDistance(m, attempt.toLowerCase()) <= 2,
-    )
+    const meaningExact = meanings.includes(attempt)
+    const meaningFuzzy = meanings.some(m => m.length > 3 && levenshteinDistance(m, attempt) <= 2)
 
     // Check Reading (Exact & Fuzzy on Kana)
     const readingExact = readings.includes(hiraganaAttempt)
@@ -116,10 +114,12 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
       r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1,
     )
 
-    // Check Reading (Exact & Fuzzy on Kana)
-    const auxMeaningExact = auxMeanings.includes(hiraganaAttempt)
+    // Check Aux Meanings (Exact & Fuzzy and on Kana)
+    const auxMeaningExact = auxMeanings.includes(attempt) || auxMeanings.includes(hiraganaAttempt)
     const auxMeaningFuzzy = auxMeanings.some(
-      r => r.length > 3 && levenshteinDistance(r, hiraganaAttempt) <= 1,
+      m =>
+        m.length > 3 &&
+        (levenshteinDistance(m, attempt) <= 1 || levenshteinDistance(m, hiraganaAttempt) <= 1),
     )
 
     const isCorrect =
