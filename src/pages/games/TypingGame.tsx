@@ -167,6 +167,7 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
         currentItem && (
           <>
             <QuestionDisplay
+              key={currentItem.subject.id}
               subject={currentItem.subject}
               isReviewable={!!currentItem.isReviewable}
               isInteractionEnabled={answered}
