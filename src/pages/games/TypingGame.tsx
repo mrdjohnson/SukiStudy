@@ -20,6 +20,9 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
     gameId: 'typing',
     totalRounds: propItems?.length || 10,
     onComplete,
+    onRoundFinish() {
+      nextRound()
+    },
   })
 
   const { startGame, recordAttempt, gameState, setGameItems, skip } = gameLogic
