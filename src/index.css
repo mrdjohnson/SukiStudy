@@ -1,14 +1,41 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:where([data-mantine-color-scheme=dark], [data-mantine-color-scheme=dark] *));
+
+@layer base {
+  :root {
+    --color-surface: #ffffff;
+    --color-surface-dim: #f8fafc;
+    --color-text: #0f172a;
+    --color-text-dim: #64748b;
+    --color-border: #e2e8f0;
+
+    --color-secondary: #ff0000;
+    --color-primary: #b25f00;
+
+    --color-hiragana: #0d9488;
+    --color-katakana: #d97706;
+    --color-radical: #0284c7;
+    --color-kanji: #db2777;
+    --color-vocabulary: #9333ea;
+  }
+}
+
 @theme {
   --font-sans: 'Inter', sans-serif;
 
-  --color-secondary: #ff0000;
-  --color-primary: #b25f00;
-  --color-hiragana: #0d9488;
-  --color-katakana: #d97706;
-  --color-radical: #0284c7;
-  --color-kanji: #db2777;
-  --color-vocabulary: #9333ea;
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-text: var(--color-text);
+  --color-text-dim: var(--color-text-dim);
+  --color-border: var(--color-border);
+
+  --color-secondary: var(--color-secondary);
+  --color-primary: var(--color-primary);
+  --color-hiragana: var(--color-hiragana);
+  --color-katakana: var(--color-katakana);
+  --color-radical: var(--color-radical);
+  --color-kanji: var(--color-kanji);
+  --color-vocabulary: var(--color-vocabulary);
 }

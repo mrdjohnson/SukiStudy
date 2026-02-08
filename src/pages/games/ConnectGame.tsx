@@ -8,6 +8,7 @@ import { toRomanji } from '../../utils/romanji'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import _ from 'lodash'
 import { GameContainer } from '../../components/GameContainer'
+import clsx from 'clsx'
 
 // Grid size
 const ROWS = 5
@@ -306,27 +307,25 @@ export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLas
         <div className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">
           Trace the reading
         </div>
-        <div className="text-5xl font-bold text-gray-900 mb-1">
-          {currentItem?.subject?.characters}
-        </div>
-        <div className="text-indigo-600 font-medium text-sm">
-          {currentItem?.subject?.meanings[0].meaning}
-        </div>
+
+        <div className="text-5xl font-bold mt-3 mb-1">{currentItem?.subject?.characters}</div>
+        <div className="font-medium text-sm">{currentItem?.subject?.meanings[0].meaning}</div>
+
         {currentItem?.assignment && new Date(currentItem.assignment.available_at!) < new Date() && (
-          <span className="inline-block mt-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase rounded">
+          <span className="inline-block mt-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 text-[10px] font-bold uppercase rounded">
             Review Item
           </span>
         )}
       </div>
 
-      <div className="h-12 mb-4 flex items-center justify-center gap-1">
+      <div className="h-12 mb-4 flex items-center justify-center gap-3">
         {selectedCells.map((id, idx) => {
           const [r, c] = id.split('-').map(Number)
           const cell = grid[r * COLS + c]
           return (
             <button
               key={`${id}-${idx}`}
-              className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center border-2 border-indigo-200"
+              className="w-10 h-10 rounded-full font-bold flex items-center justify-center ring-2 ring-primary/30"
             >
               {cell.char}
             </button>
@@ -364,7 +363,7 @@ export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLas
 
         <div className="absolute inset-0 grid grid-rows-5 grid-cols-5 gap-4 p-2 z-10">
           {grid.map(cell => {
-            const isSelected = selectedCells.includes(cell.id)
+            const isSelected = selectedCells.includes(cell.id) && !cell.wrong && !cell.correct
             const isHint = cell.id === hintCellId
             const isPressed = cell.id === pressedCell
 
@@ -373,21 +372,18 @@ export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLas
                 key={cell.id}
                 data-cell-id={cell.id}
                 onPointerDown={e => handlePointerDown(e, cell.id)}
-                className={`
-                            relative rounded-full flex items-center justify-center text-xl font-bold transition-all duration-200 shadow-sm cursor-pointer select-none
-                            ${
-                              cell.correct
-                                ? 'bg-green-500 text-white transform scale-100 shadow-lg'
-                                : cell.wrong
-                                  ? 'bg-red-500 text-white animate-shake'
-                                  : isSelected
-                                    ? 'bg-indigo-600 text-white transform scale-110 shadow-indigo-200 shadow-lg border-2 border-white'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:border-indigo-300'
-                            }
-                            ${isHint ? 'ring-4 ring-yellow-400 bg-yellow-50 animate-pulse' : ''}
-                        `}
+                className={clsx(
+                  'relative rounded-full flex items-center justify-center text-xl font-bold transition-all duration-200 shadow-sm cursor-pointer select-none ring-2',
+                  cell.correct && 'bg-green-500/20 text-white transform scale-100 shadow-lg',
+                  cell.wrong && 'bg-red-500! dark:opacity-70 text-white',
+                  isSelected &&
+                    'bg-black/20 dark:bg-white/20 transform scale-110 shadow-indigo-200 shadow-lg',
+                  'hover:border-indigo-300',
+                  isHint && 'ring-4 ring-yellow-400 bg-yellow-50 dark:bg-yellow-900 animate-pulse',
+                )}
               >
                 {cell.isRomanjiDisplay ? cell.romanji : cell.char}
+
                 {isPressed && (
                   <div className="absolute -top-10 bg-black text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-20">
                     {toRomanji(cell.char)}

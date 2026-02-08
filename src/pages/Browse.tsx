@@ -25,6 +25,7 @@ import {
   Container,
   Select,
   Tooltip,
+  InputClearButton,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
@@ -253,9 +254,6 @@ export const Browse: React.FC = () => {
               </Button>
             )}
           </Group>
-          <Button variant="subtle" size="sm" onClick={() => navigate('/')}>
-            Dashboard
-          </Button>
         </Group>
 
         <Stack gap="md">
@@ -280,22 +278,23 @@ export const Browse: React.FC = () => {
             leftSection={<Icons.Sparkles size={16} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.currentTarget.value)}
+            rightSection={
+              <InputClearButton onClick={() => setSearchQuery('')} hidden={!searchQuery} />
+            }
           />
 
           {user && (
-            <Group>
-              <Chip checked={onlyLearned} onChange={setOnlyLearned} variant="outline" size="xs">
+            <Group gap="xs" className="justify-evenly! sm:justify-start! mt-1">
+              <Chip checked={onlyLearned} onChange={setOnlyLearned} variant="outline">
                 Learned Only
               </Chip>
-              <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
+              <Divider orientation="vertical" />
               <Chip.Group multiple value={srsFilter} onChange={setSrsFilter}>
-                <Group gap="xs">
-                  {SRS_GROUPS.map(label => (
-                    <Chip key={label} value={label} variant="light" size="xs">
-                      {label}
-                    </Chip>
-                  ))}
-                </Group>
+                {SRS_GROUPS.map(label => (
+                  <Chip key={label} value={label} variant="light">
+                    {label}
+                  </Chip>
+                ))}
               </Chip.Group>
             </Group>
           )}
@@ -308,19 +307,17 @@ export const Browse: React.FC = () => {
               value={types}
               onChange={types => setTypes(_.intersection(_.values(SubjectType), types))}
             >
-              <Group gap="xs">
-                {_.map(SubjectType, subjectType => {
-                  return (
-                    <Chip
-                      key={subjectType}
-                      value={subjectType}
-                      variant="outline"
-                      color={colorByType[subjectType]}
-                    >
-                      {_.startCase(subjectType)}
-                    </Chip>
-                  )
-                })}
+              <Group gap="xs" className="justify-evenly! sm:justify-start! mt-1">
+                {_.map(SubjectType, subjectType => (
+                  <Chip
+                    key={subjectType}
+                    value={subjectType}
+                    variant="outline"
+                    color={colorByType[subjectType]}
+                  >
+                    {_.startCase(subjectType)}
+                  </Chip>
+                ))}
               </Group>
             </Chip.Group>
           </Box>
@@ -355,7 +352,7 @@ export const Browse: React.FC = () => {
                       <React.Fragment key={subject.id}>
                         <UnstyledButton
                           onClick={() => openFlashcardModal([subject], 0)}
-                          className="w-full text-left hover:!bg-gray-50 transition-colors"
+                          className="w-full text-left hover:bg-gray-50! dark:hover:bg-gray-800! transition-colors"
                         >
                           <Group className="p-3 md:p-4 flex-nowrap">
                             <GameItemIcon subject={subject} />
@@ -369,7 +366,12 @@ export const Browse: React.FC = () => {
                                   {subject.readings
                                     ?.filter(r => r.primary)
                                     .map((r, i) => (
-                                      <Badge key={i} size="sm" variant="dot" color="gray">
+                                      <Badge
+                                        key={i}
+                                        size="md"
+                                        variant="dot"
+                                        className="bg-gray-200! dark:bg-gray-700! before:bg-black! dark:before:bg-gray-500!"
+                                      >
                                         {r.reading}
                                       </Badge>
                                     ))}
@@ -416,7 +418,10 @@ export const Browse: React.FC = () => {
                                   </Tooltip>
                                 </Group>
                               )}
-                              <Icons.ChevronRight size={18} className="text-gray-400" />
+                              <Icons.ChevronRight
+                                size={18}
+                                className="text-gray-600 dark:text-gray-400"
+                              />
                             </Group>
                           </Group>
                         </UnstyledButton>

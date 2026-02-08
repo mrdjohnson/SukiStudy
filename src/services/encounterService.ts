@@ -90,8 +90,6 @@ export const encounterService = {
       .thru(formatDuration)
       .value()
 
-    console.log({ totalTime })
-
     const encounterItemIds = encounterItems.find({}, { fields: { subjectId: 1 } }).fetch()
     const totalUniqueResults = _.chain(encounterItemIds).map('subjectId').uniq().size().value()
 
@@ -141,7 +139,9 @@ export const encounterService = {
       totalGames,
       totalTime,
       totalUniqueResults,
-      mostPlayed: mostPlayed ? { gameId: mostPlayed[0], count: mostPlayed[1] } : null,
+      mostPlayed: mostPlayed
+        ? { gameName: gamesById[mostPlayed[0]]?.name || '-', count: mostPlayed[1] }
+        : null,
       history: _.compact(history),
       itemHistory,
     }

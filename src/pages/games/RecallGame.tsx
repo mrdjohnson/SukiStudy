@@ -9,6 +9,8 @@ import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
+import { Input, TextInput } from '@mantine/core'
+import clsx from 'clsx'
 
 export const RecallGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
@@ -168,34 +170,41 @@ export const RecallGame: GameComponent = ({ items: propItems, onComplete, isLast
       isLastGame={isLastGame}
     >
       <div className="text-center mb-8">
-        <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
-          Words starting with
-        </div>
-        <div className="text-6xl font-bold text-indigo-600 mb-6">{startChar}</div>
+        <div className="text-sm font-bold  uppercase tracking-widest mb-2">Words starting with</div>
+        <div className="text-6xl font-bold mb-6">{startChar}</div>
 
         <div className="max-w-md mx-auto">
           <form onSubmit={handleSubmit} className="relative mb-4">
-            <input
-              type="text"
+            <TextInput
+              size="lg"
+              radius="md"
               value={input}
               onChange={e => setInput(e.target.value)}
               placeholder="Type reading..."
-              className="w-full px-4 py-3 text-center text-lg border-2 border-gray-300 rounded-xl focus:border-indigo-500 outline-none"
               autoFocus
+              autoComplete="off"
               disabled={foundWords.length === gameItems.length}
             />
-            <p className="text-xs text-gray-400 mt-2">Press Enter with empty input to finish</p>
+
+            <Input.Description className="mt-1!">
+              Press Enter with empty input to finish
+            </Input.Description>
           </form>
 
           {/* Live Found List */}
-          <div className="flex flex-wrap gap-2 justify-center mb-6">
+          <div className="flex flex-wrap gap-4 justify-center mb-6">
             {foundWords.map(({ subject }) => {
               const isHighlight = highlightIds.includes(subject.id)
               return (
                 <button
                   key={subject.id}
                   onClick={() => openFlashcardModal([subject])}
-                  className={`px-3 py-1 rounded-lg text-sm font-bold transition-all duration-300 ${isHighlight ? 'bg-yellow-300 text-yellow-900 scale-110' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+                  className={clsx(
+                    'px-3 py-1 rounded-lg font-bold transition-all duration-300 cursor-pointer text-lg!',
+                    isHighlight
+                      ? 'bg-yellow-300 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-200 scale-110'
+                      : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800',
+                  )}
                 >
                   {subject.characters}
                 </button>
@@ -208,7 +217,7 @@ export const RecallGame: GameComponent = ({ items: propItems, onComplete, isLast
               {revealedHints.map(({ subject }) => (
                 <div
                   key={subject.id}
-                  className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg text-sm font-bold animate-fade-in"
+                  className="px-3 py-1 bg-yellow-50 dark:bg-yellow-600 text-yellow-800 dark:text-black border border-yellow-200 dark:border-yellow-600 rounded-lg text-sm font-bold animate-fade-in"
                 >
                   {subject.characters}
                 </div>

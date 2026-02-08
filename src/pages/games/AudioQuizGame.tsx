@@ -162,7 +162,7 @@ export const AudioQuizGame: GameComponent = ({ items: propItems, onComplete, isL
             isReviewable={!!currentItem.isReviewable}
             isInteractionEnabled={!!selectedAnswer}
             customContent={
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center dark:bg-black rounded-full">
                 <ActionIcon
                   color={colorByType[currentItem.subject.object || SubjectType.VOCABULARY]}
                   onClick={playQuestionAudio}

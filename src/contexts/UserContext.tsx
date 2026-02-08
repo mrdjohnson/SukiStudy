@@ -35,11 +35,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const user = useReactivity(() => users.findOne({ id: 'current' }) || null)
 
+  // useEffect(() => {
+  //   console.log('user changed', user)
+  // }, [user])
+
+  console.log('user provider updated', user)
+
   useEffect(() => {
     const init = async () => {
       await users.isReady()
       const dbUser = users.findOne({ id: 'current' })
       const storedToken = localStorage.getItem('wk_token')
+
+      console.log({ dbUser })
 
       if (dbUser) {
         setLoading(false)

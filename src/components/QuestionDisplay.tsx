@@ -6,7 +6,7 @@ import _ from 'lodash'
 import { Subject, SubjectType } from '../types'
 import { bgColorByType, colorByType, textColorByType } from '../utils/subject'
 import { openFlashcardModal } from './modals/FlashcardModal'
-import { ActionIcon, Center, Group, SimpleGrid } from '@mantine/core'
+import { ActionIcon, Center, Group, Paper, SimpleGrid } from '@mantine/core'
 import { IconExternalLink } from '@tabler/icons-react'
 
 type QuestionDisplayProps = {
@@ -64,7 +64,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       return (
         <img
           src={subject.character_images[0].url}
-          className="w-16 h-16 mx-auto object-contain"
+          className="w-16 h-16 mx-auto object-contain dark:invert"
           alt="Subject character"
         />
       )
@@ -86,9 +86,9 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   }, [])
 
   return (
-    <div
+    <Paper
       className={clsx(
-        'text-center relative rounded-2xl pb-8 mb-12 h-48 border border-gray-100',
+        'text-center relative rounded-2xl pb-8 mb-12 h-48 dark:bg-black/30!',
         isInteractionEnabled && 'shadow-lg cursor-pointer group',
         className,
       )}
@@ -98,12 +98,14 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         e.stopPropagation()
         openFlashcardModal([subject])
       }}
+      withBorder
+      shadow="md"
     >
       <SimpleGrid cols={3} className="pb-4 px-2">
         {/* Review Badge - Top Left */}
         <Group>
           {isReviewable && (
-            <div className="bg-yellow-400 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm z-10 uppercase tracking-wider w-fit">
+            <div className="bg-yellow-400 dark:bg-yellow-600 text-black dark:text-gray-200 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm z-10 uppercase tracking-wider w-fit">
               REVIEW
             </div>
           )}
@@ -113,7 +115,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         <Center>
           <div
             className={clsx(
-              'm-2 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm z-10 uppercase tracking-wider w-fit',
+              'm-2 text-white dark:text-gray-100 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm z-10 uppercase tracking-wider w-fit',
               bgColorByType[subjectType],
             )}
           >
@@ -142,12 +144,11 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           className={clsx(
             'transition-all duration-300 select-none',
             customContent ? '' : 'text-6xl md:text-7xl', // Default size for text
-            isInteractionEnabled
-              ? textColorByType[subjectType] + ' cursor-pointer scale-110 hover:scale-115'
-              : 'text-gray-900',
-            isInteractionEnabled && !customContent
-              ? 'underline decoration-dotted underline-offset-12'
-              : '',
+            isInteractionEnabled && [
+              textColorByType[subjectType],
+              ' cursor-pointer scale-110 hover:scale-115',
+              !customContent && 'underline decoration-dotted underline-offset-12',
+            ],
           )}
           title={isInteractionEnabled ? 'Click to view details' : ''}
         >
@@ -160,12 +161,12 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         className={clsx(
           'h-8 mt-4 text-lg font-medium transition-all duration-500',
           isInteractionEnabled
-            ? 'opacity-100 transform translate-y-0 text-gray-600'
+            ? 'opacity-70 transform translate-y-0'
             : 'opacity-0 transform -translate-y-2',
         )}
       >
         {infoText}
       </div>
-    </div>
+    </Paper>
   )
 }

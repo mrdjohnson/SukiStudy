@@ -19,6 +19,7 @@ import {
   UnstyledButton,
   Stack,
   Box,
+  Center,
 } from '@mantine/core'
 import { useUser } from '../../contexts/UserContext'
 import { colorByType } from '../../utils/subject'
@@ -27,6 +28,7 @@ import _ from 'lodash'
 import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useLocalStorage } from '@mantine/hooks'
 import clsx from 'clsx'
+import { GameItemIcon } from '../../components/GameItemIcon'
 
 export const CustomGameSetup: React.FC = () => {
   const { user, isGuest } = useUser()
@@ -142,6 +144,7 @@ export const CustomGameSetup: React.FC = () => {
 
   const toggleManualId = (id: number) => {
     setManualSelection(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]))
+    setIsManualMode(true)
   }
 
   const toggleLevel = (l: number) => {
@@ -192,7 +195,7 @@ export const CustomGameSetup: React.FC = () => {
             {/* Game Selection */}
             <Paper p="md" withBorder radius="md">
               <Group mb="md">
-                <Icons.Gamepad2 className="w-5 h-5 text-indigo-600" />
+                <Icons.Gamepad2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <Title order={4}>Select Types and Games</Title>
 
                 <Button
@@ -251,7 +254,7 @@ export const CustomGameSetup: React.FC = () => {
             {/* Filters */}
             <Paper p="md" withBorder radius="md">
               <Group mb="md">
-                <Icons.Settings className="w-5 h-5 text-indigo-600" />
+                <Icons.Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <Title order={4}>Filters</Title>
               </Group>
 
@@ -336,54 +339,56 @@ export const CustomGameSetup: React.FC = () => {
                   ? `Selected (${manualSelection.length})`
                   : `Pool (${filteredPool.length})`}
               </Title>
-              {isManualMode && (
-                <Group gap="xs">
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => setManualSelection(filteredPool.map(i => i.subject.id!))}
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant="subtle"
-                    color="red"
-                    size="xs"
-                    onClick={() => setManualSelection([])}
-                  >
-                    Clear
-                  </Button>
-                </Group>
-              )}
+              <Group gap="xs">
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  onClick={() => {
+                    setManualSelection(filteredPool.map(i => i.subject.id!))
+                    setIsManualMode(true)
+                  }}
+                  disabled={filteredPool.length === manualSelection.length}
+                >
+                  All
+                </Button>
+
+                <Button
+                  variant="light"
+                  color="red"
+                  size="xs"
+                  onClick={() => {
+                    setManualSelection([])
+                    setIsManualMode(false)
+                  }}
+                  disabled={!isManualMode}
+                >
+                  Clear
+                </Button>
+              </Group>
             </Group>
 
             <Box style={{ flex: 1, overflowY: 'auto' }} pr="xs">
-              <SimpleGrid cols={5} spacing="xs">
+              <SimpleGrid
+                cols={{ base: 3, xs: 4, sm: 5, md: 3 }}
+                spacing={{ base: 'md', md: 'sm' }}
+              >
                 {filteredPool.map(item => {
                   const isSelected = isManualMode && manualSelection.includes(item.subject.id!)
                   return (
-                    <UnstyledButton
-                      key={item.subject.id}
-                      onClick={() => isManualMode && toggleManualId(item.subject.id!)}
-                      onDoubleClick={() => openFlashcardModal([item.subject])}
-                      style={theme => ({
-                        aspectRatio: '1/1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: theme.radius.sm,
-                        border: `2px solid ${isManualMode && isSelected ? theme.colors.indigo[6] : theme.colors.gray[2]}`,
-                        backgroundColor:
-                          isManualMode && isSelected ? theme.colors.indigo[0] : 'transparent',
-                        opacity: isManualMode && !isSelected ? 0.5 : 1,
-                        fontWeight: 700,
-                        fontSize: '1.2rem',
-                        color: theme.colors.gray[8],
-                      })}
-                    >
-                      {item.subject.characters || '?'}
-                    </UnstyledButton>
+                    <Center className="aspect-square" key={item.subject.id}>
+                      <UnstyledButton
+                        className={clsx(
+                          'transition-opacity ease-in-out duration-50',
+                          !isSelected && 'opacity-50',
+                        )}
+                        onClick={() => toggleManualId(item.subject.id!)}
+                        onDoubleClick={() => openFlashcardModal([item.subject])}
+                      >
+                        <GameItemIcon subject={item.subject} size="lg" />
+                      </UnstyledButton>
+                    </Center>
                   )
+                  return
                 })}
               </SimpleGrid>
               {filteredPool.length === 0 && (

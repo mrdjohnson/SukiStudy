@@ -14,18 +14,22 @@ import {
   useMatches,
   Button,
   Anchor,
+  Center,
   ActionIcon,
+  SegmentedControl,
+  useMantineColorScheme,
 } from '@mantine/core'
+import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../contexts/UserContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useGames } from '../../hooks/useGames'
 import { colorByType } from '../../utils/subject'
-import { SubjectType } from '../../types'
+import { SubjectType, Theme } from '../../types'
 import _ from 'lodash'
 import clsx from 'clsx'
 import { Icons } from '../Icons'
 import moment from 'moment'
-import { IconActivity, IconWorld } from '@tabler/icons-react'
+import { IconWorld, IconDeviceDesktop } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { syncService } from '../../services/syncService'
 import { subjects } from '../../services/db'
@@ -74,6 +78,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     enabledFonts,
     toggleEnabledFont,
   } = useSettings()
+
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
 
   const [showBuildTime, setShowBuildTime] = useState(false)
 
@@ -175,6 +181,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
       size="lg"
     >
       <Stack gap="lg">
+        {/* Appearance */}
+        <Stack gap="md">
+          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+            Appearance
+          </Text>
+          <SegmentedControl
+            value={colorScheme}
+            onChange={value => setColorScheme(value as Theme)}
+            data={[
+              {
+                value: 'light',
+                label: (
+                  <Center style={{ gap: 10 }}>
+                    <Icons.Sun size={16} />
+                    <span>Light</span>
+                  </Center>
+                ),
+              },
+              {
+                value: 'dark',
+                label: (
+                  <Center style={{ gap: 10 }}>
+                    <Icons.Moon size={16} />
+                    <span>Dark</span>
+                  </Center>
+                ),
+              },
+              {
+                value: 'auto',
+                label: (
+                  <Center style={{ gap: 10 }}>
+                    <IconDeviceDesktop size={16} />
+                    <span>System</span>
+                  </Center>
+                ),
+              },
+            ]}
+          />
+        </Stack>
+
+        <Divider />
+
         {/* General */}
         <Stack gap="md">
           <Text c="dimmed" size="sm" fw={700} tt="uppercase">
@@ -251,7 +299,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                       <img
                         src={previewPath}
                         alt={`${font.name} preview`}
-                        className="mt-2 h-16 w-auto object-contain"
+                        className="mt-2 h-16 w-auto object-contain dark:invert"
                         loading="lazy"
                       />
                     )}
@@ -453,7 +501,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
             </Text>
 
             {/* GitHub Link */}
-            <Group className="pt-2" justify="space-around">
+            <Center className="pt-2">
               <Anchor
                 href="https://github.com/mrdjohnson/SukiStudy"
                 target="_blank"
@@ -464,24 +512,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
                   <Icons.GitHub stroke={1.5} />
                 </ActionIcon>
               </Anchor>
-
-              <ActionIcon
-                variant="subtle"
-                onClick={openLogModal}
-                color="black"
-                radius="xl"
-                p={2}
-                size="lg"
-              >
-                <IconActivity />
-              </ActionIcon>
-            </Group>
+            </Center>
           </Stack>
         </Stack>
 
         <Divider />
 
         <Stack>
+          {isGuest && (
+            <Button
+              component="a"
+              href="/login"
+              fullWidth
+              onClick={() => navigate('/login')}
+              leftSection={<IconWorld size={16} />}
+            >
+              Login to WaniKani
+            </Button>
+          )}
+
           <Button
             fullWidth
             variant="light"

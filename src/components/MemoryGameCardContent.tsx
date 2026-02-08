@@ -23,7 +23,7 @@ export const MemoryGameCardContent = ({ content }: { content: string }) => {
   return (
     <Box
       className={clsx(
-        'flex items-center justify-center font-bold shrink-0 w-fit p-1 text-black',
+        'flex items-center justify-center font-bold shrink-0 w-fit p-1',
         classes.icon,
         textSize,
       )}

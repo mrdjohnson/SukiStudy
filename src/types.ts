@@ -233,3 +233,5 @@ export interface GameDefinition {
   component: GameComponent
   hiddenSubjectTypes: SubjectType[]
 }
+
+export type Theme = 'light' | 'dark' | 'auto'
