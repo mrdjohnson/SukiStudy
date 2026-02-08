@@ -10,6 +10,7 @@ import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
 import { selectUniqueItems } from '../../utils/multiChoiceGame'
+import clsx from 'clsx'
 
 type GameCard = MultiChoiceGameItem & {
   id: string
@@ -159,17 +160,24 @@ export const MemoryGame: GameComponent = ({ items: propItems, onComplete, isLast
           <div
             key={card.id}
             onClick={() => handleCardClick(idx)}
-            className={`aspect-3/4 rounded-xl cursor-pointer perspective-1000 transition-all duration-300 ${card.isMatched ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+            className={clsx(
+              'aspect-3/4 rounded-xl perspective-1000 transition-all duration-300',
+              card.isMatched && 'opacity-50 grayscale pointer-events-none',
+              !card.isMatched && !card.isFlipped && 'cursor-pointer',
+            )}
           >
             <div
-              className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}
+              className={clsx(
+                'relative w-full h-full transition-transform duration-500 transform-style-3d',
+                card.isFlipped && 'rotate-y-180',
+              )}
             >
               <div className="absolute inset-0 backface-hidden bg-linear-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
                 <img src={logo} className="size-12 opacity-40" alt={'flipped card ' + idx} />
               </div>
 
               <div
-                className={`absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
+                className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
               >
                 <MemoryGameCardContent content={card.content} />
               </div>

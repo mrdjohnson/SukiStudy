@@ -18,6 +18,9 @@ import {
   Stack,
   SimpleGrid,
   useMatches,
+  SegmentedControl,
+  Center,
+  useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useGames } from '../hooks/useGames'
@@ -26,6 +29,8 @@ import { useUser } from '../contexts/UserContext'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { openLogModal } from './modals/LogsModal'
 import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
+import { IconDeviceDesktop } from '@tabler/icons-react'
+import type { Theme } from '../types'
 
 interface HeaderProps {
   children: React.ReactNode
@@ -41,9 +46,18 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const location = useLocation()
   const availableGames = useGames()
 
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
+
   const logoSize = useMatches({
     base: 'md',
     xs: 'lg',
+  })
+
+  const themeTextVisibility = useMatches({
+    base: 'hidden',
+    xs: 'visible',
+    sm: 'visible',
+    md: 'hidden',
   })
 
   const handleDoubleMouseDown = useDoubleMouseDown(() => {
@@ -74,15 +88,25 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
           <SimpleGrid cols={3} className="w-full">
             <Group>
-              <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="md" />
+              <Burger
+                opened={opened}
+                onClick={toggle}
+                hiddenFrom="md"
+                size="md"
+                classNames={{
+                  burger:
+                    'dark:[&[data-opened]]:bg-transparent! dark:bg-white/70! dark:[&::before,&::after]:bg-white/70!',
+                }}
+              />
             </Group>
 
             <Group className="justify-center! flex-nowrap!" onMouseDown={handleDoubleMouseDown}>
-              <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
+              <Link to="/" className="flex items-center gap-2">
                 <ActionIcon size={logoSize} radius="xl" color="#ff0000" variant="filled">
                   <img src={logo} alt="SukiStudy Logo" />
                 </ActionIcon>
-                <Text size="xl" fw={700} c="dark">
+
+                <Text size="xl" fw={700}>
                   SukiStudy
                 </Text>
               </Link>
@@ -158,6 +182,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 if (opened) toggle()
               }}
               leftSection={<Icons.Adjustments />}
+              active={location.pathname.includes(`/session/custom`)}
             />
 
             {availableGames.map(g => (
@@ -190,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
         <AppShell.Section pt="md">
           <Stack>
-            <SimpleGrid cols={2} className="flex-nowrap!">
+            <Group className="flex-nowrap!">
               <Button
                 fullWidth
                 variant="subtle"
@@ -199,9 +224,45 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                   if (opened) toggle()
                 }}
                 color="indigo"
+                classNames={{ inner: 'min-w-8 place-self-center' }}
               >
                 <Icons.Info />
               </Button>
+
+              <SegmentedControl
+                value={colorScheme}
+                onChange={value => setColorScheme(value as Theme)}
+                data={[
+                  {
+                    value: 'light',
+                    label: (
+                      <Center style={{ gap: 10 }}>
+                        <Icons.Sun />
+                        <Text className={themeTextVisibility}>Light</Text>
+                      </Center>
+                    ),
+                  },
+                  {
+                    value: 'dark',
+                    label: (
+                      <Center style={{ gap: 10 }}>
+                        <Icons.Moon />
+                        <Text className={themeTextVisibility}>Dark</Text>
+                      </Center>
+                    ),
+                  },
+                  {
+                    value: 'auto',
+                    label: (
+                      <Center style={{ gap: 10 }}>
+                        <IconDeviceDesktop />
+                        <Text className={themeTextVisibility}>System</Text>
+                      </Center>
+                    ),
+                  },
+                ]}
+                className="w-fit! shrink-0"
+              />
 
               <Button
                 fullWidth
@@ -209,10 +270,11 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 component="a"
                 href="https://github.com/mrdjohnson/SukiStudy"
                 color="indigo"
+                classNames={{ inner: 'min-w-8 place-self-center' }}
               >
                 <Icons.GitHub />
               </Button>
-            </SimpleGrid>
+            </Group>
 
             <Button
               fullWidth

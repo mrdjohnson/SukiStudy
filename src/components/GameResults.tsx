@@ -6,6 +6,7 @@ import { GameItemIcon } from './GameItemIcon'
 import { IconReload } from '@tabler/icons-react'
 import { GameItem } from '../types'
 import clsx from 'clsx'
+import { Paper, Text } from '@mantine/core'
 
 interface GameResultsProps<T extends GameItem> {
   gameLogic: GameLogic<T>
@@ -34,27 +35,30 @@ export const GameResults = <T extends GameItem>({
         >
           <Icon className="w-12 h-12" />
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold mb-2">
           {gameInfo.name} {isReview ? 'Results' : 'Complete!'}
         </h2>
         <div className="flex justify-center gap-6 mt-4 text-gray-600">
           <div className="flex flex-col items-center">
-            <span className="text-2xl font-bold text-indigo-600">{percentage}%</span>
+            <span className="text-2xl font-bold ">{percentage}%</span>
             <span className="text-xs uppercase font-bold text-gray-400">Accuracy</span>
           </div>
           <div className="w-px bg-gray-200 h-10"></div>
           <div className="flex flex-col items-center">
-            <span className="text-2xl font-bold text-gray-800">{timeTaken}</span>
+            <span className="text-2xl font-bold">{timeTaken}</span>
             <span className="text-xs uppercase font-bold text-gray-400">Time</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="font-bold text-gray-700">Review Summary</h3>
-          <span className="text-sm text-gray-500">{gameItems.length} items</span>
+      <Paper withBorder shadow="sm" className="rounded-2xl overflow-hidden mb-8">
+        <div className="px-6 py-3 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="font-bold">Review Summary</h3>
+          <Text className="text-sm" c="dimmed">
+            {gameItems.length} items
+          </Text>
         </div>
+
         <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
           {gameLogic.gameState.gameItems.map((item, idx) => (
             <button
@@ -71,21 +75,25 @@ export const GameResults = <T extends GameItem>({
                 <GameItemIcon subject={item.subject} />
 
                 <div>
-                  <div className="font-medium text-gray-900">
-                    {item.subject.meanings[0].meaning}
-                  </div>
-                  <div className="text-xs text-gray-500">{item.subject.readings?.[0]?.reading}</div>
+                  <div className="font-medium">{item.subject.meanings[0].meaning}</div>
+                  <div className="text-xs">{item.subject.readings?.[0]?.reading}</div>
                 </div>
               </div>
+
               <div
-                className={`px-3 py-1 rounded-full text-xs font-bold ${item.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                className={clsx(
+                  `px-3 py-1 rounded-full text-xs font-bold`,
+                  item.correct
+                    ? 'bg-green-100 text-green-700 dark:bg-green-300 dark:text-green-900'
+                    : 'bg-red-100 text-red-700 dark:bg-red-300 dark:text-red-900',
+                )}
               >
                 {item.correct ? 'Correct' : 'Missed'}
               </div>
             </button>
           ))}
         </div>
-      </div>
+      </Paper>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
         {onPlayAgain && (

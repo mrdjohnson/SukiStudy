@@ -9,10 +9,6 @@ export const openFlashcardModal = (items: Subject[], index = 0) => {
     padding: 0,
     size: 'lg',
     centered: true,
-    styles: {
-      content: { backgroundColor: 'transparent', boxShadow: 'none' },
-      body: { backgroundColor: 'transparent' },
-    },
     children: (
       <div onClick={() => modals.closeAll()}>
         <Flashcard items={items} index={index} isPopup />

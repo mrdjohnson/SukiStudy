@@ -14,5 +14,13 @@
     "actionLabel": "Choose a Font",
     "actionLink": "/settings",
     "guestVisible": true
+  },
+  {
+    "title": "Dark Theme is here!",
+    "content": "You can now switch between light and dark mode. Open Settings to try it out.",
+    "type": "new",
+    "actionLabel": "Switch your Theme",
+    "actionLink": "/settings",
+    "guestVisible": true
   }
 ]

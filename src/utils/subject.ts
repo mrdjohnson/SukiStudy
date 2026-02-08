@@ -25,9 +25,9 @@ export const bgColorByType = {
 }
 
 export const themeByType = {
-  [SubjectType.HIRAGANA]: '!bg-hiragana/10 border-hiragana',
-  [SubjectType.KATAKANA]: '!bg-katakana/10 border-katakana',
-  [SubjectType.RADICAL]: '!bg-radical/10 border-radical',
-  [SubjectType.KANJI]: '!bg-kanji/10 border-kanji',
-  [SubjectType.VOCABULARY]: '!bg-vocabulary/10 border-vocabulary',
+  [SubjectType.HIRAGANA]: '!bg-hiragana/10 dark:bg-hiragana/40! border-hiragana',
+  [SubjectType.KATAKANA]: '!bg-katakana/10 dark:bg-katakana/40! border-katakana',
+  [SubjectType.RADICAL]: '!bg-radical/10 dark:bg-radical/40! border-radical',
+  [SubjectType.KANJI]: '!bg-kanji/10 dark:bg-kanji/40! border-kanji',
+  [SubjectType.VOCABULARY]: '!bg-vocabulary/10 dark:bg-vocabulary/40! border-vocabulary',
 }

@@ -58,7 +58,7 @@ export const About = () => {
         <SimpleGrid cols={{ base: 1, lg: 2 }} spacing={{ base: 'lg', md: 'md' }}>
           {/* Mission */}
           <Card shadow="sm" padding="lg" radius="md" withBorder className="h-full">
-            <Card.Section withBorder inheritPadding py="xs" className="bg-gray-50">
+            <Card.Section withBorder inheritPadding py="xs" className="bg-gray-50 dark:bg-gray-700">
               <Group gap="xs">
                 <IconHeart color="#ec4899" />
                 <Text fw={600}>Why "Suki"?</Text>
@@ -88,7 +88,7 @@ export const About = () => {
 
           {/* Data Sources */}
           <Card shadow="sm" padding="lg" radius="md" withBorder className="h-full">
-            <Card.Section withBorder inheritPadding py="xs" className="bg-gray-50">
+            <Card.Section withBorder inheritPadding py="xs" className="bg-gray-50 dark:bg-gray-700">
               <Group gap="xs">
                 <IconDatabase color="#6366f1" />
                 <Text fw={600}>Credits & Data Sources</Text>

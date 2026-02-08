@@ -1,4 +1,4 @@
-import { Box } from '@mantine/core'
+import { Box, Text } from '@mantine/core'
 import clsx from 'clsx'
 import { Subject } from '../types'
 import { useMemo } from 'react'
@@ -35,7 +35,7 @@ export const GameItemIcon = ({
     <Box
       className={clsx(
         color,
-        'flex items-center justify-center font-bold shrink-0 w-fit p-1 text-white',
+        'flex items-center justify-center font-bold shrink-0 w-fit p-1 text-white dark:text-white/80 flex-col',
         classes.icon,
         classes.large,
         (subject.characters?.length || 0) > 2 && classes.medium,

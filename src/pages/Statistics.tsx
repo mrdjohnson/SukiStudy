@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Tabs, Modal, SimpleGrid, Container, Title, Box, Group, Badge, Text } from '@mantine/core'
+import {
+  Tabs,
+  Modal,
+  SimpleGrid,
+  Container,
+  Title,
+  Box,
+  Group,
+  Badge,
+  Text,
+  Paper,
+} from '@mantine/core'
 import { useDebouncedState, useElementSize, useViewportSize } from '@mantine/hooks'
 import { useNavigate } from 'react-router'
 import moment from 'moment'
@@ -44,7 +55,7 @@ export const Statistics = () => {
   }, [viewportHeight])
 
   useEffect(() => {
-    setTabHeight(height)
+    setTabHeight(height - 3)
   }, [height])
 
   const stats = useReactivity(() => {
@@ -195,37 +206,46 @@ export const Statistics = () => {
       <Title order={2}>Statistics</Title>
       {/* Summary Cards */}
       <SimpleGrid cols={{ base: 2, xs: 4 }}>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="text-gray-500 text-sm font-medium uppercase mb-1">Total Games</div>
-          <div className="text-3xl font-bold text-indigo-600">{stats.totalGames}</div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="text-gray-500 text-sm font-medium uppercase mb-1">Total Time</div>
-          <div className="text-3xl font-bold text-gray-900">{stats.totalTime}</div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="text-gray-500 text-sm font-medium uppercase mb-1">Items Reviewed</div>
-          <div className="text-3xl font-bold text-green-600">{stats.totalUniqueResults}</div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="text-gray-500 text-sm font-medium uppercase mb-1">Most Played</div>
-          <div className="text-xl font-bold text-gray-900 capitalize truncate">
-            {stats.mostPlayed?.gameId || '—'}
-          </div>
-          {stats.mostPlayed && (
-            <div className="text-sm text-gray-400">{stats.mostPlayed.count} games</div>
-          )}
-        </div>
+        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+          <Text tt="uppercase" c="dimmed" size="sm">
+            Total Games
+          </Text>
+          <Title order={2}>{stats.totalGames}</Title>
+        </Paper>
+
+        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+          <Text tt="uppercase" c="dimmed" size="sm">
+            Total Time
+          </Text>
+          <Title order={2}>{stats.totalTime}</Title>
+        </Paper>
+
+        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+          <Text tt="uppercase" c="dimmed" size="sm">
+            Items Reviewed
+          </Text>
+          <Title order={2}>{stats.totalUniqueResults}</Title>
+        </Paper>
+
+        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+          <Text tt="uppercase" c="dimmed" size="sm">
+            Most Played
+          </Text>
+          <Title order={4}>{stats.mostPlayed?.gameName || '—'}</Title>
+          <Text c="dimmed">{stats.mostPlayed?.count}</Text>
+        </Paper>
       </SimpleGrid>
 
-      <Box className="flex-1 min-h-0! overflow-hidden!" ref={ref}>
+      <Paper
+        radius="lg"
+        className="flex-1 min-h-0! overflow-hidden!"
+        ref={ref}
+        withBorder
+        shadow="sm"
+      >
         <div style={{ height: `${tabHeight}px` }}>
-          <Tabs
-            h="100%"
-            defaultValue="games"
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex! flex-col!"
-          >
-            <Tabs.List className="px-6 pt-4 border-b border-gray-100">
+          <Tabs h="100%" defaultValue="games" className="overflow-hidden flex-1 flex! flex-col!">
+            <Tabs.List className="px-6 pt-4">
               <Tabs.Tab value="games" leftSection={<Icons.Gamepad2 size={16} />}>
                 Recent Games
               </Tabs.Tab>
@@ -236,25 +256,23 @@ export const Statistics = () => {
 
             {/* Games */}
             <Tabs.Panel value="games" className="max-h-full">
-              <div className="divide-y divide-gray-100 max-h-full overflow-y-auto">
+              <div className="divide-y divide-gray-100 dark:divide-gray-500 max-h-full overflow-y-auto">
                 {stats.history.length === 0 ? (
                   <div className="p-8 text-center text-gray-500">No games played yet.</div>
                 ) : (
                   stats.history.map(session => (
                     <div
                       key={session.id}
-                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                       onClick={() => handleGameClick(session)}
                     >
                       <div className="flex items-center gap-4">
                         <session.game.icon
-                          className={clsx('size-9 rounded-full p-1', session.game.color)}
+                          className={clsx('size-9 rounded-md p-1', session.game.color)}
                         />
 
                         <div>
-                          <div className="font-medium text-gray-900 capitalize">
-                            {session.gameId}
-                          </div>
+                          <div className="font-medium capitalize">{session.gameId}</div>
                           <div className="text-xs text-gray-500">
                             {new Date(session.startedAt).toLocaleDateString()}{' '}
                             {new Date(session.endedAt).toLocaleTimeString()}
@@ -265,7 +283,7 @@ export const Statistics = () => {
                       <div className="flex items-center gap-6">
                         {session.maxScore > 0 && (
                           <div className="text-center">
-                            <div className="font-bold text-gray-900">
+                            <div className="font-bold">
                               {session.score} / {session.maxScore}
                             </div>
                             <div className="text-xs text-gray-500">Score</div>
@@ -285,14 +303,14 @@ export const Statistics = () => {
 
             {/* Items */}
             <Tabs.Panel value="items" className="max-h-full overflow-hidden">
-              <div className="divide-y divide-gray-100 max-h-full overflow-y-auto">
+              <div className="divide-y divide-gray-100 dark:divide-gray-500 max-h-full overflow-y-auto">
                 {!stats.itemHistory || stats.itemHistory.length === 0 ? (
                   <div className="p-8 text-center text-gray-500">No items reviewed yet.</div>
                 ) : (
                   stats.itemHistory.map((item, idx) => (
                     <div
                       key={idx}
-                      className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                       onClick={() => handleItemClick(item.subjectId)}
                     >
                       <div className="flex items-center gap-4">
@@ -345,7 +363,8 @@ export const Statistics = () => {
             </Tabs.Panel>
           </Tabs>
         </div>
-      </Box>
+      </Paper>
+
       <Modal
         opened={!!selectedGame}
         onClose={() => setSelectedGame(null)}

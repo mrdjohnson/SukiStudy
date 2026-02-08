@@ -78,7 +78,6 @@ const LogsModal = () => {
                       style={{
                         fontSize: '11px',
                         padding: '4px 8px',
-                        backgroundColor: 'var(--mantine-color-gray-0)',
                         color: log.level === 'error' ? 'var(--mantine-color-red-7)' : undefined,
                       }}
                     >

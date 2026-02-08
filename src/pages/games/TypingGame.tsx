@@ -11,6 +11,7 @@ import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
 import clsx from 'clsx'
+import { TextInput } from '@mantine/core'
 
 export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
   const { items: fetchedItems, loading } = useLearnedSubjects(!propItems)
@@ -178,18 +179,13 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
 
             <div className="max-w-sm mx-auto">
               <form onSubmit={checkAnswer} className="relative">
-                <input
-                  type="text"
+                <TextInput
                   value={input}
+                  size="lg"
+                  radius="md"
                   onChange={e => setInput(e.target.value)}
                   disabled={answered}
                   placeholder="Type meaning or reading..."
-                  className={clsx(
-                    'w-full px-4 py-4 text-center text-xl border-2 rounded-xl outline-none -transition-all shadow-sm',
-                    answered
-                      ? 'border-green-500 bg-green-50 text-green-800'
-                      : 'border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100',
-                  )}
                   ref={inputRef}
                 />
                 <div

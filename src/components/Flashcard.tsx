@@ -4,7 +4,18 @@ import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
-import { Modal, Image, ActionIcon, Stack, Badge, Group, Loader, Text } from '@mantine/core'
+import {
+  Modal,
+  Image,
+  ActionIcon,
+  Stack,
+  Badge,
+  Group,
+  Loader,
+  Box,
+  Text,
+  Typography,
+} from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
@@ -86,7 +97,7 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType; url?: string }> =
         <img
           src={imageUrl}
           alt={`${id} mnemonic visualization`}
-          className="rounded-lg shadow-sm border border-gray-100 max-h-64 mx-auto object-contain transition-transform group-hover:scale-[1.02]"
+          className="rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 max-h-64 mx-auto object-contain transition-transform group-hover:scale-[1.02]"
           onError={handleError}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-lg pointer-events-none">
@@ -264,30 +275,29 @@ export const Flashcard: React.FC<FlashcardProps> = ({
       className={`w-full max-w-2xl mx-auto perspective-1000 ${isPopup ? 'h-auto' : ''}`}
       onClick={e => e.stopPropagation()}
     >
-      <div
-        className={`rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-100 flex flex-col`}
-        onClick={e => e.stopPropagation()}
-      >
+      <div className="shadow-xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Back Header */}
         <div className={clsx(`p-6 border-b relative`, themeByType[type])}>
           <div className="flex gap-4">
             <GameItemIcon subject={subject} size="lg" />
 
             <div className="flex-1 flex flex-col justify-center">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white/80 leading-tight mb-2">
                 {primaryMeaning}
               </h2>
 
               {primaryReading && (
                 <div className="flex items-center gap-3">
-                  <span className="text-xl text-gray-600 font-medium">{primaryReading}</span>
+                  <span className="text-xl text-gray-600 dark:text-white/80 font-medium">
+                    {primaryReading}
+                  </span>
                   {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
                     <button
                       onClick={playAudio}
-                      className="p-2 bg-white/50 hover:bg-white rounded-full text-indigo-600 transition-colors shadow-sm"
+                      className="p-1 bg-white/50 hover:bg-white dark:bg-white/70 rounded-full text-indigo-600 transition-colors shadow-sm"
                       title="Play Audio"
                     >
-                      <Icons.Volume className="w-5 h-5" />
+                      <Icons.Volume className="size-5" />
                     </button>
                   )}
                 </div>
@@ -295,10 +305,12 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
 
             <Stack className="absolute top-2 right-2" gap="xs">
-              <Badge color={colorByType[type]}>{type}</Badge>
+              <Badge color={colorByType[type]} className="dark:text-white/80!">
+                {type}
+              </Badge>
 
               {subject.level > 0 && (
-                <div className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 border border-gray-200 w-fit ml-auto">
+                <div className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 dark:text-black border border-gray-200 w-fit ml-auto">
                   Lv {subject.level}
                 </div>
               )}
@@ -308,7 +320,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                   href={subject.document_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 hover:text-pink-500 hover:border-pink-200 border border-gray-200 w-fit ml-auto flex items-center gap-1 transition-colors"
+                  className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 dark:text-black hover:text-pink-500 hover:border-pink-200 border border-gray-200 w-fit ml-auto flex items-center gap-1 transition-colors"
                   onClick={e => e.stopPropagation()}
                   title="Open in WaniKani"
                 >
@@ -321,44 +333,47 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
+          {/* todo: move this to meanings section */}
           {studyMaterial && (
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 space-y-2">
-              {studyMaterial.meaning_synonyms.length > 0 && (
-                <div>
-                  <span className="text-xs font-bold text-yellow-600 uppercase">
-                    Your Synonyms:{' '}
-                  </span>
-                  <span className="text-sm font-medium text-gray-800">
-                    {studyMaterial.meaning_synonyms.join(', ')}
-                  </span>
-                </div>
+            <div
+              className={clsx(
+                'text-black dark:text-gray-300 py-2 px-4 rounded-lg space-y-2',
+                themeByType[type],
               )}
+            >
+              {studyMaterial.meaning_synonyms.length > 0 && (
+                <>
+                  <span className="text-xs font-bold uppercase">Your Synonyms:</span>
+
+                  <div className="text-sm font-medium pl-2">
+                    {studyMaterial.meaning_synonyms.map(synonym => (
+                      <p key={synonym}>- {synonym}</p>
+                    ))}
+                  </div>
+                </>
+              )}
+
               {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
-                <div className="space-y-2 pt-1">
-                  {studyMaterial.meaning_note && (
-                    <p className="text-sm text-gray-700">
-                      <strong>Meaning Note:</strong> {studyMaterial.meaning_note}
-                    </p>
-                  )}
-                  {studyMaterial.reading_note && (
-                    <p className="text-sm text-gray-700">
-                      <strong>Reading Note:</strong> {studyMaterial.reading_note}
-                    </p>
-                  )}
-                </div>
+                <>
+                  <span className="text-xs font-bold uppercase pt-2">Your Notes:</span>
+
+                  <div className="text-sm font-medium pl-2">
+                    {studyMaterial.meaning_note && <p>{studyMaterial.meaning_note}</p>}
+                    {studyMaterial.reading_note && <p>{studyMaterial.reading_note}</p>}
+                  </div>
+                </>
               )}
             </div>
           )}
 
           {subject.isKana ? (
-            <div className="prose prose-spacing">
+            <div className="prose prose-spacing text-gray-800 prose-code:text-gray-800 dark:text-gray-300 dark:prose-code:text-gray-300">
               <Markdown>{subject.meaning_mnemonic}</Markdown>
             </div>
           ) : (
-            <div
-              className="text-gray-700 leading-relaxed text-sm md:text-base"
-              dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }}
-            />
+            <Typography>
+              <div dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }} />
+            </Typography>
           )}
 
           {subject.reading_mnemonic && (
@@ -366,10 +381,10 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Reading Mnemonic
               </h3>
-              <div
-                className="text-gray-700 leading-relaxed text-sm md:text-base"
-                dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }}
-              />
+
+              <Typography>
+                <div dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }} />
+              </Typography>
             </div>
           )}
 
@@ -396,8 +411,8 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </h3>
 
               <div className="space-y-3">
-                {meanings.map(meanings => (
-                  <div key={meanings}>{meanings}</div>
+                {meanings.map(meaning => (
+                  <div key={meaning}>{meaning}</div>
                 ))}
               </div>
             </div>
@@ -408,14 +423,16 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Context Sentences
               </h3>
+
               <div className="space-y-3">
-                {subject.context_sentences.slice(0, 3).map((s, i) => (
-                  <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
-                    <p className="text-base mb-1 font-medium text-gray-800">
+                {subject.context_sentences.slice(0, 5).map((s, i) => (
+                  <Box key={i} className="p-3 rounded-lg text-sm bg-gray-300 dark:bg-gray-600">
+                    <Text className="mb-1 font-medium text-black">
                       {renderInteractiveSentence(s.ja)}
-                    </p>
-                    <p className="text-gray-500 text-xs">{s.en}</p>
-                  </div>
+                    </Text>
+
+                    <Text className=" text-sm!">{s.en}</Text>
+                  </Box>
                 ))}
               </div>
             </div>
@@ -426,20 +443,18 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Your Stats
               </h3>
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+              <div className="border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">{itemStats.reviewCount}</div>
+                    <div className="text-2xl font-bold">{itemStats.reviewCount}</div>
                     <div className="text-xs text-gray-500 uppercase tracking-wide">Games</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
-                      {itemStats.averageScore}%
-                    </div>
+                    <div className="text-2xl font-bold">{itemStats.averageScore}%</div>
                     <div className="text-xs text-gray-500 uppercase tracking-wide">Accuracy</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
+                    <div className="text-2xl font-bold">
                       {itemStats.lastGameId ? (
                         <span className="capitalize">{itemStats.lastGameId}</span>
                       ) : (
@@ -496,7 +511,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                 {components.map(subject => (
                   <Stack
                     gap="xs"
-                    className="bg-gray-200 p-2 px-4 rounded-md cursor-pointer"
+                    className="bg-gray-200 dark:bg-slate-600 p-2 px-4 rounded-md cursor-pointer"
                     onClick={() => openFlashcardModal([subject])}
                   >
                     <GameItemIcon subject={subject} />
@@ -512,29 +527,29 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
         </div>
+
+        <Group className="py-4 px-4" hidden={!(hasPrev || hasNext)}>
+          <Button
+            variant="subtle"
+            onClick={handlePrev}
+            leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
+            disabled={!hasPrev}
+            className={clsx(!hasPrev && 'hidden!')}
+          >
+            Prev
+          </Button>
+
+          <Button
+            variant="subtle"
+            onClick={handleNext}
+            disabled={!hasNext}
+            rightSection={<Icons.ChevronRight className="w-5 h-5" />}
+            className={clsx('ml-auto', !hasNext && 'hidden!')}
+          >
+            Next
+          </Button>
+        </Group>
       </div>
-
-      <Group className="mt-8 px-4">
-        <Button
-          variant="subtle"
-          onClick={handlePrev}
-          leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
-          disabled={!hasPrev}
-          className={clsx(!hasPrev && '!hidden')}
-        >
-          Prev
-        </Button>
-
-        <Button
-          variant="subtle"
-          onClick={handleNext}
-          disabled={!hasNext}
-          rightSection={<Icons.ChevronRight className="w-5 h-5" />}
-          className={clsx('ml-auto', !hasNext && '!hidden')}
-        >
-          Next
-        </Button>
-      </Group>
 
       <style>{`
         .rotate-y-180 {

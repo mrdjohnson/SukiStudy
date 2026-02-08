@@ -43,15 +43,15 @@ const root = ReactDOM.createRoot(rootElement)
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <UserProvider>
-        <MantineProvider theme={theme}>
+      <MantineProvider theme={theme} defaultColorScheme="light">
+        <UserProvider>
           <SettingsProvider>
             <ModalsProvider>
               <App />
             </ModalsProvider>
           </SettingsProvider>
-        </MantineProvider>
-      </UserProvider>
+        </UserProvider>
+      </MantineProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )
