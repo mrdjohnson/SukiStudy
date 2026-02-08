@@ -33,7 +33,6 @@ const Statistics = React.lazy(() =>
   import('./pages/Statistics').then(m => ({ default: m.Statistics })),
 )
 
-import logo from '@/src/assets/apple-touch-icon.png'
 import { useSyncManager } from './hooks/useSyncManager'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
