@@ -261,7 +261,7 @@ export const Browse: React.FC = () => {
             label="Sort By"
             placeholder="Sort items..."
             data={[
-              { value: 'default', label: 'Default (Level/ID)' },
+              { value: 'default', label: 'Default' },
               { value: 'recent', label: 'Recently Reviewed' },
               { value: 'reviews', label: 'Most Reviewed' },
               { value: 'score_asc', label: 'Lowest Score' },
