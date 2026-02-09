@@ -1,20 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  Tabs,
-  Modal,
-  SimpleGrid,
-  Container,
-  Title,
-  Box,
-  Group,
-  Badge,
-  Text,
-  Paper,
-} from '@mantine/core'
+import { Tabs, Modal, SimpleGrid, Container, Title, Group, Badge, Text, Paper } from '@mantine/core'
 import { useDebouncedState, useElementSize, useViewportSize } from '@mantine/hooks'
 import { useNavigate } from 'react-router'
 import moment from 'moment'
 import _ from 'lodash'
+import { IconCheck, IconX } from '@tabler/icons-react'
 
 import { assignments, encounterItems, subjects } from '../services/db'
 import { encounterService } from '../services/encounterService'
@@ -202,32 +192,32 @@ export const Statistics = () => {
   }
 
   return (
-    <Container className="space-y-4! md:space-y-8! flex flex-col flex-1">
+    <Container className="space-y-4! md:space-y-8! px-0! sm:px-2! md:px-4! flex flex-col flex-1">
       <Title order={2}>Statistics</Title>
       {/* Summary Cards */}
       <SimpleGrid cols={{ base: 2, xs: 4 }}>
-        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+        <Paper radius="lg" shadow="sm" p={{ base: 'sm', sm: 'lg' }} withBorder>
           <Text tt="uppercase" c="dimmed" size="sm">
             Total Games
           </Text>
           <Title order={2}>{stats.totalGames}</Title>
         </Paper>
 
-        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+        <Paper radius="lg" shadow="sm" p={{ base: 'sm', sm: 'lg' }} withBorder>
           <Text tt="uppercase" c="dimmed" size="sm">
             Total Time
           </Text>
           <Title order={2}>{stats.totalTime}</Title>
         </Paper>
 
-        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+        <Paper radius="lg" shadow="sm" p={{ base: 'sm', sm: 'lg' }} withBorder>
           <Text tt="uppercase" c="dimmed" size="sm">
             Items Reviewed
           </Text>
           <Title order={2}>{stats.totalUniqueResults}</Title>
         </Paper>
 
-        <Paper radius="lg" shadow="sm" p="lg" withBorder>
+        <Paper radius="lg" shadow="sm" p={{ base: 'sm', sm: 'lg' }} withBorder>
           <Text tt="uppercase" c="dimmed" size="sm">
             Most Played
           </Text>
@@ -310,7 +300,7 @@ export const Statistics = () => {
                   stats.itemHistory.map((item, idx) => (
                     <div
                       key={idx}
-                      className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                      className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer gap-2"
                       onClick={() => handleItemClick(item.subjectId)}
                     >
                       <div className="flex items-center gap-4">
@@ -325,7 +315,13 @@ export const Statistics = () => {
                               {item.readings
                                 ?.filter(r => r.primary)
                                 .map((r, i) => (
-                                  <Badge key={i} size="sm" variant="dot" color="gray">
+                                  <Badge
+                                    key={i}
+                                    size="sm"
+                                    variant="dot"
+                                    color="gray"
+                                    className="bg-gray-200! dark:bg-gray-700! before:bg-black! dark:before:bg-gray-500!"
+                                  >
                                     {r.reading}
                                   </Badge>
                                 ))}
@@ -341,19 +337,22 @@ export const Statistics = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2 sm:gap-6 flex-col sm:flex-row">
                         <div className="text-sm text-gray-500 hidden sm:block">
                           via <span className="capitalize font-medium">{item.gameId}</span>
                         </div>
+
                         <div className="text-xs text-gray-400">
-                          {new Date(item.timestamp).toLocaleDateString()}
+                          {moment(item.timestamp).format('MMM D')}
                         </div>
                         <div
                           className={`px-3 py-1 rounded-full text-xs font-bold ${
-                            item.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            item.correct
+                              ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200'
+                              : 'bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200'
                           }`}
                         >
-                          {item.correct ? 'Correct' : 'Missed'}
+                          {item.correct ? <IconCheck size={16} /> : <IconX size={16} />}
                         </div>
                       </div>
                     </div>
