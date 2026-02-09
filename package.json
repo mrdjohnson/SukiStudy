@@ -9,7 +9,8 @@
     "preview": "vite build && vite preview",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 assets/apple-touch-icon.png",
     "scrape-kana": "tsx scripts/scrape-hiragana.ts && tsx scripts/scrape-katakana.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "view-bundles": "vite-bundle-visualizer"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,css,md,html,json}": [
@@ -85,6 +86,7 @@
     "turndown": "^7.2.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
+    "vite-bundle-visualizer": "^1.2.1",
     "vite-plugin-comlink": "^5.3.0",
     "vite-plugin-pwa": "^1.2.0",
     "vite-tsconfig-paths": "^5.1.4",
