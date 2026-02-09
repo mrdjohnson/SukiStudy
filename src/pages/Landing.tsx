@@ -1,9 +1,17 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Icons } from '../components/Icons'
 import { useUser } from '../contexts/UserContext'
-import { Container, Title, Text, Group, SimpleGrid, ThemeIcon } from '@mantine/core'
+import {
+  Container,
+  Title,
+  Text,
+  Group,
+  SimpleGrid,
+  ThemeIcon,
+  useMantineColorScheme,
+} from '@mantine/core'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { IconBadgeTm } from '@tabler/icons-react'
 import clsx from 'clsx'
@@ -12,6 +20,8 @@ import { Footer } from '../components/Footer'
 export const Landing: React.FC = () => {
   const navigate = useNavigate()
   const { loginAsGuest } = useUser()
+
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
 
   const handleGuest = () => {
     loginAsGuest()
@@ -44,6 +54,15 @@ export const Landing: React.FC = () => {
       desc: 'More mnemonic sources and custom learning systems to be added in future updates.',
     },
   ]
+
+  useEffect(() => {
+    const oldScheme = colorScheme
+    setColorScheme('light')
+
+    return () => {
+      setColorScheme(oldScheme)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-300 to-white flex flex-col font-sans">
