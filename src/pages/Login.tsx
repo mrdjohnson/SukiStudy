@@ -1,8 +1,5 @@
 import React, { useState } from 'react'
-import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
-import { waniKaniService } from '../services/wanikaniService'
-import { User } from '../types'
 import {
   TextInput,
   Paper,
@@ -17,13 +14,14 @@ import {
 } from '@mantine/core'
 import clsx from 'clsx'
 import logo from '@/src/assets/apple-touch-icon.png'
+import { useNavigate } from 'react-router'
+import { useLocalStorage } from '@mantine/hooks'
+import { IconInfoCircle } from '@tabler/icons-react'
 
-interface LoginProps {
-  onLogin: (token: string, user: User) => void
-}
+export const Login = () => {
+  const navigate = useNavigate()
 
-export const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [token, setToken] = useState(localStorage.getItem('wk_token') || '')
+  const [token, setToken] = useLocalStorage({ key: 'wk_token', defaultValue: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
@@ -34,12 +32,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setLoading(true)
 
     try {
-      waniKaniService.setToken(token)
-      const userRes = await waniKaniService.getUser() // Validate token
-      onLogin(token, userRes.data)
+      setToken(token)
+
+      navigate('/')
     } catch (err) {
       setError('Invalid API Token or Network Error')
-      waniKaniService.setToken('')
     } finally {
       setLoading(false)
     }
@@ -78,7 +75,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             />
 
             {error && (
-              <Alert icon={<Icons.Info size={16} />} title="Error" color="red" mb="md">
+              <Alert icon={<IconInfoCircle size={16} />} title="Error" color="red" mb="md">
                 {error}
               </Alert>
             )}
@@ -93,7 +90,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               variant="subtle"
               size="xs"
               onClick={() => setShowHelp(!showHelp)}
-              leftSection={<Icons.Info size={14} />}
+              leftSection={<IconInfoCircle size={14} />}
             >
               How do I connect?
             </Button>

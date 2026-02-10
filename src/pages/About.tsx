@@ -11,21 +11,27 @@ import {
   Center,
   Anchor,
 } from '@mantine/core'
-import { Icons } from '../components/Icons'
-import { IconHeart, IconDatabase, IconSchool, IconTypography } from '@tabler/icons-react'
-import { useUser } from '../contexts/UserContext'
+import {
+  IconHeart,
+  IconDatabase,
+  IconSchool,
+  IconTypography,
+  IconBrandGithub,
+} from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { Footer } from '../components/Footer'
 import logo from '@/src/assets/apple-touch-icon.png'
 
 export const About = () => {
-  const { loginAsGuest } = useUser()
-
   const navigate = useNavigate()
 
-  const handleGuest = () => {
-    loginAsGuest()
-    navigate('/') // Redirects to Dashboard in Guest Mode
+  // Lazy import the user context only when entering guest mode
+  // This avoids initializing the DB for users just viewing the landing page
+  const handleGuest = async () => {
+    localStorage.setItem('wk_token', 'guest_token')
+    // We need to trigger login from the App level, so just navigate
+    // and let the route handle guest login
+    navigate('/')
   }
 
   return (
@@ -170,7 +176,7 @@ export const About = () => {
                 >
                   <Group wrap="nowrap">
                     <ThemeIcon variant="light" color="gray" size="lg">
-                      <Icons.GitHub size={20} />
+                      <IconBrandGithub size={20} />
                     </ThemeIcon>
                     <div>
                       <Text fw={600} size="sm">

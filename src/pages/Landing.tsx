@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
-import { Icons } from '../components/Icons'
-import { useUser } from '../contexts/UserContext'
 import {
   Container,
   Title,
@@ -13,37 +11,46 @@ import {
   useMantineColorScheme,
 } from '@mantine/core'
 import logo from '@/src/assets/apple-touch-icon.png'
-import { IconBadgeTm } from '@tabler/icons-react'
+import {
+  IconBadgeTm,
+  IconBook,
+  IconBrain,
+  IconDeviceGamepad2,
+  IconGridDots,
+} from '@tabler/icons-react'
 import clsx from 'clsx'
 import { Footer } from '../components/Footer'
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate()
-  const { loginAsGuest } = useUser()
 
   const { colorScheme, setColorScheme } = useMantineColorScheme()
 
-  const handleGuest = () => {
-    loginAsGuest()
-    navigate('/') // Redirects to Dashboard in Guest Mode
+  // Lazy import the user context only when entering guest mode
+  // This avoids initializing the DB for users just viewing the landing page
+  const handleGuest = async () => {
+    localStorage.setItem('wk_token', 'guest_token')
+    // We need to trigger login from the App level, so just navigate
+    // and let the route handle guest login
+    window.location.reload()
   }
 
   const features = [
     {
       backgroundType: 'md:bg-gradient-to-br!',
-      icon: Icons.Brain,
+      icon: IconBrain,
       title: 'WaniKani Integration',
       desc: 'Seamlessly syncs with your WaniKani progress to prioritize what you need to review.',
     },
     {
       backgroundType: 'md:bg-gradient-to-bl!',
-      icon: Icons.Gamepad2,
+      icon: IconDeviceGamepad2,
       title: 'Gamified Learning',
       desc: 'Break the monotony of reviews of the usual Typing game with Memory Match, Multi choice quiz and more.',
     },
     {
       backgroundType: 'md:bg-gradient-to-tr!',
-      icon: Icons.GridDots,
+      icon: IconGridDots,
       title: 'Hiragana/Katakana',
       desc: "Don't have a WaniKani account? Try out guest Mode to practice your basic kana without an account.",
     },
@@ -95,7 +102,7 @@ export const Landing: React.FC = () => {
               <Button
                 size="xl"
                 onClick={() => navigate('/login')}
-                leftSection={<Icons.BookOpen size={20} />}
+                leftSection={<IconBook size={20} />}
                 className="shadow-md shadow-primary/50"
               >
                 Connect WaniKani
