@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   return {
     base: '/',
+    scope: '/',
     server: {
       port: 3000,
       host: '0.0.0.0',
@@ -29,6 +30,8 @@ export default defineConfig(({ mode }) => {
       comlink(),
       VitePWA({
         mode: 'production',
+        base: '/',
+        scope: '/',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
         includeAssets: ['**/*'],
@@ -121,7 +124,7 @@ export default defineConfig(({ mode }) => {
       }),
       tsconfigPaths(),
       vercel(),
-      vercelPwaLink(),
+      // vercelPwaLink(),
     ],
     worker: {
       format: 'es',
@@ -131,6 +134,11 @@ export default defineConfig(({ mode }) => {
           assetFileNames,
         },
       },
+    },
+    workbox: {
+      clientsClaim: true,
+      skipWaiting: true,
+      navigateFallback: '/index.html',
     },
     define: {
       __BUILD_DATE__: JSON.stringify(moment().format('LL')),
