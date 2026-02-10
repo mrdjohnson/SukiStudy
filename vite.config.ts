@@ -10,6 +10,7 @@ import vercel from 'vite-plugin-vercel'
 import vercelPwaLink from './lib/vite-plugin-vercel-pwa-link/plugin'
 import moment from 'moment'
 import _ from 'lodash'
+import { assetFileNames } from './lib/vite-asset-file-names'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -125,6 +126,11 @@ export default defineConfig(({ mode }) => {
     worker: {
       format: 'es',
       plugins: () => [comlink()], // Enable Comlink for workers
+      rollupOptions: {
+        output: {
+          assetFileNames,
+        },
+      },
     },
     define: {
       __BUILD_DATE__: JSON.stringify(moment().format('LL')),
@@ -158,31 +164,7 @@ export default defineConfig(({ mode }) => {
             ],
             'vendor-utils': ['lodash', 'clsx', 'chroma-js'],
           },
-          assetFileNames: assetInfo => {
-            const name = assetInfo.name ?? ''
-            const ext = path.extname(name).toLowerCase()
-
-            // Group font assets under assets/fonts/<font-family-ish>/...
-            if (['.woff', '.woff2', '.ttf', '.otf', '.eot'].includes(ext)) {
-              const base = path.basename(name, ext).toLowerCase()
-
-              // Examples we want to group:
-              // - zen-old-mincho-61-400-normal.woff2 -> zen-old-mincho
-              // - zen-old-mincho-111-400-normal.woff -> zen-old-mincho
-              // - yuji-boku-japanese-400-normal.woff2 -> yuji-boku
-              const match = base.match(
-                /^(.*?)-(?:\d+|japanese|latin|latin-ext|cyrillic|vietnamese|greek|greek-ext|cjk)(?:-|$)/,
-              )
-              const group = (match?.[1] ?? base.split('-').slice(0, 2).join('-')).replace(
-                /[^a-z0-9-]/g,
-                '',
-              )
-
-              return `assets/fonts/${group}/[name]-[hash][extname]`
-            }
-
-            return `assets/[name]-[hash][extname]`
-          },
+          assetFileNames,
         },
       },
     },
