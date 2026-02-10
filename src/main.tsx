@@ -2,32 +2,20 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { MantineProvider, createTheme } from '@mantine/core'
-import { ModalsProvider } from '@mantine/modals'
-import App from './App'
-import { UserProvider } from './contexts/UserContext'
-import { SettingsProvider } from './contexts/SettingsContext'
-import { initLogService } from './services/logService'
 import { registerSW } from 'virtual:pwa-register'
 import { generateColors } from '@mantine/colors-generator'
-import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+import AppRouter from './AppRouter'
 
 registerSW({ immediate: true })
 
 import '@mantine/core/styles.css'
 import './index.css'
-import '@mantine/carousel/styles.css'
-import '@mantine/dates/styles.css'
-import '@mantine/charts/styles.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Could not find root element to mount to')
 }
-
-initLogService()
-
-dayjs.extend(customParseFormat)
 
 const theme = createTheme({
   colors: {
@@ -44,13 +32,7 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <MantineProvider theme={theme} defaultColorScheme="light">
-        <UserProvider>
-          <SettingsProvider>
-            <ModalsProvider>
-              <App />
-            </ModalsProvider>
-          </SettingsProvider>
-        </UserProvider>
+        <AppRouter />
       </MantineProvider>
     </BrowserRouter>
   </React.StrictMode>,

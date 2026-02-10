@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { Subject, SubjectType, StudyMaterial } from '../types'
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
@@ -25,8 +25,11 @@ import { GameItemIcon } from './GameItemIcon'
 import Markdown from 'react-markdown'
 import { colorByType, themeByType } from '../utils/subject'
 import useReactivity from '../hooks/useReactivity'
-import { ReviewHistoryChart } from './ReviewHistoryChart'
 import { encounterService } from '../services/encounterService'
+
+const ReviewHistoryChart = React.lazy(() =>
+  import('./ReviewHistoryChart').then(m => ({ default: m.ReviewHistoryChart })),
+)
 
 type FlashcardProps = {
   index?: number
@@ -470,7 +473,15 @@ export const Flashcard: React.FC<FlashcardProps> = ({
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                       Review History
                     </h4>
-                    <ReviewHistoryChart results={itemStats.history} />
+                    <Suspense
+                      fallback={
+                        <div className="h-32 flex items-center justify-center">
+                          <Loader size="sm" />
+                        </div>
+                      }
+                    >
+                      <ReviewHistoryChart results={itemStats.history} />
+                    </Suspense>
                   </div>
                 )}
               </div>

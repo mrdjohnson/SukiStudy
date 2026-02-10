@@ -25,13 +25,10 @@ import logo from '@/src/assets/apple-touch-icon.png'
 export const About = () => {
   const navigate = useNavigate()
 
-  // Lazy import the user context only when entering guest mode
-  // This avoids initializing the DB for users just viewing the landing page
   const handleGuest = async () => {
-    localStorage.setItem('wk_token', 'guest_token')
     // We need to trigger login from the App level, so just navigate
     // and let the route handle guest login
-    navigate('/')
+    navigate('/?guest=true')
   }
 
   return (

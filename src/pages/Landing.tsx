@@ -32,7 +32,7 @@ export const Landing: React.FC = () => {
     localStorage.setItem('wk_token', 'guest_token')
     // We need to trigger login from the App level, so just navigate
     // and let the route handle guest login
-    window.location.reload()
+    navigate('/?guest=true')
   }
 
   const features = [

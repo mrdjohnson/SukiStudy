@@ -1,6 +1,8 @@
 import { modals } from '@mantine/modals'
-import { Flashcard } from '../Flashcard'
+import React, { Suspense } from 'react'
 import { Subject } from '../../types'
+
+const Flashcard = React.lazy(() => import('../Flashcard').then(m => ({ default: m.Flashcard })))
 
 export const openFlashcardModal = (items: Subject[], index = 0) => {
   modals.open({
@@ -11,7 +13,9 @@ export const openFlashcardModal = (items: Subject[], index = 0) => {
     centered: true,
     children: (
       <div onClick={() => modals.closeAll()}>
-        <Flashcard items={items} index={index} isPopup />
+        <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+          <Flashcard items={items} index={index} isPopup />
+        </Suspense>
       </div>
     ),
   })

@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { Icons } from './Icons'
 import { useSettings } from '../contexts/SettingsContext'
 import { HowToPlayModal } from './HowToPlayModal'
-import { SettingsModal } from './modals/SettingsModal'
+
+const SettingsModal = React.lazy(() =>
+  import('./modals/SettingsModal').then(m => ({ default: m.SettingsModal })),
+)
 import {
   AppShell,
   Burger,
@@ -303,7 +306,9 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
         />
       )}
 
-      <SettingsModal opened={showSettings} onClose={() => setShowSettings(false)} />
+      <Suspense fallback={null}>
+        <SettingsModal opened={showSettings} onClose={() => setShowSettings(false)} />
+      </Suspense>
     </AppShell>
   )
 }

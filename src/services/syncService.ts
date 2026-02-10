@@ -86,7 +86,7 @@ export const syncService = {
       }
 
       const token = localStorage.getItem('wk_token')
-      if (!token) return
+      if (!token || token === 'guest_token') return
 
       // Set the token in the worker before syncing
       await syncServiceWorker.setToken(token)

@@ -30,16 +30,12 @@ const GUEST_USER: User = {
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
+const GUEST_TOKEN = 'guest_token'
+
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   const user = useReactivity(() => users.findOne({ id: 'current' }) || null)
-
-  // useEffect(() => {
-  //   console.log('user changed', user)
-  // }, [user])
-
-  console.log('user provider updated', user)
 
   useEffect(() => {
     const init = async () => {
@@ -47,19 +43,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const dbUser = users.findOne({ id: 'current' })
       const storedToken = localStorage.getItem('wk_token')
 
-      console.log({ dbUser })
-
       if (dbUser) {
         setLoading(false)
 
-        if (storedToken) {
+        if (storedToken && storedToken !== GUEST_TOKEN) {
           waniKaniService.setToken(storedToken)
         }
 
         return
       }
 
-      if (storedToken) {
+      if (storedToken && storedToken !== GUEST_TOKEN) {
         waniKaniService.setToken(storedToken)
 
         try {
@@ -121,6 +115,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginAsGuest = async () => {
     if (user) return
+
+    localStorage.setItem('wk_token', GUEST_TOKEN)
 
     const guestUser = { ...GUEST_USER, id: 'current' }
     users.insert(guestUser)

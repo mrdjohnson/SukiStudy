@@ -1,4 +1,5 @@
-import { logs, LogEntry } from './db'
+import { Collection } from '@signaldb/core'
+import type { LogEntry } from './db'
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
 
@@ -19,32 +20,29 @@ const formatMessage = (...args: any[]): string => {
     .join(' ')
 }
 
-const addLogEntry = (level: LogLevel, ...args: any[]) => {
-  const message = formatMessage(...args)
+export function initLogService(logsDb: Collection<LogEntry>) {
+  const addLogEntry = (level: LogLevel, ...args: any[]) => {
+    const message = formatMessage(...args)
 
-  const newLog: LogEntry = {
-    id: `${Date.now()}-${Math.random()}`,
-    timestamp: new Date().toISOString(),
-    level,
-    message,
+    const newLog: LogEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+    }
+
+    // Insert the new log
+    logsDb.insert(newLog)
   }
 
-  // Insert the new log
-  logs.updateOne({ id: newLog.id }, { $set: newLog }, { upsert: true })
-}
+  const logService = {
+    log: (...args: any[]) => addLogEntry('log', ...args),
+    error: (...args: any[]) => addLogEntry('error', ...args),
+    warn: (...args: any[]) => addLogEntry('warn', ...args),
+    info: (...args: any[]) => addLogEntry('info', ...args),
+    debug: (...args: any[]) => addLogEntry('debug', ...args),
+  }
 
-export const logService = {
-  log: (...args: any[]) => addLogEntry('log', ...args),
-  error: (...args: any[]) => addLogEntry('error', ...args),
-  warn: (...args: any[]) => addLogEntry('warn', ...args),
-  info: (...args: any[]) => addLogEntry('info', ...args),
-  debug: (...args: any[]) => addLogEntry('debug', ...args),
-  clear: () => {
-    logs.removeMany({})
-  },
-}
-
-export function initLogService() {
   // Intercept console methods to log to database
   const originalLog = console.log
   const originalError = console.error
@@ -78,13 +76,14 @@ export function initLogService() {
   }
 
   // Check if we need to clean up old logs
-  const allLogs = logs.find({}, { sort: { timestamp: -1 } }).fetch()
+  const allLogs = logsDb.find({}, { sort: { timestamp: -1 } }).fetch()
   if (allLogs.length > MAX_LOGS) {
     // Delete the oldest logs
     const logsToDelete = allLogs.slice(MAX_LOGS)
-    logs.batch(() => {
+
+    logsDb.batch(() => {
       logsToDelete.forEach(log => {
-        logs.removeOne({ id: log.id })
+        logsDb.removeOne({ id: log.id })
       })
     })
   }

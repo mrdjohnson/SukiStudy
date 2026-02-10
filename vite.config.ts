@@ -9,6 +9,7 @@ import { comlink } from 'vite-plugin-comlink'
 import vercel from 'vite-plugin-vercel'
 import vercelPwaLink from './lib/vite-plugin-vercel-pwa-link/plugin'
 import moment from 'moment'
+import _ from 'lodash'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -137,6 +138,26 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router', 'react-router-dom'],
+            'vendor-mantine-core': ['@mantine/core', '@mantine/hooks'],
+            'vendor-mantine-charts': ['@mantine/charts', 'recharts'],
+            'vendor-mantine-extras': [
+              '@mantine/modals',
+              '@mantine/form',
+              '@mantine/carousel',
+              '@mantine/dates',
+              'dayjs',
+            ],
+            'vendor-signals': [
+              '@signaldb/core',
+              '@signaldb/indexeddb',
+              '@signaldb/maverickjs',
+              '@signaldb/react',
+              '@maverick-js/signals',
+            ],
+            'vendor-utils': ['lodash', 'clsx', 'chroma-js'],
+          },
           assetFileNames: assetInfo => {
             const name = assetInfo.name ?? ''
             const ext = path.extname(name).toLowerCase()
