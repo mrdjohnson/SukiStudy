@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useTransition } from 'react'
+import React, { useMemo, useTransition } from 'react'
 import {
   Modal,
   Switch,
@@ -19,7 +19,6 @@ import {
   SegmentedControl,
   useMantineColorScheme,
 } from '@mantine/core'
-import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../contexts/UserContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useGames } from '../../hooks/useGames'
@@ -28,14 +27,12 @@ import { SubjectType, Theme } from '../../types'
 import _ from 'lodash'
 import clsx from 'clsx'
 import { Icons } from '../Icons'
-import moment from 'moment'
 import { IconWorld, IconDeviceDesktop } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { syncService } from '../../services/syncService'
 import { subjects } from '../../services/db'
 import { flush } from '../../utils/flush'
 import { JAPANESE_FONTS } from '../../utils/fonts'
-import { openLogModal } from './LogsModal'
 
 interface SettingsModalProps {
   opened: boolean
@@ -80,8 +77,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
   } = useSettings()
 
   const { colorScheme, setColorScheme } = useMantineColorScheme()
-
-  const [showBuildTime, setShowBuildTime] = useState(false)
 
   const isMobile = useMatches({
     base: true,
@@ -491,13 +486,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
 
           <Stack>
             {/* Build Info */}
-            <Text
-              size="xs"
-              c="dimmed"
-              className="text-center"
-              onDoubleClick={() => setShowBuildTime(true)}
-            >
-              Last updated: {moment(__BUILD_DATE__).format(showBuildTime ? 'LLL' : 'LL')}
+            <Text size="xs" c="dimmed" className="text-center">
+              Last updated: {__BUILD_DATE__}
             </Text>
 
             {/* GitHub Link */}

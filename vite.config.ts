@@ -8,6 +8,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { comlink } from 'vite-plugin-comlink'
 import vercel from 'vite-plugin-vercel'
 import vercelPwaLink from './lib/vite-plugin-vercel-pwa-link/plugin'
+import moment from 'moment'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -125,7 +126,7 @@ export default defineConfig(({ mode }) => {
       plugins: () => [comlink()], // Enable Comlink for workers
     },
     define: {
-      __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+      __BUILD_DATE__: JSON.stringify(moment().format('LL')),
       __APP_ENV__: process.env.VITE_VERCEL_ENV,
     },
     resolve: {

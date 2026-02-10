@@ -1,6 +1,4 @@
-import { useState } from 'react'
 import { Container, Anchor, Text, Group } from '@mantine/core'
-import moment from 'moment'
 import { Link } from 'react-router'
 
 export const Footer = ({
@@ -12,20 +10,12 @@ export const Footer = ({
   showHome?: boolean
   showLastUpdated?: boolean
 }) => {
-  const [showBuildTime, setShowBuildTime] = useState(false)
-
   return (
     <footer className="py-6 mt-auto">
       <Container size="lg" className="text-center text-gray-400 text-sm font-semibold">
         {showLastUpdated && (
-          <Text
-            size="xs"
-            c="dimmed"
-            className="text-center"
-            onDoubleClick={() => setShowBuildTime(true)}
-            mb="xs"
-          >
-            Last updated: {moment(__BUILD_DATE__).format(showBuildTime ? 'LLL' : 'LL')}
+          <Text size="xs" c="dimmed" className="text-center" mb="xs">
+            Last updated: {__BUILD_DATE__}
           </Text>
         )}
 
