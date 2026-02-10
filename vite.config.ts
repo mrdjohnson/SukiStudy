@@ -13,6 +13,7 @@ import _ from 'lodash'
 import { assetFileNames } from './lib/vite-asset-file-names'
 
 const isDev = process.env.NODE_ENV === 'development'
+const isPreview = process.env.VERCEL_ENV === 'preview'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
@@ -29,9 +30,10 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       comlink(),
       VitePWA({
+        filename: isPreview ? 'sw-preview.js' : 'sw.js',
+        scope: isPreview ? '/preview/' : '/',
         mode: 'production',
         base: '/',
-        scope: '/',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
         includeAssets: ['**/*'],
