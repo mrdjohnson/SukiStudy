@@ -124,7 +124,7 @@ export default defineConfig(({ mode }) => {
       }),
       tsconfigPaths(),
       vercel(),
-      // vercelPwaLink(),
+      vercelPwaLink(),
     ],
     worker: {
       format: 'es',
