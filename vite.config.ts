@@ -36,7 +36,6 @@ export default defineConfig(({ mode }) => {
         base: '/',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
-        includeAssets: ['**/*'],
 
         manifest: {
           name: 'SukiStudy',
@@ -74,7 +73,7 @@ export default defineConfig(({ mode }) => {
         },
 
         workbox: {
-          globPatterns: ['**/*', '!**/*.{woff,woff2,eot,ttf,otf}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
           // Exclude fonts from precache
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
