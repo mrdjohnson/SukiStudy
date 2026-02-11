@@ -98,7 +98,7 @@ const LogsModal = () => {
         </Text>
 
         <Text c="dimmed" size="sm">
-          Build Date: {__BUILD_DATE__}
+          Build Date: {__BUILD_DATE_LONG__}
         </Text>
 
         <Button

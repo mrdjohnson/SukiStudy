@@ -140,6 +140,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       __BUILD_DATE__: JSON.stringify(moment().format('LL')),
+      __BUILD_DATE_LONG__: JSON.stringify(moment().format('LL')),
       __APP_ENV__: process.env.VITE_VERCEL_ENV,
     },
     resolve: {
