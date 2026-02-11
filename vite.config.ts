@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   return {
     base: '/',
+    scope: '/',
     server: {
       port: 3000,
       host: '0.0.0.0',
@@ -29,9 +30,9 @@ export default defineConfig(({ mode }) => {
       comlink(),
       VitePWA({
         mode: 'production',
+        base: '/',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
-        includeAssets: ['**/*'],
 
         manifest: {
           name: 'SukiStudy',
@@ -69,7 +70,7 @@ export default defineConfig(({ mode }) => {
         },
 
         workbox: {
-          globPatterns: ['**/*', '!**/*.{woff,woff2,eot,ttf,otf}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
           // Exclude fonts from precache
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
@@ -131,6 +132,11 @@ export default defineConfig(({ mode }) => {
           assetFileNames,
         },
       },
+    },
+    workbox: {
+      clientsClaim: true,
+      skipWaiting: true,
+      navigateFallback: '/index.html',
     },
     define: {
       __BUILD_DATE__: JSON.stringify(moment().format('LL')),

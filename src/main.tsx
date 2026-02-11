@@ -2,12 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { MantineProvider, createTheme } from '@mantine/core'
-import { registerSW } from 'virtual:pwa-register'
 import { generateColors } from '@mantine/colors-generator'
 
 import AppRouter from './AppRouter'
-
-registerSW({ immediate: true })
 
 import '@mantine/core/styles.css'
 import './index.css'
