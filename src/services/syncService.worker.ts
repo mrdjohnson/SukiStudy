@@ -112,13 +112,13 @@ export async function clearData() {
 export async function populateKana() {
   subjects.removeMany({ id: { $lt: 0 } })
 
-  console.log('All kana removed')
-
   await flush()
+
+  console.log('All kana removed')
 
   const kanaSubjects = getKanaSubjects()
 
-  subjects.insertMany(kanaSubjects)
+  subjects.upsertMany(kanaSubjects)
 
   console.log('populated %s kana subjects', kanaSubjects.length)
 

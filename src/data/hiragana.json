@@ -29,6 +29,11 @@
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/か_v2.mp3",
     "text": "`か` is just the K sound plus あ, making a `ka` sound. It's pronounced like ka in \"karma.\"\n\nSee how this kana looks like a `mosquito`? What a convenient coincidence. Mosquitos happen to be called `か (<u>ka</u>)` in Japanese. You also say \"`<u>cu</u>t` it out, darn mosquito!\" when they try to suck your blood, so that should be easy to remember."
   },
+  "き": {
+    "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/き.png",
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/き_v2.mp3",
+    "text": "`き` is just the K sound plus い, making a `ki` sound.\n\nIn fact, it sounds just like the word \"key\" which is the mnemonic we end up using.\n\nTo remember this, notice how much it resembles a `<u>key</u>`.\n\nNote: In some fonts, the bottom part is detached from the main part. For example: `<span class=\"ki-and-sa\">き</span>`. The pronunciation is still \"ki\" though!"
+  },
   "く": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/く.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/く_v2.mp3",
@@ -47,7 +52,12 @@
   "さ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/さ-salsa.jpg",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/さ_v2.mp3",
-    "text": "`さ` is just the S sound plus あ, making a `sa` sound. It's pronounced like sa in \"salsa.\"\n\nNotice how this kana looks like two hands stirring a bowl of `<u>sa</u>lsa`. This salsa is so chunky and thick, you need two hands just to stir it!"
+    "text": "`さ` is just the S sound plus あ, making a `sa` sound. It's pronounced like sa in \"salsa.\"\n\nNotice how this kana looks like two hands stirring a bowl of `<u>sa</u>lsa`. This salsa is so chunky and thick, you need two hands just to stir it!\n\nNote: Like き, the bottom part of さ is detached from the main part in some fonts. For example: `<span class=\"ki-and-sa\">さ</span>`."
+  },
+  "し": {
+    "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/し-sheperds-crook.png",
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/し_v2.mp3",
+    "text": "`し` is just the SH sound plus い, making a `shi` sound. It's pronounced like shee in \"sheep.\"\n\nTake note that this is the first \"exception\" kana where it doesn't follow the patterns that show up everywhere else. Instead of being \"si\" it's \"shi\" (though you will see it written both ways when dealing with romaji. One more reason why you ought to just learn hiragana already).\n\nThis kana looks like a giant shepherd's crook used to herd `<u>shee</u>p`. Baaaa… get in that corral, sheep!"
   },
   "す": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/す.png",
@@ -69,10 +79,15 @@
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/た_v2.mp3",
     "text": "`た` is just the T sound plus あ, making a `ta` sound. It's pronounced like ta in \"taco.\"\n\nUse your imagination and see this kana as a fork, `<u>ta</u>co`, and lime garnish for your taco. Wait… you're eating a taco with a fork? That's a bit weird, but you do you, pal."
   },
+  "ち": {
+    "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ち-say-cheese.png",
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ち_v2.mp3",
+    "text": "`ち` is just the CH sound plus い, making a `chi` sound. It's pronounced like chee in \"cheese.\"\n\nThis is the second \"exception\" hiragana. Instead of a \"ti\" sound, it's a \"chi\" sound. Try not to forget this.\n\nYou know when someone tells you to say \"`<u>chee</u>se`\" when taking a picture of you? This kana looks like that forced smile you have to make every time you're in a group photo."
+  },
   "つ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/つ-tsunami.jpg",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/つ_v2.mp3",
-    "text": "`つ` is just the TS sound plus う, making a `tsu` sound. It's pronounced like tsu in \"tsunami.\"\n\nThis is another \"exception\" hiragana. Instead of saying \"tu\" you say \"tsu.\""
+    "text": "`つ` is just the TS sound plus う, making a `tsu` sound. It's pronounced like tsu in \"tsunami.\"\n\nThis is another \"exception\" hiragana. Instead of saying \"tu\" you say \"tsu.\"\n\nLook at the swoosh of this hiragana. Doesn't it look like a big wave, or `<u>tsu</u>nami`?"
   },
   "て": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/て-telescope.png",
@@ -102,17 +117,17 @@
   "ね": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ね.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ね_v2.mp3",
-    "text": "`ね` is just the N sound plus え, making a `ne` sound. It's pronounced like ne in \"Nelly.\"\n\nThis is `<u>Ne</u>lly` the cat. There are other kana very similar to this one (ぬ, れ, め, わ), but you know this is different. Why? Because it has a loop at the end for the tail, and it's not super bendable like ぬ (noodles) is — see those sharp corners on the left?"
+    "text": "`ね` is just the N sound plus え, making a `ne` sound. It's pronounced like ne in \"Nelly.\"\n\nThis is `<u>Ne</u>lly` the cat. There are other kana very similar to this one (ぬ, れ, め, わ), but you know this is different. Why? Because it has a loop at the end for the tail, and it's not super bendable like ぬ (noodles) is — see those sharp corners on the left?\n\nTo top things off, Nelly is a `<u>ne</u>cromancer`. Why? I have no idea, you'll have to ask her. It must have something to do with the undead cat army she's creating.\n\nAlso, if you know the word `<u>ne</u>ko` (Japanese for \"cat\"), you can use that too. This is a ねこ."
   },
   "の": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/の.jpg",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/の_v2.mp3",
-    "text": "`の` is just the N sound plus お, making a `no` sound. It's pronounced like no in \"nose\" or \"nori.\"\n\nSee the big pig `<u>no</u>se` there? You can also think of this as a \"`<u>No</u> Smoking`\" sign (the ones with the cigarette and the big red circle and slash through it). Pick the one that sticks with you the best."
+    "text": "`の` is just the N sound plus お, making a `no` sound. It's pronounced like no in \"nose\" or \"nori.\"\n\nSee the big pig `<u>no</u>se` there? You can also think of this as a \"`<u>No</u> Smoking`\" sign (the ones with the cigarette and the big red circle and slash through it). Pick the one that sticks with you the best.\n\nNow let's look at the next five in this set. If you're feeling really shaky you can jump over to Tofugu's Learn Hiragana Quiz to practice, but you don't have to (yet)!"
   },
   "は": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/は.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/は_v2.mp3",
-    "text": "`は` is just the H sound plus あ, making a `ha` sound. It's pronounced like ha in \"haha\" (like laughing!).\n\nThis kana looks like an uppercase letter `H` plus a lowercase letter `a`."
+    "text": "`は` is just the H sound plus あ, making a `ha` sound. It's pronounced like ha in \"haha\" (like laughing!).\n\nThis kana looks like an uppercase letter `H` plus a lowercase letter `a`.\n\nWhat does that spell? \"`<u>Ha</u>`!\"\n\nWhy are you laughing? Stop that. Make sure you can see the `H + a` in the kana."
   },
   "ひ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ひ.jpg",
@@ -132,7 +147,7 @@
   "ほ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ほ.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ほ_v2.mp3",
-    "text": "`ほ` is just the H sound plus お, making a `ho` sound. It's pronounced like ho in \"hoe\" or \"ho ho ho!\" In British English, it sounds more like ho in \"hot.\"\n\nThe line on the left is a chimney. The right side is a mutated Santa Claus. He has four arms, a snake tail, and no head. Out of his neck he's uttering \"`<u>ho</u> ho ho… ho ho ho…`\""
+    "text": "`ほ` is just the H sound plus お, making a `ho` sound. It's pronounced like ho in \"hoe\" or \"ho ho ho!\" In British English, it sounds more like ho in \"hot.\"\n\nThe line on the left is a chimney. The right side is a mutated Santa Claus. He has four arms, a snake tail, and no head. Out of his neck he's uttering \"`<u>ho</u> ho ho… ho ho ho…`\"\n\nHopefully he doesn't come down your chimney."
   },
   "ま": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ま.jpg",
@@ -152,17 +167,17 @@
   "め": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/め.jpg",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/め_v2.mp3",
-    "text": "`め` is just the M sound plus え, making a `me` sound. It's pronounced like me in \"mess.\n\nLook at that beautiful eye! It's so beautiful because of the `<u>ma</u>keup` on it. Gotta look pretty in the eyes, or else your ensemble will just be \"`<u>me</u>h`.\""
+    "text": "`め` is just the M sound plus え, making a `me` sound. It's pronounced like me in \"mess.\n\nLook at that beautiful eye! It's so beautiful because of the `<u>ma</u>keup` on it. Gotta look pretty in the eyes, or else your ensemble will just be \"`<u>me</u>h`.\"\n\nIf you also happen to know the word for \"eye\" in Japanese, that will help too. The word for \"eye\" in Japanese is just `め (<u>me</u>)`."
   },
   "も": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/も.jpg",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/も_v2.mp3",
-    "text": "`も` is just the M sound plus お, making a `mo` sound. It's pronounced like mo in \"more.\"\n\nYou want to catch `<u>mo</u>re` so you add `<u>mo</u>re worms` to your hook."
+    "text": "`も` is just the M sound plus お, making a `mo` sound. It's pronounced like mo in \"more.\"\n\nYou want to catch `<u>mo</u>re` so you add `<u>mo</u>re worms` to your hook.\n\nThis column is a little strange. There are only three items in here, and \"ye\" and \"yi\" are seemingly missing. Actually, they used to exist but now they don't (instead people use い or え, because it sounds pretty similar). Because of that, you only have to learn three kana for this section!"
   },
   "や": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/や-yacht.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/や_v2.mp3",
-    "text": "`や` is just the Y sound plus あ, making a `ya` sound. It's pronounced like ya in \"yacht.\" In British English, it sounds more like ya in \"yak.\"\n\nSee how this kana looks like a `<u>ya</u>cht` with an anchor going down? It's even got a little flag on the rear… how cute."
+    "text": "`や` is just the Y sound plus あ, making a `ya` sound. It's pronounced like ya in \"yacht.\" In British English, it sounds more like ya in \"yak.\"\n\nSee how this kana looks like a `<u>ya</u>cht` with an anchor going down? It's even got a little flag on the rear… how cute.\n\nAlternatively, you can think of や as the face of a `<u>ya</u>k` too."
   },
   "ゆ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ゆ.png",
@@ -182,7 +197,7 @@
   "り": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/り.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/り_v2.mp3",
-    "text": "`り` is just the R /L sound plus い, making a `ri` / `li` sound. It's pronounced like a combination of ree in \"reed\" and lee in \"leek.\"\n\nThe `<u>ree</u>ds` are swaying in the wind."
+    "text": "`り` is just the R /L sound plus い, making a `ri` / `li` sound. It's pronounced like a combination of ree in \"reed\" and lee in \"leek.\"\n\nThe `<u>ree</u>ds` are swaying in the wind.\n\nThis kana can also be written without the connection in the middle, too, which makes it more reedlike in that case (I wanted to present the more difficult of the two versions here, though)."
   },
   "る": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/る.png",
@@ -192,16 +207,224 @@
   "れ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/れ.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/れ_v2.mp3",
-    "text": "`れ` is just the R /L sound plus え, making a `re` / `le` sound. It's pronounced like a combination of re in \"retch\" and le in \"led.\"\n\nThis looks like a guy kneeling on the ground, `<u>re</u>tching` up his dinner."
+    "text": "`れ` is just the R /L sound plus え, making a `re` / `le` sound. It's pronounced like a combination of re in \"retch\" and le in \"led.\"\n\nThis looks like a guy kneeling on the ground, `<u>re</u>tching` up his dinner.\n\nThis kana is similar to め, わ, ぬ, and ね. What makes this one different is the curve at the back. You can identify this as the guy's knees bending, which makes it clear that he's keeled over retching his guts out."
   },
   "ろ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ろ.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ろ_v2.mp3",
-    "text": "`ろ` is just the R / L sound plus お, making a `ro` / `lo` sound. It's pronounced like a combination of ro in \"road\" and lo in \"load.\" In British English, it's more like ro in \"rot\" or lo in \"long.\"\n\nThis is the counterpart to る, except this one doesn't have a loop at the end. So this kana is just a plain old `<u>ro</u>ad`."
+    "text": "`ろ` is just the R / L sound plus お, making a `ro` / `lo` sound. It's pronounced like a combination of ro in \"road\" and lo in \"load.\" In British English, it's more like ro in \"rot\" or lo in \"long.\"\n\nThis is the counterpart to る, except this one doesn't have a loop at the end. So this kana is just a plain old `<u>ro</u>ad`.\n\nAnd finally, the last group. This is a weird one. It includes わ (which is quite normal), を (which is pronounced just like お, but is primarily used as a particle), and ん (which is the only consonant-only character in all the kanaa). Let's go through them one by one."
   },
   "わ": {
     "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/わ-wasp.png",
     "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/わ_v2.mp3",
-    "text": "`わ` is just the W sound plus あ, making a `wa` sound. It's pronounced like wa in \"wasabi.\"\n\nThis kana looks like a `<u>wa</u>sp` flying straight up."
+    "text": "`わ` is just the W sound plus あ, making a `wa` sound. It's pronounced like wa in \"wasabi.\"\n\nThis kana looks like a `<u>wa</u>sp` flying straight up.\n\nIt looks similar to れ, ぬ, ね, and め. And it looks especially similar to ね. You know ね is Nelly the cat because of the curl of the tail on the end. So you can imagine the cat chasing this wasp, which is why it's flying straight up to get away. Its butt is also a straight, sharp line. This is its stinger!"
+  },
+  "を": {
+    "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/を.png",
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/を_v2.mp3",
+    "text": "`を` is pronounced like o in \"origami\" — just like the vowel お. It used to be pronounced like \"wo,\" but now it sounds exactly like お. Why two kana for the o sound, you wonder? Unlike お, を is primarily used as a grammar element called a \"[particle](/japanese-grammar/particle-wo/).\" It marks the object of a sentence.\n\nIn romaji, both \"o\" or \"wo\" are used for を. To type it, write \"wo.\"\n\n\"`<u>Who</u>a!`\" yells the guy with no chin. Someone threw a boomerang into his mouth! That's pretty \"`<u>who</u>a`\"-worthy, I think."
+  },
+  "ん": {
+    "imagePath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ん.png",
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ん_v2.mp3",
+    "text": "`ん` is just the N sound, that's it. It's the only kana that consists of a single consonant. It's pronounced like the ending n sound in \"pen.\"\n\nIn romaji, write \"n.\" To type it, you sometimes have to type \"nn.\" Type double \"n\"s, especially before vowels and y, so that it won't turn into another kana that starts with n.\n\nThis kana looks just like the lowercase `n` in English. They happen to be the same sounds, as well. How convenient! nnnんんん."
+  },
+  "が": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/が_v2.mp3"
+  },
+  "ぎ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぎ_v2.mp3"
+  },
+  "ぐ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぐ_v2.mp3"
+  },
+  "げ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/げ_v2.mp3"
+  },
+  "ご": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ご_v2.mp3"
+  },
+  "ざ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ざ_v2.mp3"
+  },
+  "じ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/じ_v2.mp3"
+  },
+  "ず": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ず_v2.mp3"
+  },
+  "ぜ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぜ_v2.mp3"
+  },
+  "ぞ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぞ_v2.mp3"
+  },
+  "だ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/だ_v2.mp3"
+  },
+  "ぢ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぢ_v2.mp3"
+  },
+  "づ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/づ_v2.mp3"
+  },
+  "で": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/で_v2.mp3"
+  },
+  "ど": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ど_v2.mp3"
+  },
+  "ば": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ば_v2.mp3"
+  },
+  "ぱ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぱ_v2.mp3"
+  },
+  "び": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/び_v2.mp3"
+  },
+  "ぴ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぴ_v2.mp3"
+  },
+  "ぶ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぶ_v2.mp3"
+  },
+  "ぷ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぷ_v2.mp3"
+  },
+  "べ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/べ_v2.mp3"
+  },
+  "ぺ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぺ_v2.mp3"
+  },
+  "ぼ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぼ_v2.mp3"
+  },
+  "ぽ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぽ_v2.mp3"
+  },
+  "きゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/きゃ_v2.mp3"
+  },
+  "きゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/きゅ_v2.mp3"
+  },
+  "きょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/きょ_v2.mp3"
+  },
+  "ぎゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぎゃ_v2.mp3"
+  },
+  "ぎゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぎゅ_v2.mp3"
+  },
+  "ぎょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぎょ_v2.mp3"
+  },
+  "しゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/しゃ_v2.mp3"
+  },
+  "しゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/しゅ_v2.mp3"
+  },
+  "しょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/しょ_v2.mp3"
+  },
+  "じゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/じゃ_v2.mp3"
+  },
+  "じゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/じゅ_v2.mp3"
+  },
+  "じょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/じょ_v2.mp3"
+  },
+  "ちゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ちゃ_v2.mp3"
+  },
+  "ちゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ちゅ_v2.mp3"
+  },
+  "ちょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ちょ_v2.mp3"
+  },
+  "にゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/にゃ_v2.mp3"
+  },
+  "にゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/にゅ_v2.mp3"
+  },
+  "にょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/にょ_v2.mp3"
+  },
+  "ひゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ひゃ_v2.mp3"
+  },
+  "ひゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ひゅ_v2.mp3"
+  },
+  "ひょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ひょ_v2.mp3"
+  },
+  "びゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/びゃ_v2.mp3"
+  },
+  "びゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/びゅ_v2.mp3"
+  },
+  "びょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/びょ_v2.mp3"
+  },
+  "ぴゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぴゃ_v2.mp3"
+  },
+  "ぴゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぴゅ_v2.mp3"
+  },
+  "ぴょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/ぴょ_v2.mp3"
+  },
+  "みゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/みゃ_v2.mp3"
+  },
+  "みゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/みゅ_v2.mp3"
+  },
+  "みょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/みょ_v2.mp3"
+  },
+  "りゃ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/りゃ_v2.mp3"
+  },
+  "りゅ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/りゅ_v2.mp3"
+  },
+  "りょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/りょ_v2.mp3"
+  },
+  "したい": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/したい_v2.mp3"
+  },
+  "しったい": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/しったい_v2.mp3"
+  },
+  "かこ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/かこ_v2.mp3"
+  },
+  "かっこ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/かっこ_v2.mp3"
+  },
+  "いた": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/いた_v2.mp3"
+  },
+  "いった": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/いった_v2.mp3"
+  },
+  "いしょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/いしょ_v2.mp3"
+  },
+  "いっしょ": {
+    "audioPath": "https://files.tofugu.com/articles/japanese/2014-06-30-learn-hiragana/いっしょ_v2.mp3"
   }
 }

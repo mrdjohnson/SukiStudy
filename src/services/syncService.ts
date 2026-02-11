@@ -175,18 +175,24 @@ export const syncService = {
   },
 
   async populateKana(forcePopulate = false) {
-    if (shouldSkipSync(SYNC_KEYS.KANA, { runOnce: true, forceSync: forcePopulate })) {
+    if (shouldSkipSync(SYNC_KEYS.KANA, { forceSync: forcePopulate, beforeDate: 'Feb 09 2026' })) {
       return
     }
 
-    await syncServiceWorker.populateKana()
+    try {
+      await syncServiceWorker.populateKana()
+    } catch (error) {
+      console.error('Error populating kana:', error)
+    } finally {
+      updateSyncTimestamp(SYNC_KEYS.KANA)
+    }
+
+    console.log('finished updating kana')
 
     // fixes signaldb worker bug where updates are not picked up: "not enough game items"
     if (typeof window !== 'undefined') {
       window.location.reload()
     }
-
-    updateSyncTimestamp(SYNC_KEYS.KANA)
   },
 
   async syncEncounterItems() {

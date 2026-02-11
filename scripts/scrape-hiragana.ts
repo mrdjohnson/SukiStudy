@@ -22,13 +22,15 @@ async function scrape() {
   try {
     const { data } = await axios.get(URL)
     const $ = cheerio.load(data)
-    const results: Record<string, { text: string; imagePath: string; audioPath?: string }> = {}
+    const results: Record<string, { text?: string; imagePath?: string; audioPath?: string }> = {}
 
     console.log('Parsing content...')
 
     // Find all figures with class figure-middle
     const figures = $('figure.figure-middle')
     console.log(`Found ${figures.length} potential start nodes (figures).`)
+
+    const turndownService = new TurndownService()
 
     for (let i = 0; i < figures.length; i++) {
       const figure = $(figures[i])
@@ -42,52 +44,86 @@ async function scrape() {
         continue
       }
 
-      // Look for the sequence described:
-      // 1. figure (current)
-      // 2. p (text 1)
-      // 3. div.article-audio-sentence
-      // 4. p (text 2)
-
-      const p1 = figure.next('p')
-      if (p1.length === 0) continue
-
-      const audioDiv = p1.next('div.article-audio-sentence')
-      if (audioDiv.length === 0) continue
-
-      const p2 = audioDiv.next('p')
-      if (p2.length === 0) continue
-
-      // If we are here, we matched the group
-      console.log(`Matched group for image: ${path.basename(imgUrl)}`)
-
-      const turndownService = new TurndownService()
-      const text1 = turndownService.turndown(p1.html() || '')
-      const text2 = turndownService.turndown(p2.html() || '')
-      const combinedText = `${text1}\n\n${text2}`
-
-      const audioSource = audioDiv.find('audio source').attr('src')
-
       // Filenames
       const imgName = path.basename(imgUrl)
 
       // Use the character ID for strict naming
       const id = imgName.split('.')[0].substring(0, 1)
 
-      // Construct absolute URLs
-      // Handle relative URLs if any, though Tofugu usually provides absolute or root-relative
-      const fullImgUrl = imgUrl.startsWith('http') ? imgUrl : `https://www.tofugu.com${imgUrl}`
+      // Collect text from subsequent siblings
+      let combinedTextParts: string[] = []
+      let nextNode = figure.next()
 
-      let fullAudioUrl
-      if (audioSource) {
-        fullAudioUrl = audioSource.startsWith('http')
-          ? audioSource
-          : `https://www.tofugu.com${audioSource}`
+      while (nextNode.length > 0) {
+        // Stop condition: <p><strong>...</strong></p>
+        if (nextNode.is('p')) {
+          const html = nextNode.html()?.trim() || ''
+          // Check if it starts/ends with strong tags, implying a header
+          if (html.startsWith('<strong>')) {
+            break
+          }
+        }
+
+        // Also stop if we hit another figure (new section)
+        if (nextNode.is('figure')) {
+          break
+        }
+
+        if (nextNode.is('p')) {
+          const text = turndownService.turndown(nextNode.html() || '')
+          if (text.trim()) {
+            combinedTextParts.push(text)
+          }
+        }
+
+        // Skip audio and other elements, just continue traversing
+        nextNode = nextNode.next()
       }
+
+      const combinedText = combinedTextParts.join('\n\n')
+
+      const fullImgUrl = imgUrl.startsWith('http') ? imgUrl : `https://www.tofugu.com${imgUrl}`
 
       results[id] = {
         imagePath: fullImgUrl,
-        audioPath: fullAudioUrl,
+        audioPath: undefined, // Audio skipped in this part
         text: combinedText,
+      }
+    }
+
+    // Find all figures with class figure-middle
+    const audios = $('.article-audio-sentence')
+    console.log(`Found ${audios.length} potential audio nodes.`)
+
+    for (let i = 0; i < audios.length; i++) {
+      const audio = $(audios[i])
+
+      // Get the hirigana name
+      const hiraganaNameSource = audio.find('.article-audio-sentence-sentence').first()
+      let hiraganaName = hiraganaNameSource.text()?.trim()
+
+      if (!hiraganaName) {
+        console.log(`No hiragana name found for audio ${i}, skipping.`)
+        continue
+      }
+
+      const audioDiv = audio.find('.article-audio-sentence-player')
+      const audioSource = $(audioDiv).find('audio source').attr('src')
+
+      if (audioSource) {
+        // Construct absolute URLs
+
+        let fullAudioUrl
+        if (audioSource) {
+          fullAudioUrl = audioSource.startsWith('http')
+            ? audioSource
+            : `https://www.tofugu.com${audioSource}`
+        }
+
+        results[hiraganaName] = {
+          ...results[hiraganaName],
+          audioPath: fullAudioUrl,
+        }
       }
     }
 

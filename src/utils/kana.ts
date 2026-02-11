@@ -5,11 +5,11 @@ import _ from 'lodash'
 import _hiragana from '../data/hiragana.json'
 import _katakana from '../data/katakana.json'
 
-type ScrapedKanaItem = {
+type ScrapedKanaItem = Partial<{
   imagePath: string
-  audioPath?: string
+  audioPath: string
   text: string
-}
+}>
 
 const hiragana = _hiragana as Record<string, ScrapedKanaItem>
 const katakana = _katakana as Record<string, ScrapedKanaItem>
@@ -160,9 +160,19 @@ export const getKanaSubjects = (): Subject[] => {
       ? [{ url: kanaItem?.imagePath, metadata: {}, content_type: 'image' }]
       : []
 
-    const pronunciation_audios: Subject['pronunciation_audios'] = kanaItem?.audioPath
-      ? [{ url: kanaItem?.audioPath, content_type: 'audio' }]
-      : []
+    let pronunciation_audios: Subject['pronunciation_audios'] = []
+
+    if (kanaItem?.audioPath) {
+      pronunciation_audios = [{ url: kanaItem?.audioPath, content_type: 'audio' }]
+    } else {
+      const altAudio = itemIsHiragana
+        ? katakana[alternate]?.audioPath
+        : hiragana[alternate]?.audioPath
+
+      if (altAudio) {
+        pronunciation_audios = [{ url: altAudio, content_type: 'audio' }]
+      }
+    }
 
     // Determine type by looking at char code range roughly, or just assume vocab-like behavior
     const subject: Subject = {

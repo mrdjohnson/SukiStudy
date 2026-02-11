@@ -22,7 +22,7 @@ async function scrape() {
   try {
     const { data } = await axios.get(URL)
     const $ = cheerio.load(data)
-    const results: Record<string, { text: string; imagePath: string; audioPath?: string }> = {}
+    const results: Record<string, { text?: string; imagePath?: string; audioPath?: string }> = {}
 
     console.log('Parsing content...')
 
@@ -98,6 +98,33 @@ async function scrape() {
       results[id] = {
         imagePath: fullImgUrl,
         text: combinedText,
+      }
+    }
+
+    // Find all inline audio spans
+    const audioSpans = $('span.inline-audio-with-text')
+    console.log(`Found ${audioSpans.length} potential audio spans.`)
+
+    for (let i = 0; i < audioSpans.length; i++) {
+      const span = $(audioSpans[i])
+      const idAttr = span.attr('id')
+
+      if (!idAttr || !idAttr.startsWith('inline-audio-') || idAttr.endsWith('_v2')) {
+        continue
+      }
+
+      const id = idAttr.replace('inline-audio-', '')
+      const audioSource = span.find('audio source').first().attr('src')
+
+      if (audioSource) {
+        const fullAudioUrl = audioSource.startsWith('http')
+          ? audioSource
+          : `https://www.tofugu.com${audioSource}`
+
+        results[id] = {
+          ...results[id],
+          audioPath: fullAudioUrl,
+        }
       }
     }
 
