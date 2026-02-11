@@ -2,7 +2,7 @@ import { useEffect, useTransition } from 'react'
 import { syncService } from '../services/syncService'
 import { User } from '../types'
 
-const SYNC_INTERVAL_MS = 30 * 60 * 1000 // 30 minutes
+const SYNC_INTERVAL_MS = 60 * 60 * 1000 // 60 minutes
 
 /**
  * Hook that manages syncing for both offline and online (WaniKani) data.
@@ -10,7 +10,7 @@ const SYNC_INTERVAL_MS = 30 * 60 * 1000 // 30 minutes
  *
  * Handles:
  * - Initial sync on mount
- * - Periodic syncing (every 10 minutes)
+ * - Periodic syncing (every 60 minutes)
  * - Sync on network reconnection
  */
 export const useSyncManager = (user: User | null) => {

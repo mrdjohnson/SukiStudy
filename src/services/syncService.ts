@@ -22,48 +22,64 @@ const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.
  * @param options - Configuration options
  * @returns true if sync should be skipped, false otherwise
  */
-function shouldSkipSync(
+async function maybeRunSync(
   syncKey: string,
+  callback: () => Promise<void>,
   options?: {
     intervalMinutes?: number
     forceSync?: boolean
     beforeDate?: string // For migration checks
     runOnce?: boolean // For one-time migrations
   },
-): boolean {
+): Promise<void> {
   const lastSync = localStorage.getItem(syncKey)
-  const { intervalMinutes = 10, forceSync = false, beforeDate, runOnce = false } = options || {}
+  const { intervalMinutes = 60, forceSync = false, beforeDate, runOnce = false } = options || {}
+
+  const sync = async () => {
+    console.log(`[Sync] Syncing ${syncKey}`)
+
+    try {
+      await callback()
+
+      localStorage.setItem(syncKey, moment().toISOString())
+    } catch (e) {
+      console.error(`[Sync] Error syncing ${syncKey}:`, e)
+    } finally {
+      console.log(`[Sync] Finished syncing ${syncKey}`)
+    }
+  }
 
   // Force sync overrides all checks
   if (forceSync) {
-    return false
+    await sync()
+
+    return
   }
 
   // For one-time operations (migrations), skip if already run
   if (runOnce && lastSync) {
-    return true
+    console.log(`[Sync] Skipping ${syncKey} - already run`)
+
+    return
   }
 
   // For date-based migration checks
-  if (beforeDate) {
-    if (!lastSync) return false
+  if (beforeDate && lastSync && moment(lastSync).isBefore(moment(beforeDate))) {
+    console.log(`[Sync] Forcing ${syncKey} - last sync before ${beforeDate}`)
 
-    return moment(lastSync).isAfter(moment(beforeDate))
+    await sync()
+
+    return
   }
 
   // Check if enough time has passed since last sync
   if (lastSync && moment().subtract(intervalMinutes, 'minutes').isBefore(moment(lastSync))) {
-    return true
+    console.log(`[Sync] Skipping ${syncKey} - not enough time has passed`)
+
+    return
   }
 
-  return false
-}
-
-/**
- * Update the sync timestamp for a given key
- */
-function updateSyncTimestamp(syncKey: string): void {
-  localStorage.setItem(syncKey, moment().toISOString())
+  await sync()
 }
 
 export const syncService = {
@@ -113,86 +129,69 @@ export const syncService = {
   },
 
   async syncUser() {
-    if (shouldSkipSync(SYNC_KEYS.USER)) {
-      return
-    }
-
-    await syncServiceWorker.syncUser()
-
-    updateSyncTimestamp(SYNC_KEYS.USER)
+    await maybeRunSync(SYNC_KEYS.USER, async () => {
+      await syncServiceWorker.syncUser()
+    })
   },
 
   async migrateSubjects() {
-    if (shouldSkipSync(SYNC_KEYS.SUBJECTS_MIGRATION, { beforeDate: '12/24/2025' })) {
-      return
-    }
-
-    await syncServiceWorker.migrateSubjects()
-
-    updateSyncTimestamp(SYNC_KEYS.SUBJECTS_MIGRATION)
+    await maybeRunSync(
+      SYNC_KEYS.SUBJECTS_MIGRATION,
+      async () => {
+        await syncServiceWorker.migrateSubjects()
+      },
+      { beforeDate: '12/24/2025' },
+    )
   },
 
   async syncSubjects(forceSync = false) {
-    if (shouldSkipSync(SYNC_KEYS.SUBJECTS, { forceSync })) {
-      return
-    }
-
-    const lastSync = localStorage.getItem(SYNC_KEYS.SUBJECTS)
-    await syncServiceWorker.syncSubjects(lastSync)
-
-    updateSyncTimestamp(SYNC_KEYS.SUBJECTS)
+    await maybeRunSync(
+      SYNC_KEYS.SUBJECTS,
+      async () => {
+        const lastSync = localStorage.getItem(SYNC_KEYS.SUBJECTS)
+        await syncServiceWorker.syncSubjects(lastSync)
+      },
+      { forceSync },
+    )
   },
 
   async migrateAssignments() {
-    if (shouldSkipSync(SYNC_KEYS.ASSIGNMENTS_MIGRATION, { runOnce: true })) {
-      return
-    }
-
-    await syncServiceWorker.migrateAssignments()
-    updateSyncTimestamp(SYNC_KEYS.ASSIGNMENTS_MIGRATION)
+    await maybeRunSync(
+      SYNC_KEYS.ASSIGNMENTS_MIGRATION,
+      async () => {
+        await syncServiceWorker.migrateAssignments()
+      },
+      { runOnce: true },
+    )
   },
 
   async syncAssignments() {
-    if (shouldSkipSync(SYNC_KEYS.ASSIGNMENTS)) {
-      return
-    }
-
-    const lastSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
-    await syncServiceWorker.syncAssignments(lastSync)
-
-    updateSyncTimestamp(SYNC_KEYS.ASSIGNMENTS)
+    await maybeRunSync(SYNC_KEYS.ASSIGNMENTS, async () => {
+      const lastSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
+      await syncServiceWorker.syncAssignments(lastSync)
+    })
   },
 
   async syncStudyMaterials() {
-    if (shouldSkipSync(SYNC_KEYS.MATERIALS)) {
-      return
-    }
-
-    const lastSync = localStorage.getItem(SYNC_KEYS.MATERIALS)
-    await syncServiceWorker.syncStudyMaterials(lastSync)
-
-    updateSyncTimestamp(SYNC_KEYS.MATERIALS)
+    await maybeRunSync(SYNC_KEYS.MATERIALS, async () => {
+      const lastSync = localStorage.getItem(SYNC_KEYS.MATERIALS)
+      await syncServiceWorker.syncStudyMaterials(lastSync)
+    })
   },
 
   async populateKana(forcePopulate = false) {
-    if (shouldSkipSync(SYNC_KEYS.KANA, { forceSync: forcePopulate, beforeDate: 'Feb 09 2026' })) {
-      return
-    }
+    await maybeRunSync(
+      SYNC_KEYS.KANA,
+      async () => {
+        await syncServiceWorker.populateKana()
 
-    try {
-      await syncServiceWorker.populateKana()
-    } catch (error) {
-      console.error('Error populating kana:', error)
-    } finally {
-      updateSyncTimestamp(SYNC_KEYS.KANA)
-    }
-
-    console.log('finished updating kana')
-
-    // fixes signaldb worker bug where updates are not picked up: "not enough game items"
-    if (typeof window !== 'undefined') {
-      window.location.reload()
-    }
+        // fixes signaldb worker bug where updates are not picked up: "not enough game items"
+        if (typeof window !== 'undefined') {
+          window.location.reload()
+        }
+      },
+      { forceSync: forcePopulate, beforeDate: 'Feb 09 2026' },
+    )
   },
 
   async syncEncounterItems() {
