@@ -46,7 +46,9 @@ function shouldSkipSync(
 
   // For date-based migration checks
   if (beforeDate) {
-    return moment(lastSync).isBefore(moment(beforeDate))
+    if (!lastSync) return false
+
+    return moment(lastSync).isAfter(moment(beforeDate))
   }
 
   // Check if enough time has passed since last sync
@@ -61,7 +63,7 @@ function shouldSkipSync(
  * Update the sync timestamp for a given key
  */
 function updateSyncTimestamp(syncKey: string): void {
-  localStorage.setItem(syncKey, new Date().toISOString())
+  localStorage.setItem(syncKey, moment().toISOString())
 }
 
 export const syncService = {
