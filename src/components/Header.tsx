@@ -32,7 +32,7 @@ import { useUser } from '../contexts/UserContext'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { openLogModal } from './modals/LogsModal'
 import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
-import { IconDeviceDesktop } from '@tabler/icons-react'
+import { IconDeviceDesktop, IconWorld } from '@tabler/icons-react'
 import type { Theme } from '../types'
 
 interface HeaderProps {
@@ -278,6 +278,19 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 <Icons.GitHub />
               </Button>
             </Group>
+
+            {isGuest && (
+              <Button
+                component="a"
+                href="/login"
+                fullWidth
+                onClick={() => navigate('/login')}
+                leftSection={<IconWorld size={16} />}
+                variant="light"
+              >
+                Login to WaniKani
+              </Button>
+            )}
 
             <Button
               fullWidth
