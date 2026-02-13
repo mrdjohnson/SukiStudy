@@ -9,23 +9,25 @@ import {
   Image,
   ActionIcon,
   Stack,
-  Badge,
   Group,
   Loader,
   Box,
   Text,
   Typography,
+  Paper,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import { studyMaterials, subjects } from '../services/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
 import Markdown from 'react-markdown'
-import { colorByType, themeByType } from '../utils/subject'
+import { themeByType } from '../utils/subject'
 import useReactivity from '../hooks/useReactivity'
 import { encounterService } from '../services/encounterService'
+import { FlashcardHeader } from './FlashcardHeader'
 
 const ReviewHistoryChart = React.lazy(() =>
   import('./ReviewHistoryChart').then(m => ({ default: m.ReviewHistoryChart })),
@@ -33,7 +35,7 @@ const ReviewHistoryChart = React.lazy(() =>
 
 type FlashcardProps = {
   index?: number
-  isPopup?: boolean
+  modalId: string
   onIndexChanged?: (value: number) => void
 } & (
   | {
@@ -154,7 +156,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   items,
   index = 0,
   onIndexChanged,
-  isPopup = false,
+  modalId,
 }: FlashcardProps) => {
   const [components, setComponents] = useState<Subject[]>([])
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null)
@@ -173,10 +175,10 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const hasPrev = itemIndex > 0
 
   const itemStats = useReactivity(() => {
-    if (!isPopup || !subject) return null
+    if (!subject) return null
 
     return encounterService.getItemStats(subject.id)
-  }, [subject?.id, isPopup])
+  }, [subject?.id])
 
   useEffect(() => {
     setAudioIndex(0)
@@ -245,7 +247,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   }
 
   const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning
-  const primaryReading = subject.readings?.find(r => r.primary)?.reading
 
   const renderInteractiveSentence = (jaSentence: string) => {
     if (!subject.characters) return jaSentence
@@ -274,68 +275,22 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   }, [])
 
   return (
-    <div
-      className={`w-full max-w-2xl mx-auto perspective-1000 ${isPopup ? 'h-auto' : ''}`}
-      onClick={e => e.stopPropagation()}
-    >
-      <div className="shadow-xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-        {/* Back Header */}
-        <div className={clsx(`p-6 border-b relative`, themeByType[type])}>
-          <div className="flex gap-4">
-            <GameItemIcon subject={subject} size="lg" />
+    <div className={`w-full max-w-2xl mx-auto h-full`} onClick={e => e.stopPropagation()}>
+      <div
+        className={`shadow-xl overflow-hidden flex flex-col h-full`}
+        onClick={e => e.stopPropagation()}
+      >
+        <FlashcardHeader
+          subject={subject}
+          type={type}
+          playAudio={playAudio}
+          onClose={() => modals.close(modalId)}
+        />
 
-            <div className="flex-1 flex flex-col justify-center">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white/80 leading-tight mb-2">
-                {primaryMeaning}
-              </h2>
-
-              {primaryReading && (
-                <div className="flex items-center gap-3">
-                  <span className="text-xl text-gray-600 dark:text-white/80 font-medium">
-                    {primaryReading}
-                  </span>
-                  {subject.pronunciation_audios && subject.pronunciation_audios.length > 0 && (
-                    <button
-                      onClick={playAudio}
-                      className="p-1 bg-white/50 hover:bg-white dark:bg-white/70 rounded-full text-indigo-600 transition-colors shadow-sm"
-                      title="Play Audio"
-                    >
-                      <Icons.Volume className="size-5" />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <Stack className="absolute top-2 right-2" gap="xs">
-              <Badge color={colorByType[type]} className="dark:text-white/80!">
-                {type}
-              </Badge>
-
-              {subject.level > 0 && (
-                <div className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 dark:text-black border border-gray-200 w-fit ml-auto">
-                  Lv {subject.level}
-                </div>
-              )}
-
-              {subject.document_url && (
-                <a
-                  href={subject.document_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-gray-500 dark:text-black hover:text-pink-500 hover:border-pink-200 border border-gray-200 w-fit ml-auto flex items-center gap-1 transition-colors"
-                  onClick={e => e.stopPropagation()}
-                  title="Open in WaniKani"
-                >
-                  WK
-                  <Icons.Link className="w-3 h-3" />
-                </a>
-              )}
-            </Stack>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left">
+        <Paper
+          className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left perspective-1000 max-h-full"
+          shadow="sm"
+        >
           {/* todo: move this to meanings section */}
           {studyMaterial && (
             <div
@@ -441,7 +396,31 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {isPopup && itemStats && (
+          {type !== SubjectType.VOCABULARY && subject.character_images?.[0] && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Visuals
+              </h3>
+
+              <Stack>
+                <MnemonicImage id={String(subject.id)} type={type} />
+
+                {subject.character_images.map(
+                  image =>
+                    image.url && (
+                      <MnemonicImage
+                        key={image.url}
+                        id={String(subject.id)}
+                        type={type}
+                        url={image.url}
+                      />
+                    ),
+                )}
+              </Stack>
+            </div>
+          )}
+
+          {itemStats && (
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Your Stats
@@ -488,30 +467,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {type !== SubjectType.VOCABULARY && subject.character_images?.[0] && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Visuals
-              </h3>
-
-              <Stack>
-                <MnemonicImage id={String(subject.id)} type={type} />
-
-                {subject.character_images.map(
-                  image =>
-                    image.url && (
-                      <MnemonicImage
-                        key={image.url}
-                        id={String(subject.id)}
-                        type={type}
-                        url={image.url}
-                      />
-                    ),
-                )}
-              </Stack>
-            </div>
-          )}
-
           {components.length > 0 && (
             <div className="pt-4 border-t border-gray-100">
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -537,9 +492,9 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </Group>
             </div>
           )}
-        </div>
+        </Paper>
 
-        <Group className="py-4 px-4" hidden={!(hasPrev || hasNext)}>
+        <Group className="py-4 px-4 shrink-0" hidden={!(hasPrev || hasNext)}>
           <Button
             variant="subtle"
             onClick={handlePrev}
