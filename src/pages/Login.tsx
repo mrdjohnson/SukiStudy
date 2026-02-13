@@ -11,6 +11,7 @@ import {
   Card,
   LoadingOverlay,
   ActionIcon,
+  Box,
 } from '@mantine/core'
 import clsx from 'clsx'
 import logo from '@/src/assets/apple-touch-icon.png'
@@ -43,7 +44,7 @@ export const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative font-sans">
+    <Box className="min-h-screen flex items-center justify-center px-4 relative font-sans">
       <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
 
       <Card
@@ -61,7 +62,7 @@ export const Login = () => {
           <Title ta="center">SukiStudy</Title>
         </Stack>
 
-        <Paper shadow="none" className="py-4">
+        <Paper shadow="none" className="py-4 bg-transparent!">
           <form onSubmit={handleSubmit}>
             <TextInput
               label="API Token"
@@ -122,6 +123,6 @@ export const Login = () => {
           </Stack>
         </Paper>
       </Card>
-    </div>
+    </Box>
   )
 }
