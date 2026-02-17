@@ -177,12 +177,14 @@ export const CustomGameSetup: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto md:px-4">
       <Group mb="xl">
-        <Button variant="subtle" onClick={() => navigate('/session/games')}>
-          <Icons.ChevronLeft />
-        </Button>
-        <Title order={2}>Custom Session Setup</Title>
+        <Group wrap="nowrap">
+          <Button variant="subtle" onClick={() => navigate('/session/games')}>
+            <Icons.ChevronLeft />
+          </Button>
+          <Title order={2}>Custom Session Setup</Title>
+        </Group>
 
         <Button size="sm" variant="light" onClick={reset} className="ml-auto">
           Reset All
