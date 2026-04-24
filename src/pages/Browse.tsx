@@ -238,7 +238,7 @@ export const Browse: React.FC = () => {
     )
 
   return (
-    <Container size="lg" className="size-full max-w-full">
+    <Container size="lg" className="size-full max-w-full px-0! sm:px-2! md:px-4!">
       {/* Filters Header */}
       <Paper p="md" withBorder radius="md" mb="xl">
         <Group justify="space-between" mb="md">

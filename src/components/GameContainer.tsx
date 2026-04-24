@@ -104,8 +104,8 @@ export const GameContainer = <T extends GameItem>({
   }
 
   return (
-    <Container size="sm" className="mt-4 size-full">
-      <Group className="justify-between! pb-8 -mx-2 md:mx-4 flex-nowrap!">
+    <Container size="sm" className="mt-4 size-full px-0! sm:px-2! md:px-4!">
+      <Group className="justify-between! pb-8 md:mx-4 flex-nowrap!">
         <div className="flex items-center gap-2">
           <ActionIcon
             variant="subtle"
@@ -130,7 +130,7 @@ export const GameContainer = <T extends GameItem>({
 
       <div className="px-2">{children}</div>
 
-      <Group className="justify-between! pt-8 -mx-2 md:mx-4 flex-nowrap!">
+      <Group className="justify-between! pt-8 md:mx-4 flex-nowrap!">
         <Button
           variant="outline"
           size={buttonSizes}
