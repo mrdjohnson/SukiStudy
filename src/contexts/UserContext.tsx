@@ -50,6 +50,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           waniKaniService.setToken(storedToken)
         }
 
+        if (dbUser.is_guest) {
+          users.updateOne({ id: 'current' }, { $set: { is_guest: false } })
+        }
+
         return
       }
 
@@ -121,6 +125,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const guestUser = { ...GUEST_USER, id: 'current' }
     users.insert(guestUser)
   }
+
+  console.log('user: ', user)
 
   const value = {
     user,
