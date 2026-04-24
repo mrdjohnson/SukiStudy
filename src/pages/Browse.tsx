@@ -38,6 +38,20 @@ import { encounterService } from '../services/encounterService'
 type GameItemWithStat = GameItem & {
   stats?: GameItemStat
   romanjis: string[]
+  srsStageLabel: string
+}
+
+const SRS_GROUPS = ['Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']
+
+const getStageLabel = (stage?: number) => {
+  if (stage === undefined || stage === 0) return 'Lesson'
+
+  if (stage > 0 && stage < 5) return 'Apprentice'
+  else if (stage >= 5 && stage < 7) return 'Guru'
+  else if (stage === 7) return 'Master'
+  else if (stage === 8) return 'Enlightened'
+
+  return 'Burned'
 }
 
 export const Browse: React.FC = () => {
@@ -96,6 +110,7 @@ export const Browse: React.FC = () => {
               assignment: assignmentMap[s.id],
               stats: itemStatMap[s.id],
               romanjis: _.map(s.readings, r => toRomanji(r.reading)),
+              srsStageLabel: getStageLabel(assignmentMap[s.id]?.srs_stage),
             }))
             .sort((a, b) => {
               if (sortBy === 'recent') {
@@ -153,21 +168,12 @@ export const Browse: React.FC = () => {
 
     return _.chain(items)
       .filter(item => {
-        if (onlyLearned) {
-          const stage = item.assignment?.srs_stage
-          if (stage === undefined || stage === 0) return false
+        if (onlyLearned && item.srsStageLabel === 'Lesson') {
+          return false
         }
 
-        if (srsFilter.length > 0) {
-          const stage = item.assignment?.srs_stage || 0
-          let stageLabel = 'Lesson'
-          if (stage > 0 && stage < 5) stageLabel = 'Apprentice'
-          else if (stage >= 5 && stage < 7) stageLabel = 'Guru'
-          else if (stage === 7) stageLabel = 'Master'
-          else if (stage === 8) stageLabel = 'Enlightened'
-          else if (stage === 9) stageLabel = 'Burned'
-
-          if (!srsFilter.includes(stageLabel)) return false
+        if (srsFilter.length > 0 && !srsFilter.includes(item.srsStageLabel)) {
+          return false
         }
 
         if (searchQuery.trim()) {
@@ -232,8 +238,6 @@ export const Browse: React.FC = () => {
 
     return levels.join(', ')
   }, [levels])
-
-  const SRS_GROUPS = ['Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']
 
   if (loading && items.length === 0)
     return (
