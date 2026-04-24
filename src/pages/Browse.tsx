@@ -438,10 +438,10 @@ export const Browse: React.FC = () => {
         </Stack>
       )}
 
-      {!ignoreLimit && items.length > limit && (
+      {!ignoreLimit && filteredItems.length > limit && (
         <Center>
           <Button onClick={() => setIgnoreLimit(true)} variant="outline" className="mt-4">
-            See All {items.length} items
+            See All {filteredItems.length} items
           </Button>
         </Center>
       )}
