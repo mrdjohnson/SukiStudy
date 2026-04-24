@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { Assignment, GameItem, GameItemStat, SubjectType } from '../types'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
-import { toHiragana } from '../utils/kana'
+import { toHiragana, toRomanji } from '../utils/kana'
 import { openFlashcardModal } from '../components/modals/FlashcardModal'
 import {
   TextInput,
@@ -37,6 +37,7 @@ import { encounterService } from '../services/encounterService'
 
 type GameItemWithStat = GameItem & {
   stats?: GameItemStat
+  romanjis: string[]
 }
 
 export const Browse: React.FC = () => {
@@ -93,6 +94,7 @@ export const Browse: React.FC = () => {
             subject: s,
             assignment: assignmentMap[s.id],
             stats: itemStatMap[s.id],
+            romanjis: _.map(s.readings, r => toRomanji(r.reading)),
           })),
         )
       } catch (err) {
@@ -137,11 +139,10 @@ export const Browse: React.FC = () => {
           const q = searchQuery.toLowerCase().trim()
           const qKana = toHiragana(q)
           const s = item.subject
+          const romanji = toRomanji(q)
 
           const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q))
-          const matchReading = s.readings?.some(
-            r => r.reading.includes(qKana) || r.reading.includes(q),
-          )
+          const matchReading = item.romanjis.some(r => r.includes(romanji))
           const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana)
 
           if (!matchMeaning && !matchReading && !matchChar) return false
