@@ -5,8 +5,10 @@ import { GameItemIcon } from './GameItemIcon'
 import { colorByType, themeByType } from '../utils/subject'
 import { clsx } from 'clsx'
 import { Badge, Stack, ActionIcon } from '@mantine/core'
+import { modals } from '@mantine/modals'
 
 interface FlashcardHeaderProps {
+  modalId?: string
   subject: Subject
   type: SubjectType
   playAudio: (e: React.MouseEvent) => void
@@ -14,10 +16,10 @@ interface FlashcardHeaderProps {
 }
 
 export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
+  modalId,
   subject,
   type,
   playAudio,
-  onClose,
 }) => {
   const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning
   const primaryReading = subject.readings?.find(r => r.primary)?.reading
@@ -56,13 +58,13 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
               {type}
             </Badge>
 
-            {onClose && (
+            {modalId && (
               <ActionIcon
                 variant="subtle"
                 color="gray"
                 onClick={e => {
                   e.stopPropagation()
-                  onClose()
+                  modals.close(modalId)
                 }}
                 className="bg-white/20 hover:bg-white/40"
                 hiddenFrom="sm"

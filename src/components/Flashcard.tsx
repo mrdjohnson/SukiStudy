@@ -17,7 +17,6 @@ import {
   Paper,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { modals } from '@mantine/modals'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import { studyMaterials, subjects } from '../services/db'
@@ -35,7 +34,7 @@ const ReviewHistoryChart = React.lazy(() =>
 
 type FlashcardProps = {
   index?: number
-  modalId: string
+  modalId?: string
   onIndexChanged?: (value: number) => void
 } & (
   | {
@@ -280,12 +279,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         className={`shadow-xl overflow-hidden flex flex-col h-full`}
         onClick={e => e.stopPropagation()}
       >
-        <FlashcardHeader
-          subject={subject}
-          type={type}
-          playAudio={playAudio}
-          onClose={() => modals.close(modalId)}
-        />
+        <FlashcardHeader modalId={modalId} subject={subject} type={type} playAudio={playAudio} />
 
         <Paper
           className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left perspective-1000 max-h-full"
