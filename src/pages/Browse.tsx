@@ -90,12 +90,43 @@ export const Browse: React.FC = () => {
         const allSubjects = subjects.find({ object: { $in: types } }, { sort: { id: 1 } }).fetch()
 
         setItems(
-          allSubjects.map(s => ({
-            subject: s,
-            assignment: assignmentMap[s.id],
-            stats: itemStatMap[s.id],
-            romanjis: _.map(s.readings, r => toRomanji(r.reading)),
-          })),
+          _.chain(allSubjects)
+            .map(s => ({
+              subject: s,
+              assignment: assignmentMap[s.id],
+              stats: itemStatMap[s.id],
+              romanjis: _.map(s.readings, r => toRomanji(r.reading)),
+            }))
+            .sort((a, b) => {
+              if (sortBy === 'recent') {
+                const timeA = a.stats?.lastReviewedAt
+                  ? new Date(a.stats.lastReviewedAt).getTime()
+                  : 0
+                const timeB = b.stats?.lastReviewedAt
+                  ? new Date(b.stats.lastReviewedAt).getTime()
+                  : 0
+                return timeB - timeA
+              }
+              if (sortBy === 'reviews') {
+                return (b.stats?.reviewCount || 0) - (a.stats?.reviewCount || 0)
+              }
+              if (sortBy === 'score_asc') {
+                // If no reviews, push to bottom? Or treat as 0? Let's treat no reviews as neutral or bottom.
+                // Maybe push undefined stats to end
+                if (!a.stats && !b.stats) return 0
+                if (!a.stats) return 1
+                if (!b.stats) return -1
+                return a.stats.averageScore - b.stats.averageScore
+              }
+              if (sortBy === 'score_desc') {
+                if (!a.stats && !b.stats) return 0
+                if (!a.stats) return 1
+                if (!b.stats) return -1
+                return b.stats.averageScore - a.stats.averageScore
+              }
+              return 0
+            })
+            .value(),
         )
       } catch (err) {
         console.error('Browse Fetch Error:', err)
@@ -116,6 +147,10 @@ export const Browse: React.FC = () => {
   }
 
   const getFilteredItems = () => {
+    const query = searchQuery.toLowerCase().trim()
+    const kanaQuery = toHiragana(query)
+    const romanjiQuery = toRomanji(query)
+
     return _.chain(items)
       .filter(item => {
         if (onlyLearned) {
@@ -136,14 +171,11 @@ export const Browse: React.FC = () => {
         }
 
         if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase().trim()
-          const qKana = toHiragana(q)
           const s = item.subject
-          const romanji = toRomanji(q)
 
-          const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(q))
-          const matchReading = item.romanjis.some(r => r.includes(romanji))
-          const matchChar = s.characters?.includes(q) || s.characters?.includes(qKana)
+          const matchMeaning = s.meanings.some(m => m.meaning.toLowerCase().includes(query))
+          const matchReading = item.romanjis.some(r => r.includes(romanjiQuery))
+          const matchChar = s.characters?.includes(query) || s.characters?.includes(kanaQuery)
 
           if (!matchMeaning && !matchReading && !matchChar) return false
         }
@@ -153,31 +185,6 @@ export const Browse: React.FC = () => {
         }
 
         return true
-      })
-      .sort((a, b) => {
-        if (sortBy === 'recent') {
-          const timeA = a.stats?.lastReviewedAt ? new Date(a.stats.lastReviewedAt).getTime() : 0
-          const timeB = b.stats?.lastReviewedAt ? new Date(b.stats.lastReviewedAt).getTime() : 0
-          return timeB - timeA
-        }
-        if (sortBy === 'reviews') {
-          return (b.stats?.reviewCount || 0) - (a.stats?.reviewCount || 0)
-        }
-        if (sortBy === 'score_asc') {
-          // If no reviews, push to bottom? Or treat as 0? Let's treat no reviews as neutral or bottom.
-          // Maybe push undefined stats to end
-          if (!a.stats && !b.stats) return 0
-          if (!a.stats) return 1
-          if (!b.stats) return -1
-          return a.stats.averageScore - b.stats.averageScore
-        }
-        if (sortBy === 'score_desc') {
-          if (!a.stats && !b.stats) return 0
-          if (!a.stats) return 1
-          if (!b.stats) return -1
-          return b.stats.averageScore - a.stats.averageScore
-        }
-        return 0
       })
       .take(ignoreLimit ? items.length : limit)
       .value()
