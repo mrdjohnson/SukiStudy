@@ -135,12 +135,22 @@ export const syncService = {
   },
 
   async migrateSubjects() {
+    // migrated empty object subjects
     await maybeRunSync(
       SYNC_KEYS.SUBJECTS_MIGRATION,
       async () => {
         await syncServiceWorker.migrateSubjects()
       },
       { beforeDate: '12/24/2025' },
+    )
+
+    // migrate kana_vocab subjects
+    await maybeRunSync(
+      SYNC_KEYS.SUBJECTS_MIGRATION,
+      async () => {
+        await syncServiceWorker.migrateKanaVocabSubjects()
+      },
+      { beforeDate: 'May 08 2026' },
     )
   },
 

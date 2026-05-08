@@ -1,6 +1,6 @@
 import { waniKaniService } from './wanikaniService'
 import { subjects, assignments, studyMaterials, users, encounterItems } from './db'
-import { WKCollection, Subject, Assignment, StudyMaterial } from '../types'
+import { WKCollection, Subject, Assignment, StudyMaterial, SubjectType } from '../types'
 import _ from 'lodash'
 import { getKanaSubjects } from '../utils/kana'
 import { transformSubject } from '../utils/transformSubject'
@@ -53,6 +53,21 @@ export async function migrateSubjects() {
     'migration complete, %s broken subjects left',
     subjects.find({ object: { $eq: undefined } }).count(),
   )
+}
+
+export async function migrateKanaVocabSubjects() {
+  const kanaVocabSubjects = subjects.find({ object: 'kana_vocabulary' }).fetch()
+
+  console.log('migrating %s kana_vocabulary subjects', kanaVocabSubjects.length)
+
+  subjects.batch(() => {
+    subjects.updateMany({ object: 'kana_vocabulary' }, { $set: { object: SubjectType.VOCABULARY } })
+
+    console.log(
+      'migration complete, %s broken subjects left',
+      subjects.find({ object: 'kana_vocabulary' }).count(),
+    )
+  })
 }
 
 export async function syncSubjects(lastSubjectSync: string | null) {
