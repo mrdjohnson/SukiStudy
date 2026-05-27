@@ -11,28 +11,37 @@ export default function vercelPwaLink(): Plugin {
 
       const devDestDir = path.resolve(root, `.vercel/output/static`)
       const prodDestDir = path.resolve(root, 'vercel/output/static')
+      const nitroDestDir = path.resolve(root, '.output/public')
       const distDir = path.resolve(root, 'dist')
 
       if (!fs.existsSync(distDir)) {
         return
       }
 
-      let destDir
+      const destDirs: string[] = []
 
       if (fs.existsSync(devDestDir)) {
-        destDir = devDestDir
+        destDirs.push(devDestDir)
       } else if (fs.existsSync(prodDestDir)) {
-        destDir = prodDestDir
-      } else {
+        destDirs.push(prodDestDir)
+      }
+
+      if (fs.existsSync(nitroDestDir)) {
+        destDirs.push(nitroDestDir)
+      }
+
+      if (destDirs.length === 0) {
         return
       }
 
       const files = fs.readdirSync(distDir)
       const pwaFiles = files.filter(file => file === 'sw.js' || file.startsWith('workbox-'))
 
-      for (const file of pwaFiles) {
-        fs.copyFileSync(path.join(distDir, file), path.join(destDir, file))
-        console.log(`[vite-plugin-vercel-pwa-adapter] Copied ${file} to ${destDir}`)
+      for (const destDir of destDirs) {
+        for (const file of pwaFiles) {
+          fs.copyFileSync(path.join(distDir, file), path.join(destDir, file))
+          console.log(`[vite-plugin-vercel-pwa-adapter] Copied ${file} to ${destDir}`)
+        }
       }
     },
   }

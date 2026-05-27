@@ -1,29 +1,58 @@
-import path from 'path'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import mkcert from 'vite-plugin-mkcert'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { comlink } from 'vite-plugin-comlink'
-import vercel from 'vite-plugin-vercel'
+import { nitro } from 'nitro/vite'
 import vercelPwaLink from './lib/vite-plugin-vercel-pwa-link/plugin'
 import moment from 'moment'
 import _ from 'lodash'
 import { assetFileNames } from './lib/vite-asset-file-names'
 
-const isDev = process.env.NODE_ENV === 'development'
+const rootDir = fileURLToPath(new URL('.', import.meta.url))
 
-export default defineConfig(({ mode }) => {
+const vendorChunkGroups = [
+  ['vendor-react', ['react', 'react-dom', 'react-router', 'react-router-dom']],
+  ['vendor-mantine-core', ['@mantine/core', '@mantine/hooks']],
+  ['vendor-mantine-charts', ['@mantine/charts', 'recharts']],
+  [
+    'vendor-mantine-extras',
+    ['@mantine/modals', '@mantine/form', '@mantine/carousel', '@mantine/dates', 'dayjs'],
+  ],
+  [
+    'vendor-signals',
+    [
+      '@signaldb/core',
+      '@signaldb/indexeddb',
+      '@signaldb/maverickjs',
+      '@signaldb/react',
+      '@maverick-js/signals',
+    ],
+  ],
+  ['vendor-utils', ['lodash', 'clsx', 'chroma-js']],
+] as const
+
+const isNodeModulePackage = (id: string, packageNames: readonly string[]) => {
+  const normalizedId = id.split('\\').join('/')
+
+  return packageNames.some(packageName => normalizedId.includes(`/node_modules/${packageName}/`))
+}
+
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, '.', '')
+  const isDev = command === 'serve'
+
   return {
     base: '/',
-    scope: '/',
     server: {
       port: 3000,
       host: '0.0.0.0',
     },
     plugins: [
+      nitro(),
       react(),
       isDev && mkcert(),
       tailwindcss(),
@@ -120,56 +149,37 @@ export default defineConfig(({ mode }) => {
           type: 'module',
         },
       }),
-      tsconfigPaths(),
-      vercel(),
       vercelPwaLink(),
     ],
     worker: {
       format: 'es',
       plugins: () => [comlink()], // Enable Comlink for workers
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           assetFileNames,
         },
       },
     },
-    workbox: {
-      clientsClaim: true,
-      skipWaiting: true,
-      navigateFallback: '/index.html',
-    },
     define: {
       __BUILD_DATE__: JSON.stringify(moment().format('LL')),
       __BUILD_DATE_LONG__: JSON.stringify(moment().format('LL')),
-      __APP_ENV__: process.env.VITE_VERCEL_ENV,
+      __APP_ENV__: JSON.stringify(env.VITE_VERCEL_ENV ?? ''),
     },
     resolve: {
+      tsconfigPaths: true,
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(rootDir, '.'),
       },
     },
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router', 'react-router-dom'],
-            'vendor-mantine-core': ['@mantine/core', '@mantine/hooks'],
-            'vendor-mantine-charts': ['@mantine/charts', 'recharts'],
-            'vendor-mantine-extras': [
-              '@mantine/modals',
-              '@mantine/form',
-              '@mantine/carousel',
-              '@mantine/dates',
-              'dayjs',
-            ],
-            'vendor-signals': [
-              '@signaldb/core',
-              '@signaldb/indexeddb',
-              '@signaldb/maverickjs',
-              '@signaldb/react',
-              '@maverick-js/signals',
-            ],
-            'vendor-utils': ['lodash', 'clsx', 'chroma-js'],
+          codeSplitting: {
+            groups: vendorChunkGroups.map(([name, packageNames], index) => ({
+              name,
+              test: (id: string) => isNodeModulePackage(id, packageNames),
+              priority: vendorChunkGroups.length - index,
+            })),
           },
           assetFileNames,
         },
