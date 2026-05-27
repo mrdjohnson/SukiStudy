@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { EncounterItem } from '../types'
+import type { EncounterItem } from '../types'
 import moment from 'moment'
 import _ from 'lodash'
 import { DatePickerInput } from '@mantine/dates'

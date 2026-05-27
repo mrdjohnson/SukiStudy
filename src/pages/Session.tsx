@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router'
-import { GameDefinition, GameItem, GameResultData } from '../types'
+import type { GameDefinition, GameItem, GameResultData } from '../types'
 import { waniKaniService } from '../services/wanikaniService'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'

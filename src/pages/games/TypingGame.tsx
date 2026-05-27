@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
-import { GameComponent } from '../../types'
+import type { GameComponent } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { playSound } from '../../utils/sound'
@@ -10,7 +10,6 @@ import { levenshteinDistance } from '../../utils/string'
 import { useGameLogic } from '../../hooks/useGameLogic'
 import { GameContainer } from '../../components/GameContainer'
 import _ from 'lodash'
-import clsx from 'clsx'
 import { TextInput } from '@mantine/core'
 
 export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLastGame }) => {
