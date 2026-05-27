@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { GameResultData, GameDefinition } from '../types'
+import type { GameResultData, GameDefinition } from '../types'
 import { Center, Loader } from '@mantine/core'
 import _ from 'lodash'
 import { games } from '../utils/games'

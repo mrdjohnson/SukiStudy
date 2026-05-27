@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as MantineButton, ButtonProps as MantineButtonProps } from '@mantine/core'
+import { Button as MantineButton, type ButtonProps as MantineButtonProps } from '@mantine/core'
 
 interface ButtonProps extends MantineButtonProps {
   isLoading?: boolean

@@ -1,10 +1,12 @@
-import { Path, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
+import type { Path } from 'react-router'
 import { useMatches, Button, Container, Group, Title, ActionIcon } from '@mantine/core'
 import { Icons } from './Icons'
-import { PropsWithChildren, useMemo } from 'react'
+import { useMemo } from 'react'
+import type { ComponentProps, PropsWithChildren } from 'react'
 import { GameResults } from './GameResults'
-import { GameLogic } from '../hooks/useGameLogic'
-import { GameItem } from '../types'
+import type { GameLogic } from '../hooks/useGameLogic'
+import type { GameItem } from '../types'
 
 type GameHeaderProps<T extends GameItem> = PropsWithChildren<{
   gameLogic: GameLogic<T>
@@ -50,7 +52,7 @@ export const GameContainer = <T extends GameItem>({
   } = gameLogic
 
   const bottomButton = useMemo(() => {
-    let props: Partial<React.ComponentProps<typeof Button>>
+    let props: Partial<ComponentProps<typeof Button>>
 
     if (!canSkip) {
       props = {

@@ -1,6 +1,6 @@
 import { useEffect, useTransition } from 'react'
 import { syncService } from '../services/syncService'
-import { User } from '../types'
+import type { User } from '../types'
 
 const SYNC_INTERVAL_MS = 60 * 60 * 1000 // 60 minutes
 

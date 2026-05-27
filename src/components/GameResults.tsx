@@ -1,10 +1,10 @@
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { openFlashcardModal } from './modals/FlashcardModal'
-import { GameLogic } from '../hooks/useGameLogic'
+import type { GameLogic } from '../hooks/useGameLogic'
 import { GameItemIcon } from './GameItemIcon'
 import { IconReload } from '@tabler/icons-react'
-import { GameItem } from '../types'
+import type { GameItem } from '../types'
 import clsx from 'clsx'
 import { Paper, Text } from '@mantine/core'
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '../contexts/UserContext'
-import { InternalMessage } from '../types'
+import { type InternalMessage } from '../types'
 
 import _messages from '../data/internalMessages.json'
 import _ from 'lodash'

@@ -1,7 +1,7 @@
 import { modals } from '@mantine/modals'
 import React, { Suspense, useEffect } from 'react'
 import { useMatches } from '@mantine/core'
-import { Subject } from '../../types'
+import type { Subject } from '../../types'
 
 const Flashcard = React.lazy(() => import('../Flashcard').then(m => ({ default: m.Flashcard })))
 
