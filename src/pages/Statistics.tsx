@@ -9,7 +9,7 @@ import { IconCheck, IconX } from '@tabler/icons-react'
 import { assignments, encounterItems, subjects } from '../services/db'
 import { encounterService } from '../services/encounterService'
 
-import { Encounter, GameItem } from '../types'
+import type { Encounter, GameItem } from '../types'
 import { games } from '../utils/games'
 
 import { Icons } from '../components/Icons'
@@ -17,7 +17,7 @@ import { openFlashcardModal } from '../components/modals/FlashcardModal'
 import { GameResults } from '../components/GameResults'
 import { GameItemIcon } from '../components/GameItemIcon'
 
-import { GameLogic } from '../hooks/useGameLogic'
+import { type GameLogic } from '../hooks/useGameLogic'
 import useReactivity from '../hooks/useReactivity'
 import clsx from 'clsx'
 

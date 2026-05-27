@@ -5,16 +5,7 @@ import { assignments, encounters } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
-import {
-  ActionIcon,
-  Badge,
-  Container,
-  Group,
-  Paper,
-  SimpleGrid,
-  Text,
-  useMatches,
-} from '@mantine/core'
+import { Badge, Container, Group, Paper, SimpleGrid, Text, useMatches } from '@mantine/core'
 import clsx from 'clsx'
 import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessageCarousel'
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { GameItem } from '../types'
+import type { GameItem } from '../types'
 import { assignments, subjects } from '../services/db'
 import { useUser } from '../contexts/UserContext'
 import { useSettings } from '../contexts/SettingsContext'

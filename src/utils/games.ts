@@ -2,7 +2,7 @@ import _ from 'lodash'
 import React from 'react'
 import { Icons } from '../components/Icons'
 
-import { SubjectType, GameDefinition } from '../types'
+import { SubjectType, type GameDefinition } from '../types'
 
 // Lazy-loaded game components (code split)
 const AudioQuizGame = React.lazy(() =>

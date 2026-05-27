@@ -3,7 +3,7 @@ import { QuestionDisplay } from '../../components/QuestionDisplay'
 import { useSet } from '@mantine/hooks'
 import _ from 'lodash'
 
-import { GameComponent, GameItem, SubjectType } from '../../types'
+import { type GameComponent, type GameItem, SubjectType } from '../../types'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'
 import { useSettings } from '../../contexts/SettingsContext'

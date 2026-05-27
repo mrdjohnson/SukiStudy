@@ -1,6 +1,6 @@
-import { Box, Text } from '@mantine/core'
+import { Box } from '@mantine/core'
 import clsx from 'clsx'
-import { Subject } from '../types'
+import type { Subject } from '../types'
 import { useMemo } from 'react'
 import { bgColorByType } from '../utils/subject'
 

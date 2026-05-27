@@ -1,6 +1,12 @@
 import { waniKaniService } from './wanikaniService'
 import { subjects, assignments, studyMaterials, users, encounterItems } from './db'
-import { WKCollection, Subject, Assignment, StudyMaterial, SubjectType } from '../types'
+import {
+  type WKCollection,
+  type Subject,
+  type Assignment,
+  type StudyMaterial,
+  SubjectType,
+} from '../types'
 import _ from 'lodash'
 import { getKanaSubjects } from '../utils/kana'
 import { transformSubject } from '../utils/transformSubject'

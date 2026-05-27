@@ -5,7 +5,7 @@ import { Icons } from '../Icons'
 import { useNavigate } from 'react-router'
 import { Carousel, CarouselSlide } from '@mantine/carousel'
 import { openLogModal } from '../modals/LogsModal'
-import { InternalMessage } from '../../types'
+import type { InternalMessage } from '../../types'
 import clsx from 'clsx'
 import { useDoubleMouseDown } from '../../hooks/useDoubleMouseDown'
 

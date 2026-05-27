@@ -1,5 +1,6 @@
 import React from 'react'
-import { Subject, SubjectType } from '../types'
+import { SubjectType } from '../types'
+import type { Subject } from '../types'
 import { Icons } from './Icons'
 import { GameItemIcon } from './GameItemIcon'
 import { colorByType, themeByType } from '../utils/subject'

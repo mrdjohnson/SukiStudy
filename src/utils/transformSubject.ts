@@ -1,4 +1,4 @@
-import { Subject, SubjectType } from '../types'
+import { type Subject, SubjectType } from '../types'
 
 export function transformSubject(subject: Subject) {
   let object = subject.object

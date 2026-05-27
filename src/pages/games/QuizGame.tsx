@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
-import { GameComponent, GameItem, MultiChoiceGameItem } from '../../types'
+import type { GameComponent, GameItem, MultiChoiceGameItem } from '../../types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'

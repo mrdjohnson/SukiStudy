@@ -1,7 +1,7 @@
 import { Collection, createIndex } from '@signaldb/core'
 import createIndexedDBAdapter from '@signaldb/indexeddb'
 import maverickjsReactivityAdapter from '@signaldb/maverickjs'
-import { Subject, Assignment, StudyMaterial, User, Encounter, EncounterItem } from '../types'
+import type { Subject, Assignment, StudyMaterial, User, Encounter, EncounterItem } from '../types'
 import { initLogService } from './logService'
 
 // Extended Collection class with upsertMany method

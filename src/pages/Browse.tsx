@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { useNavigate } from 'react-router'
-import { Assignment, GameItem, GameItemStat, SubjectType } from '../types'
+import { SubjectType } from '../types'
+import type { Assignment, GameItem, GameItemStat } from '../types'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { toHiragana, toRomanji } from '../utils/kana'
@@ -88,8 +88,6 @@ export const Browse: React.FC = () => {
     sm: 32,
     md: 60,
   })
-
-  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchData = async () => {

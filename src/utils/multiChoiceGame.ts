@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { GameItem, MultiChoiceGameItem, SubjectType } from '../types'
+import { type GameItem, type MultiChoiceGameItem, SubjectType } from '../types'
 
 export const toItemWithAnswer = (
   item: GameItem,

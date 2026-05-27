@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
-import { Subject, SubjectType, StudyMaterial } from '../types'
+import { SubjectType } from '../types'
+import type { Subject, StudyMaterial } from '../types'
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
