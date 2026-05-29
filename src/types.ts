@@ -237,3 +237,23 @@ export interface GameDefinition {
 }
 
 export type Theme = 'light' | 'dark' | 'auto'
+
+export type NotificationCadence = 'daily' | 'custom' | 'weekly'
+
+export type NotificationSchedule = {
+  enabled: boolean
+  cadence: NotificationCadence
+  daysOfWeek: number[]
+  time: string
+  timezone: string
+}
+
+export type NotificationPreferenceState = {
+  schedule?: NotificationSchedule
+  updatedAt?: number
+}
+
+export type Preferences = {
+  id: 'current'
+  notification?: NotificationPreferenceState
+}

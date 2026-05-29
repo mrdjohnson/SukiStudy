@@ -1,7 +1,7 @@
 import { useLocalStorage } from '@mantine/hooks'
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { SubjectType } from '../types'
+import { type NotificationSchedule, SubjectType } from '../types'
 import _ from 'lodash'
 import { useUser } from './UserContext'
 import { waniKaniService } from '../services/wanikaniService'
@@ -51,6 +51,17 @@ const useSettingsContext = () => {
   const [gameSyncEnabled, setGameSyncEnabled] = useLocalStorage({
     key: 'suki_game_sync_enabled',
     defaultValue: true,
+  })
+
+  const [notificationSchedule, setNotificationSchedule] = useLocalStorage<NotificationSchedule>({
+    key: 'suki_notification_schedule',
+    defaultValue: {
+      enabled: false,
+      cadence: 'daily',
+      daysOfWeek: [new Date().getDay()],
+      time: '09:00',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    },
   })
 
   // Content Settings
@@ -196,6 +207,9 @@ const useSettingsContext = () => {
 
     gameSyncEnabled,
     toggleGameSyncEnabled,
+
+    notificationSchedule,
+    setNotificationSchedule,
 
     enabledFonts,
     toggleEnabledFont,
