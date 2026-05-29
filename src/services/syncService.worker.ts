@@ -5,6 +5,7 @@ import {
   studyMaterials,
   users,
   encounterItems,
+  preferences,
 } from '../core/db'
 import {
   type WKCollection,
@@ -134,6 +135,7 @@ export async function clearData() {
   assignments.removeMany({})
   studyMaterials.removeMany({})
   users.removeMany({})
+  preferences.removeMany({})
 }
 
 export async function populateKana() {
