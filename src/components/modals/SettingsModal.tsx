@@ -1,4 +1,4 @@
-import React, { useMemo, useTransition } from 'react'
+import React, { useMemo, useState, useTransition } from 'react'
 import {
   Modal,
   Switch,
@@ -18,7 +18,9 @@ import {
   ActionIcon,
   SegmentedControl,
   useMantineColorScheme,
+  Select,
 } from '@mantine/core'
+import { TimeInput } from '@mantine/dates'
 import { useUser } from '../../contexts/UserContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useGames } from '../../hooks/useGames'
@@ -28,17 +30,34 @@ import type { Theme } from '../../types'
 import _ from 'lodash'
 import clsx from 'clsx'
 import { Icons } from '../Icons'
-import { IconWorld, IconDeviceDesktop } from '@tabler/icons-react'
+import { IconBell, IconDeviceDesktop, IconWorld } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { syncService } from '../../services/syncService'
 import { subjects } from '../../services/db'
 import { flush } from '../../utils/flush'
 import { JAPANESE_FONTS } from '../../utils/fonts'
+import {
+  isPushNotificationSupported,
+  savePushNotificationSchedule,
+  sendTestPushNotification,
+  subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
+} from '../../services/pushNotificationService'
 
 interface SettingsModalProps {
   opened: boolean
   onClose: () => void
 }
+
+const dayOptions = [
+  { value: '0', label: 'Sunday' },
+  { value: '1', label: 'Monday' },
+  { value: '2', label: 'Tuesday' },
+  { value: '3', label: 'Wednesday' },
+  { value: '4', label: 'Thursday' },
+  { value: '5', label: 'Friday' },
+  { value: '6', label: 'Saturday' },
+]
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const navigate = useNavigate()
@@ -73,9 +92,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
     gameSyncEnabled,
     toggleGameSyncEnabled,
 
+    notificationSchedule,
+    setNotificationSchedule,
+
     enabledFonts,
     toggleEnabledFont,
   } = useSettings()
+
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false)
+  const [isSendingTestNotification, setIsSendingTestNotification] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null)
 
   const { colorScheme, setColorScheme } = useMantineColorScheme()
 
@@ -89,7 +115,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
   const games = useGames({ includeHidden: true })
   const enabledGames = useMemo(() => {
     return games.filter(game => !hiddenGames.includes(game.id))
-  }, [games])
+  }, [games, hiddenGames])
 
   const overriddenGames = useMemo(() => {
     return _.chain(enabledGames)
@@ -160,6 +186,78 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
       await flush()
 
       await syncService.syncSubjects(true)
+    })
+  }
+
+  const userId = user?.id || user?.username || 'guest'
+
+  const updateNotificationSchedule = (updates: Partial<typeof notificationSchedule>) => {
+    setNotificationMessage(null)
+    setNotificationSchedule(prev => ({
+      ...prev,
+      ...updates,
+    }))
+  }
+
+  const saveNotifications = (enabled = notificationSchedule.enabled) => {
+    setIsSavingNotifications(true)
+
+    void (async () => {
+      try {
+        if (!enabled) {
+          await unsubscribeFromPushNotifications()
+          setNotificationSchedule(prev => ({ ...prev, enabled: false }))
+          setNotificationMessage('Notifications are off.')
+          return
+        }
+
+        const nextSchedule = { ...notificationSchedule, enabled: true }
+        const savedSchedule = notificationSchedule.enabled
+          ? await savePushNotificationSchedule(nextSchedule, userId)
+          : await subscribeToPushNotifications(nextSchedule, userId)
+
+        setNotificationSchedule(savedSchedule)
+        setNotificationMessage('Notification schedule saved.')
+      } catch (error) {
+        setNotificationMessage(error instanceof Error ? error.message : 'Could not save schedule.')
+      } finally {
+        setIsSavingNotifications(false)
+      }
+    })()
+  }
+
+  const sendTestNotification = () => {
+    setIsSendingTestNotification(true)
+    setNotificationMessage(null)
+
+    void (async () => {
+      try {
+        await sendTestPushNotification()
+        setNotificationMessage('Test push sent.')
+      } catch (error) {
+        setNotificationMessage(
+          error instanceof Error ? error.message : 'Could not send test push notification.',
+        )
+      } finally {
+        setIsSendingTestNotification(false)
+      }
+    })()
+  }
+
+  const handleCadenceChange = (value: string) => {
+    const currentDay = new Date().getDay()
+    const cadence = value as typeof notificationSchedule.cadence
+    const existingDays =
+      notificationSchedule.cadence === 'daily' ? [currentDay] : notificationSchedule.daysOfWeek
+
+    updateNotificationSchedule({
+      cadence,
+      daysOfWeek:
+        cadence === 'daily'
+          ? [0, 1, 2, 3, 4, 5, 6]
+          : existingDays.length > 0
+            ? [existingDays[0]]
+            : [currentDay],
     })
   }
 
@@ -255,6 +353,112 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose })
             </div>
             <Switch checked={gameSyncEnabled} onChange={toggleGameSyncEnabled} disabled={isGuest} />
           </Group>
+        </Stack>
+
+        <Divider />
+
+        {/* Notifications */}
+        <Stack gap="md">
+          <Text c="dimmed" size="sm" fw={700} tt="uppercase">
+            Notifications
+          </Text>
+
+          <Group justify="space-between" align="flex-start">
+            <div>
+              <Group gap="xs">
+                <IconBell size={18} />
+                <Text fw={500}>Study Reminder</Text>
+              </Group>
+              <Text size="xs" c="dimmed">
+                {notificationSchedule.time} {notificationSchedule.timezone}
+              </Text>
+            </div>
+            <Switch
+              checked={notificationSchedule.enabled}
+              disabled={!isPushNotificationSupported() || isSavingNotifications}
+              onChange={event => saveNotifications(event.currentTarget.checked)}
+            />
+          </Group>
+
+          <SegmentedControl
+            value={notificationSchedule.cadence}
+            onChange={handleCadenceChange}
+            data={[
+              { value: 'daily', label: 'Daily' },
+              { value: 'custom', label: 'Certain Days' },
+              { value: 'weekly', label: 'Weekly' },
+            ]}
+          />
+
+          {notificationSchedule.cadence === 'custom' && (
+            <Chip.Group
+              multiple
+              value={notificationSchedule.daysOfWeek.map(String)}
+              onChange={values =>
+                updateNotificationSchedule({ daysOfWeek: values.map(Number).sort() })
+              }
+            >
+              <Group gap="xs">
+                {dayOptions.map(day => (
+                  <Chip key={day.value} value={day.value} variant="outline">
+                    {day.label.slice(0, 3)}
+                  </Chip>
+                ))}
+              </Group>
+            </Chip.Group>
+          )}
+
+          {notificationSchedule.cadence === 'weekly' && (
+            <Select
+              label="Day"
+              data={dayOptions}
+              value={String(notificationSchedule.daysOfWeek[0] ?? new Date().getDay())}
+              onChange={value =>
+                updateNotificationSchedule({
+                  daysOfWeek: [Number(value ?? new Date().getDay())],
+                })
+              }
+              allowDeselect={false}
+            />
+          )}
+
+          <TimeInput
+            label="Time"
+            value={notificationSchedule.time}
+            onChange={event => updateNotificationSchedule({ time: event.currentTarget.value })}
+          />
+
+          <Button
+            variant="light"
+            onClick={() => saveNotifications(true)}
+            loading={isSavingNotifications}
+            disabled={!isPushNotificationSupported()}
+          >
+            Save Schedule
+          </Button>
+
+          {import.meta.env.DEV && (
+            <Button
+              variant="outline"
+              onClick={sendTestNotification}
+              loading={isSendingTestNotification}
+              disabled={!isPushNotificationSupported() || isSavingNotifications}
+            >
+              Send Test Push
+            </Button>
+          )}
+
+          {!isPushNotificationSupported() && (
+            <Text size="xs" c="red">
+              Push notifications are not available in this browser.
+            </Text>
+          )}
+
+          {notificationMessage && (
+            <Text size="xs" c="dimmed">
+              {notificationMessage}
+            </Text>
+          )}
         </Stack>
 
         <Divider />

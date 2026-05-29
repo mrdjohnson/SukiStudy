@@ -235,3 +235,52 @@ export interface GameDefinition {
 }
 
 export type Theme = 'light' | 'dark' | 'auto'
+
+export type NotificationCadence = 'daily' | 'custom' | 'weekly'
+
+export type NotificationSchedule = {
+  enabled: boolean
+  cadence: NotificationCadence
+  daysOfWeek: number[]
+  time: string
+  timezone: string
+}
+
+export type NotificationPreferenceState = {
+  schedule?: NotificationSchedule
+  updatedAt?: number
+}
+
+export type Preferences = {
+  id: 'current'
+  notification?: NotificationPreferenceState
+}
+
+export type NotificationStudyItem = {
+  id: number
+  type: SubjectType
+  label: string
+  definition: string
+}
+
+type NotificationActionOption = {
+  action: string
+  title: string
+  icon?: string
+}
+
+export type NotificationPayload = {
+  type?: string
+  test?: boolean
+}
+
+export type StudyNotificationOptions = NotificationOptions & {
+  image?: string
+  renotify?: boolean
+  actions?: NotificationActionOption[]
+  showTrigger?: unknown
+}
+
+export type TimestampTriggerConstructor = {
+  new (timestamp: number): unknown
+}
