@@ -4,7 +4,7 @@ import { Center, Loader } from '@mantine/core'
 import _ from 'lodash'
 import { games } from '../utils/games'
 import { useGames } from '../hooks/useGames'
-import { assignments } from '../services/db'
+import { assignments } from '../core/db'
 
 export const Review = () => {
   const allowedGames = useGames()

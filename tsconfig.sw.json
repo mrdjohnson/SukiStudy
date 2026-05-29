@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "webworker"],
+    "libReplacement": true,
+    "types": [
+      "vite-plugin-pwa/client",
+      "vite-plugin-pwa/info",
+      "vite-plugin-comlink/client",
+      "@types/serviceworker"
+    ],
+    "noEmit": true
+  },
+  "include": ["src/sw.ts", "src/serviceWorker"],
+  "exclude": []
+}

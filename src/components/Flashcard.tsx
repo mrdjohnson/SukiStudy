@@ -20,7 +20,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import clsx from 'clsx'
 import { openFlashcardModal } from './modals/FlashcardModal'
-import { studyMaterials, subjects } from '../services/db'
+import { studyMaterials, subjects } from '../core/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
 import Markdown from 'react-markdown'

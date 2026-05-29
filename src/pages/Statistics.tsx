@@ -6,7 +6,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import { IconCheck, IconX } from '@tabler/icons-react'
 
-import { assignments, encounterItems, subjects } from '../services/db'
+import { assignments, encounterItems, subjects } from '../core/db'
 import { encounterService } from '../services/encounterService'
 
 import type { Encounter, GameItem } from '../types'

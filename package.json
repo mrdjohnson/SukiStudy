@@ -11,6 +11,7 @@
     "scrape-kana": "tsx scripts/scrape-hiragana.ts && tsx scripts/scrape-katakana.ts",
     "prepare": "husky",
     "view-bundles": "vite-bundle-visualizer",
+    "tsc": "tsc -b tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
@@ -42,6 +43,7 @@
     "@signaldb/maverickjs": "^1.0.0",
     "@signaldb/react": "^1.0.1",
     "@tabler/icons-react": "^3.35.0",
+    "@upstash/redis": "^1.38.0",
     "chroma-js": "^3.2.0",
     "clsx": "2.1.0",
     "comlink": "^4.4.2",
@@ -61,7 +63,8 @@
     "vercel": "^50.1.4",
     "vite-plugin-mkcert": "^2.0.0",
     "vite-plugin-vercel": "^11.1.0",
-    "wanakana": "^5.3.1"
+    "wanakana": "^5.3.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -76,8 +79,10 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@types/react-is": "^19",
+    "@types/serviceworker": "^0.0.197",
     "@types/text-to-svg": "^3.1.4",
     "@types/turndown": "^5.0.6",
+    "@types/web-push": "^3.6.4",
     "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-react": "^5.0.0",
     "axios": "^1.13.2",
@@ -92,7 +97,7 @@
     "text-to-svg": "^3.1.5",
     "tsx": "^4.21.0",
     "turndown": "^7.2.2",
-    "typescript": "~5.8.2",
+    "typescript": "^6.0.3",
     "vite": "^8.0.14",
     "vite-bundle-visualizer": "^1.2.1",
     "vite-plugin-comlink": "^5.3.0",

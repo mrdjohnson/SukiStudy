@@ -31,7 +31,7 @@ import { Icons } from '../Icons'
 import { IconWorld, IconDeviceDesktop } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { syncService } from '../../services/syncService'
-import { subjects } from '../../services/db'
+import { subjects } from '../../core/db'
 import { flush } from '../../utils/flush'
 import { JAPANESE_FONTS } from '../../utils/fonts'
 

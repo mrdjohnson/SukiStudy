@@ -1,4 +1,4 @@
-import { logs } from '../services/db'
+import { logs } from '../core/db'
 import useReactivity from './useReactivity'
 
 export const useLogs = () => {

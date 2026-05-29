@@ -1,5 +1,11 @@
 import { waniKaniService } from './wanikaniService'
-import { subjects, assignments, studyMaterials, users, encounterItems } from './db'
+import {
+  subjects,
+  assignments,
+  studyMaterials,
+  users,
+  encounterItems,
+} from '../core/db'
 import {
   type WKCollection,
   type Subject,

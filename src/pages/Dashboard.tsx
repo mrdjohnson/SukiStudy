@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNetwork } from '@mantine/hooks'
 import { useNavigate } from 'react-router'
-import { assignments, encounters } from '../services/db'
+import { assignments, encounters } from '../core/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'

@@ -29,7 +29,7 @@ import {
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
-import { assignments, subjects } from '../services/db'
+import { assignments, subjects } from '../core/db'
 import { colorByType } from '../utils/subject'
 import { GameItemIcon } from '../components/GameItemIcon'
 import { useLocalStorage } from '@mantine/hooks'

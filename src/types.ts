@@ -217,11 +217,13 @@ export type InternalMessage = {
   guestVisible?: boolean
 }
 
-export type GameComponent = React.FC<{
+export type GameComponentProps = {
   items?: GameItem[]
   onComplete?: (data: GameResultData) => void
   isLastGame?: boolean
-}>
+}
+
+export type GameComponent = (props: GameComponentProps) => any
 
 export interface GameDefinition {
   id: string

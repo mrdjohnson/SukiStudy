@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": ["node"],
+    "noEmit": false,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.cache/tsc/core",
+    "tsBuildInfoFile": "./node_modules/.cache/tsc/core.tsbuildinfo"
+  },
+  "include": ["src/core", "src/core/data", "src/core/data/**/*.json", "src/types.ts"]
+}
