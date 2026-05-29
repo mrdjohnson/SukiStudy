@@ -163,7 +163,7 @@ export default defineConfig(({ command, mode }) => {
     define: {
       __BUILD_DATE__: JSON.stringify(moment().format('LL')),
       __BUILD_DATE_LONG__: JSON.stringify(moment().format('LL')),
-      __APP_ENV__: JSON.stringify(env.VITE_VERCEL_ENV ?? ''),
+      __APP_ENV__: JSON.stringify(env.VITE_VERCEL_ENV ?? mode ?? ''),
     },
     resolve: {
       tsconfigPaths: true,
