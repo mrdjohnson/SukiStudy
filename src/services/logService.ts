@@ -3,7 +3,7 @@ import type { LogEntry } from './db'
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
 
-const MAX_LOGS = 500 // Limit logs to prevent memory issues
+const MAX_LOGS = 1500 // Limit logs to prevent memory issues
 
 const formatMessage = (...args: any[]): string => {
   return args
@@ -26,7 +26,7 @@ export function initLogService(logsDb: Collection<LogEntry>) {
 
     const newLog: LogEntry = {
       id: `${Date.now()}-${Math.random()}`,
-      timestamp: new Date().toISOString(),
+      time: Date.now(),
       level,
       message,
     }
@@ -75,16 +75,15 @@ export function initLogService(logsDb: Collection<LogEntry>) {
     logService.debug(...args)
   }
 
-  // Check if we need to clean up old logs
-  const allLogs = logsDb.find({}, { sort: { timestamp: -1 } }).fetch()
-  if (allLogs.length > MAX_LOGS) {
-    // Delete the oldest logs
-    const logsToDelete = allLogs.slice(MAX_LOGS)
+  logsDb.isReady().then(() => {
+    logsDb.removeMany({ time: undefined })
+    // Check if we need to clean up old logs
+    const [log] = logsDb.find({}, { skip: MAX_LOGS - 1, sort: { time: 1 }, limit: 1 }).fetch()
 
-    logsDb.batch(() => {
-      logsToDelete.forEach(log => {
-        logsDb.removeOne({ id: log.id })
-      })
-    })
-  }
+    if (log) {
+      console.log('reducing logs')
+
+      logsDb.removeMany({ time: { $lte: log.time } })
+    }
+  })
 }

@@ -47,9 +47,10 @@ export const users = new ExtendedCollection<User & { id: string }>({
 
 export interface LogEntry {
   id: string
-  timestamp: string // ISO string for better serialization
+  timestamp?: string // deprecated
   level: 'log' | 'error' | 'warn' | 'info' | 'debug'
   message: string
+  time: number
 }
 
 export const logs = new ExtendedCollection<LogEntry>({
