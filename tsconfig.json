@@ -6,7 +6,12 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info", "vite-plugin-comlink/client"],
+    "types": [
+      "node",
+      "vite-plugin-pwa/client",
+      "vite-plugin-pwa/info",
+      "vite-plugin-comlink/client"
+    ],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -24,11 +29,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src", "server"],
+  "exclude": ["src/sw.ts", "src/serviceWorker"]
 }
