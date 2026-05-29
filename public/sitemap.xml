@@ -15,9 +15,4 @@
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
-  <url>
-    <loc>https://sukistudy.vercel.app/login</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
 </urlset>
