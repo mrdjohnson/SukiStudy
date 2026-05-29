@@ -1,4 +1,19 @@
 User-agent: *
-Allow: /
+Allow: /$
+Allow: /landing$
+Allow: /about$
+Allow: /assets/
+Allow: /favicon.ico
+Allow: /apple-touch-icon.png
+Allow: /og-image.png
+Allow: /pwa-192x192.png
+Allow: /pwa-512x512.png
+Allow: /maskable-icon-512x512.png
+Allow: /manifest.webmanifest
+Allow: /robots.txt
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /*?*
+Disallow: /
 
 Sitemap: https://sukistudy.vercel.app/sitemap.xml

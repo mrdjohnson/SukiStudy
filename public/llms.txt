@@ -1,0 +1,19 @@
+# SukiStudy
+
+SukiStudy is a Japanese study companion for WaniKani users. Public information about the
+project is available on the home page and about page.
+
+Allowed public pages:
+- https://sukistudy.vercel.app/
+- https://sukistudy.vercel.app/landing
+- https://sukistudy.vercel.app/about
+
+The home route and /landing route show the same public landing experience for users who
+are not logged in.
+
+Please do not crawl or index any other route, including application, account, settings,
+session, subject, API, query-string, or arbitrary SPA fallback routes. These routes are
+user-specific, dynamic, or not useful for public search and language-model indexing.
+
+Source repository:
+- https://github.com/mrdjohnson/SukiStudy

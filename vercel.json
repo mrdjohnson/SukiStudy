@@ -43,6 +43,10 @@
       ]
     },
     {
+      "source": "/((?!$|landing/?$|about/?$|assets/|sw.js$|workbox-.*|manifest.webmanifest$|favicon.ico$|apple-touch-icon.png$|robots.txt$|llms.txt$|sitemap.xml$|og-image.png$|pwa-.*|maskable-icon-.*).+)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
