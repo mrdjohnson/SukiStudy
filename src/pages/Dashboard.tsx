@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNetwork } from '@mantine/hooks'
-import { useNavigate } from 'react-router'
-import { assignments, encounters } from '../services/db'
+import { useNavigate, useParams } from 'react-router'
+import { assignments, encounters, subjects } from '../services/db'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { useUser } from '../contexts/UserContext'
 import { Badge, Container, Group, Paper, SimpleGrid, Text, useMatches } from '@mantine/core'
 import clsx from 'clsx'
 import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessageCarousel'
+import { openFlashcardModal } from '../components/modals/FlashcardModal'
 
 import useReactivity from '../hooks/useReactivity'
 
@@ -17,6 +18,8 @@ export const Dashboard: React.FC = () => {
   const { isGuest } = useUser()
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { subjectId } = useParams()
+  const openedSubjectIdRef = useRef<string | null>(null)
   const { online } = useNetwork()
   const gridWidth = useMatches({
     base: 1,
@@ -28,6 +31,24 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     assignments.isReady().then(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!subjectId || openedSubjectIdRef.current === subjectId) return
+
+    openedSubjectIdRef.current = subjectId
+
+    void (async () => {
+      await subjects.isReady()
+
+      const subject = subjects.findOne({ id: Number(subjectId) })
+
+      navigate('/', { replace: true })
+
+      if (subject) {
+        openFlashcardModal([subject])
+      }
+    })()
+  }, [navigate, subjectId])
 
   const lessonsCount = useReactivity(() => {
     return assignments

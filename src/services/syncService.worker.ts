@@ -1,5 +1,5 @@
 import { waniKaniService } from './wanikaniService'
-import { subjects, assignments, studyMaterials, users, encounterItems } from './db'
+import { subjects, assignments, studyMaterials, users, encounterItems, preferences } from './db'
 import {
   type WKCollection,
   type Subject,
@@ -128,6 +128,7 @@ export async function clearData() {
   assignments.removeMany({})
   studyMaterials.removeMany({})
   users.removeMany({})
+  preferences.removeMany({})
 }
 
 export async function populateKana() {
