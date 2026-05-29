@@ -34,6 +34,10 @@ import { openLogModal } from './modals/LogsModal'
 import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
 import { IconDeviceDesktop, IconWorld } from '@tabler/icons-react'
 import type { Theme } from '../types'
+import {
+  isPushNotificationSupported,
+  sendTestPushNotification,
+} from '../services/pushNotificationService'
 
 interface HeaderProps {
   children: React.ReactNode
@@ -63,9 +67,30 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
     md: 'hidden',
   })
 
+  const [isSendingTestNotification, setIsSendingTestNotification] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null)
+
   const handleDoubleMouseDown = useDoubleMouseDown(() => {
     openLogModal()
   })
+
+  const sendTestNotification = () => {
+    setIsSendingTestNotification(true)
+    setNotificationMessage(null)
+
+    void (async () => {
+      try {
+        await sendTestPushNotification()
+        setNotificationMessage('Test push sent.')
+      } catch (error) {
+        setNotificationMessage(
+          error instanceof Error ? error.message : 'Could not send test push notification.',
+        )
+      } finally {
+        setIsSendingTestNotification(false)
+      }
+    })()
+  }
 
   // Handle /settings route
   useEffect(() => {
@@ -147,6 +172,23 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
       <AppShell.Navbar p="md">
         <AppShell.Section grow component={ScrollArea}>
+          {(import.meta.env.DEV || __APP_ENV__ === 'preview') && (
+            <Center className="mb-4">
+              <Stack>
+                <Button
+                  variant="outline"
+                  onClick={sendTestNotification}
+                  loading={isSendingTestNotification}
+                  disabled={!isPushNotificationSupported()}
+                >
+                  Send Test Push
+                </Button>
+
+                <Text>{notificationMessage}</Text>
+              </Stack>
+            </Center>
+          )}
+
           <NavLink
             label="Dashboard"
             leftSection={<Icons.Home size="1rem" />}

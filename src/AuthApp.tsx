@@ -9,7 +9,10 @@ import { Icons } from './components/Icons'
 import { PageLoader } from './components/PageLoader'
 
 import { useUser, UserProvider } from './contexts/UserContext'
-import { SettingsProvider } from './contexts/SettingsContext'
+import { SettingsProvider, useSettings } from './contexts/SettingsContext'
+
+import { saveLocalNotificationPreferences } from './core/preferencesStore'
+import { unsubscribeFromPushNotifications } from './services/pushNotificationService'
 
 import { useGames } from './hooks/useGames'
 import { useSyncManager } from './hooks/useSyncManager'
@@ -52,9 +55,19 @@ const PWABadge = React.lazy(() => import('./PWABadge'))
 
 export const AuthWrapper = () => {
   const { user, loading, loginAsGuest } = useUser()
+  const { notificationSchedule, setNotificationSchedule } = useSettings()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [notificationDisabledMessage, setNotificationDisabledMessage] = React.useState(false)
+  const hasMigratedNotificationPreferences = React.useRef(false)
 
   const isSyncing = useSyncManager(user)
+
+  useEffect(() => {
+    if (hasMigratedNotificationPreferences.current || !notificationSchedule.enabled) return
+
+    hasMigratedNotificationPreferences.current = true
+    void saveLocalNotificationPreferences(notificationSchedule)
+  }, [notificationSchedule])
 
   // Handle guest login from landing page
   useEffect(() => {
@@ -63,6 +76,17 @@ export const AuthWrapper = () => {
       setSearchParams({}, { replace: true })
     }
   }, [searchParams, user, loginAsGuest, setSearchParams])
+
+  useEffect(() => {
+    if (searchParams.get('disable') !== 'true') return
+
+    void (async () => {
+      await unsubscribeFromPushNotifications()
+      setNotificationSchedule(prev => ({ ...prev, enabled: false }))
+      setNotificationDisabledMessage(true)
+      setSearchParams({}, { replace: true })
+    })()
+  }, [searchParams, setNotificationSchedule, setSearchParams])
 
   if (loading) {
     return <PageLoader />
@@ -76,6 +100,12 @@ export const AuthWrapper = () => {
         <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
           <Icons.RotateCcw className="w-3 h-3 animate-spin" />
           Syncing...
+        </div>
+      )}
+
+      {notificationDisabledMessage && (
+        <div className="fixed bottom-4 left-4 bg-slate-900 text-white text-xs px-3 py-2 rounded-md shadow-lg z-50">
+          Notifications turned off.
         </div>
       )}
 
@@ -120,7 +150,9 @@ const AppRoutes = () => {
 
         <Route path="/browse" element={<Browse />} />
         <Route path="/stats" element={<Statistics />} />
+        <Route path="/subjects/:subjectId" element={<Dashboard />} />
         <Route path="/settings" element={<Dashboard />} />
+        <Route path="/settings/notifications" element={<Dashboard />} />
 
         <Route path="/about" element={<About />} />
       </Route>
