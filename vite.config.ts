@@ -60,6 +60,9 @@ export default defineConfig(({ command, mode }) => {
       VitePWA({
         mode: 'production',
         base: '/',
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
         registerType: 'autoUpdate',
         injectRegister: 'inline',
 
@@ -98,48 +101,9 @@ export default defineConfig(({ command, mode }) => {
           ],
         },
 
-        workbox: {
+        injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
-          // Exclude fonts from precache
-          navigateFallback: 'index.html',
-          cleanupOutdatedCaches: true,
-          disableDevLogs: !isDev,
           maximumFileSizeToCacheInBytes: 3000000,
-
-          runtimeCaching: [
-            {
-              // Font caching
-              urlPattern: /\.(?:woff|woff2|eot|ttf|otf)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'fonts-cache',
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              // Image caching
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-              // Cache requests for image file extensions
-
-              handler: 'CacheFirst',
-              // Images don't change often, so prioritize cache
-
-              options: {
-                cacheName: 'images-cache',
-                expiration: {
-                  maxEntries: 60,
-                  maxAgeSeconds: 30 * 24 * 60 * 60,
-                  // 30 days
-                },
-              },
-            },
-          ],
         },
 
         devOptions: {
