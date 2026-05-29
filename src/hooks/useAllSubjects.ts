@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { GameItem } from '../types'
-import { assignments, subjects } from '../services/db'
+import { assignments, subjects } from '../core/db'
 import _ from 'lodash'
 import { useUser } from '../contexts/UserContext'
 

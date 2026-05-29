@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, createContext } from 'react'
 import { waniKaniService } from '../services/wanikaniService'
 import { syncService } from '../services/syncService'
-import { users } from '../services/db'
+import { users } from '../core/db'
 import type { User } from '../types'
 import { modals } from '@mantine/modals'
 import { Text } from '@mantine/core'

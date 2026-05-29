@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { SubjectType } from '../types'
 import type { GameItem, Subject } from '../types'
-import { assignments, subjects } from '../services/db'
+import { assignments, subjects } from '../core/db'
 import { useUser } from '../contexts/UserContext'
 import { useSettings } from '../contexts/SettingsContext'
 import _ from 'lodash'

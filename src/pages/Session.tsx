@@ -11,7 +11,7 @@ import { games } from '../utils/games'
 import { useGames } from '../hooks/useGames'
 import { useListState } from '@mantine/hooks'
 import { useAssignedSubjects } from '../hooks/useAssignedSubjects'
-import { assignments } from '../services/db'
+import { assignments } from '../core/db'
 
 type SessionPhase = 'fetch' | 'learn' | 'game'
 
