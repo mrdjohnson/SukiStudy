@@ -82,9 +82,24 @@ export const Landing: React.FC = () => {
             SukiStudy
           </Text>
         </div>
+
         <Button variant="ghost" onClick={() => navigate('/login')}>
           Login
         </Button>
+
+        {import.meta.env.DEV && (
+          <Button
+            onClick={() => {
+              fetch('/api/test').then(async response => {
+                const body = await response.json()
+
+                console.log({ ...response, body })
+              })
+            }}
+          >
+            Test Api
+          </Button>
+        )}
       </header>
 
       <main className="flex-1">
