@@ -17,11 +17,11 @@ const updateNotificationPreference = async (updates: Partial<NotificationPrefere
     updatedAt: Date.now(),
   }
 
-  if (current) {
-    preferences.updateOne({ id: CURRENT_KEY }, { $set: { notification } })
-  } else {
-    preferences.insert({ id: CURRENT_KEY, notification })
-  }
+  preferences.updateOne(
+    { id: CURRENT_KEY },
+    { $set: { id: CURRENT_KEY, notification } },
+    { upsert: true },
+  )
 
   return notification
 }
@@ -39,15 +39,17 @@ export const getLocalNotificationPreferences = async () => {
 }
 
 export const saveLocalNotificationPreferences = async (schedule: NotificationSchedule) => {
-  await updateNotificationPreference({ schedule })
+  const notification = await updateNotificationPreference({ schedule })
+
+  return notification.schedule ?? schedule
 }
 
 export const disableLocalNotificationPreferences = async () => {
   const current = await getLocalNotificationPreferences()
 
-  if (!current) return
+  if (!current) return null
 
-  await saveLocalNotificationPreferences({
+  return saveLocalNotificationPreferences({
     ...current.schedule,
     enabled: false,
   })

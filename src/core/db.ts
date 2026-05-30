@@ -1,6 +1,6 @@
 import { Collection, createIndex } from '@signaldb/core'
-import createIndexedDBAdapter from '@signaldb/indexeddb'
 import maverickjsReactivityAdapter from '@signaldb/maverickjs'
+import { createSyncedIndexedDBAdapter } from './signalDbPersistence'
 import type {
   Subject,
   Assignment,
@@ -26,13 +26,13 @@ class ExtendedCollection<T extends { id: string | number } & object> extends Col
 // Initialize Collections with explicit generic types matching the data structure
 // SignalDB requires an 'id' field for persistence/reactivity
 export const subjects = new ExtendedCollection<Subject & { id: number }>({
-  persistence: createIndexedDBAdapter('subjects'),
+  persistence: createSyncedIndexedDBAdapter('subjects'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id'), createIndex('object'), createIndex('level')],
 })
 
 export const assignments = new ExtendedCollection<Assignment & { id: number }>({
-  persistence: createIndexedDBAdapter('assignments'),
+  persistence: createSyncedIndexedDBAdapter('assignments'),
   reactivity: maverickjsReactivityAdapter,
   indices: [
     createIndex('id'),
@@ -43,18 +43,18 @@ export const assignments = new ExtendedCollection<Assignment & { id: number }>({
 })
 
 export const studyMaterials = new ExtendedCollection<StudyMaterial & { id: number }>({
-  persistence: createIndexedDBAdapter('study_materials'),
+  persistence: createSyncedIndexedDBAdapter('study_materials'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id'), createIndex('subject_id')],
 })
 
 export const users = new ExtendedCollection<User & { id: string }>({
-  persistence: createIndexedDBAdapter('users'),
+  persistence: createSyncedIndexedDBAdapter('users'),
   reactivity: maverickjsReactivityAdapter,
 })
 
 export const preferences = new ExtendedCollection<Preferences>({
-  persistence: createIndexedDBAdapter('preferences'),
+  persistence: createSyncedIndexedDBAdapter('preferences'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id')],
 })
@@ -68,7 +68,7 @@ export interface LogEntry {
 }
 
 export const logs = new ExtendedCollection<LogEntry>({
-  persistence: createIndexedDBAdapter('logs'),
+  persistence: createSyncedIndexedDBAdapter('logs'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id'), createIndex('timestamp'), createIndex('level')],
 })
@@ -76,13 +76,13 @@ export const logs = new ExtendedCollection<LogEntry>({
 initLogService(logs)
 
 export const encounters = new ExtendedCollection<Encounter>({
-  persistence: createIndexedDBAdapter('encounters'),
+  persistence: createSyncedIndexedDBAdapter('encounters'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id'), createIndex('gameId'), createIndex('startedAt')],
 })
 
 export const encounterItems = new ExtendedCollection<EncounterItem>({
-  persistence: createIndexedDBAdapter('encounter_items'),
+  persistence: createSyncedIndexedDBAdapter('encounter_items'),
   reactivity: maverickjsReactivityAdapter,
   indices: [
     createIndex('id'),
