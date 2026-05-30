@@ -60,7 +60,7 @@
     "react-router": "^7.10.1",
     "react-router-dom": "^7.10.1",
     "recharts": "^3.7.0",
-    "vercel": "^50.1.4",
+    "vercel": "^54.6.1",
     "vite-plugin-mkcert": "^2.0.0",
     "vite-plugin-vercel": "^11.1.0",
     "wanakana": "^5.3.1",
