@@ -225,15 +225,18 @@ export type GameComponentProps = {
 
 export type GameComponent = (props: GameComponentProps) => any
 
-export interface GameDefinition {
+export interface GameMetadata {
   id: string
   name: string
   desc: string
   icon: any
   color: string
   enabled?: boolean
-  component: GameComponent
   hiddenSubjectTypes: SubjectType[]
+}
+
+export interface GameDefinition extends GameMetadata {
+  component: GameComponent
 }
 
 export type Theme = 'light' | 'dark' | 'auto'

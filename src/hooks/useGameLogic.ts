@@ -3,7 +3,7 @@ import { useListState } from '@mantine/hooks'
 import { useNavigate } from 'react-router'
 
 import type { GameResultData, GameState, GameItem } from '../types'
-import { games } from '../utils/games'
+import { gameMetadata } from '../utils/gameMetadata'
 import { playSound } from '../utils/sound'
 import { useSettings } from '../contexts/SettingsContext'
 import { waniKaniService } from '../services/wanikaniService'
@@ -70,7 +70,7 @@ export const useGameLogic = <T extends GameItem>({
   }, [])
 
   const game = useMemo(() => {
-    return games.find(({ id }) => id === gameId)!
+    return gameMetadata.find(({ id }) => id === gameId)!
   }, [gameId])
 
   const recordAttempt = (item: T, correct: boolean = false, skip = false) => {

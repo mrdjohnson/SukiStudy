@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import type { GameResultData, GameDefinition } from '../types'
 import { Center, Loader } from '@mantine/core'
 import _ from 'lodash'
-import { games } from '../utils/games'
 import { useGames } from '../hooks/useGames'
 import { assignments } from '../core/db'
 
@@ -17,7 +16,7 @@ export const Review = () => {
     const learningGameIds = ['quiz', 'typing', 'memory', 'matching']
 
     // Pick random game
-    const randomGame = _.chain(games)
+    const randomGame = _.chain(allowedGames)
       .filter(game => learningGameIds.includes(game.id))
       .intersection(allowedGames)
       .sample()

@@ -7,7 +7,6 @@ import { Button } from '../components/ui/Button'
 import { Flashcard } from '../components/Flashcard'
 import { Group, Progress, Select, Stack } from '@mantine/core'
 import _ from 'lodash'
-import { games } from '../utils/games'
 import { useGames } from '../hooks/useGames'
 import { useListState } from '@mantine/hooks'
 import { useAssignedSubjects } from '../hooks/useAssignedSubjects'
@@ -53,7 +52,7 @@ export const Session = () => {
     // if (isAllKanji) learningGameIds.push('variations')
 
     // Pick 2 random games
-    const selectedGames = _.chain(games)
+    const selectedGames = _.chain(allowedGames)
       .filter(game => learningGameIds.includes(game.id))
       .intersection(allowedGames)
       .sampleSize(2)

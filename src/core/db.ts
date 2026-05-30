@@ -10,7 +10,7 @@ import type {
   EncounterItem,
   Preferences,
 } from '../types'
-import { initLogService } from './logService'
+import { initLogService, LogEntry } from './logService'
 
 // Extended Collection class with upsertMany method
 class ExtendedCollection<T extends { id: string | number } & object> extends Collection<T> {
@@ -58,14 +58,6 @@ export const preferences = new ExtendedCollection<Preferences>({
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id')],
 })
-
-export interface LogEntry {
-  id: string
-  timestamp?: string // deprecated
-  level: 'log' | 'error' | 'warn' | 'info' | 'debug'
-  message: string
-  time: number
-}
 
 export const logs = new ExtendedCollection<LogEntry>({
   persistence: createSyncedIndexedDBAdapter('logs'),

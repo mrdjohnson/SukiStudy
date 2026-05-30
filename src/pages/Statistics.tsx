@@ -10,7 +10,6 @@ import { assignments, encounterItems, subjects } from '../core/db'
 import { encounterService } from '../services/encounterService'
 
 import type { Encounter, GameItem } from '../types'
-import { games } from '../utils/games'
 
 import { Icons } from '../components/Icons'
 import { openFlashcardModal } from '../components/modals/FlashcardModal'
@@ -20,6 +19,7 @@ import { GameItemIcon } from '../components/GameItemIcon'
 import { type GameLogic } from '../hooks/useGameLogic'
 import useReactivity from '../hooks/useReactivity'
 import clsx from 'clsx'
+import { gameMetadata } from '../utils/gameMetadata'
 
 export interface ItemHistoryEntry {
   subjectId: number
@@ -143,7 +143,7 @@ export const Statistics = () => {
       timeTaken = `${timeTakenSeconds}s`
     }
 
-    const game = games.find(g => g.id === selectedGame.gameId)
+    const game = gameMetadata.find(g => g.id === selectedGame.gameId)
 
     if (!game) return null
 

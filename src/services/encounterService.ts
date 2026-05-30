@@ -2,7 +2,7 @@ import { encounters, encounterItems, subjects } from '../core/db'
 import type { GameItem, Encounter, EncounterItem, GameItemStat } from '../types'
 import _ from 'lodash'
 import moment from 'moment'
-import { games } from '../utils/games'
+import { gameMetadata } from '../utils/gameMetadata'
 import { formatDuration, formatTime } from '../utils/formatTime'
 
 export const encounterService = {
@@ -122,7 +122,7 @@ export const encounterService = {
       .compact()
       .value()
 
-    const gamesById = _.keyBy(games, 'id')
+    const gamesById = _.keyBy(gameMetadata, 'id')
 
     const history = allEncounters.map(session => {
       const game = gamesById[session.gameId]

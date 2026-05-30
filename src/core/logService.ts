@@ -1,5 +1,12 @@
 import { Collection } from '@signaldb/core'
-import type { LogEntry } from './db'
+
+export interface LogEntry {
+  id: string
+  timestamp?: string // deprecated
+  level: LogLevel
+  message: string
+  time: number
+}
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
 

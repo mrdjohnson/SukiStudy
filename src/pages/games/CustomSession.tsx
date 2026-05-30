@@ -6,12 +6,15 @@ import { PageLoader } from '../../components/PageLoader'
 
 import { useUser } from '../../contexts/UserContext'
 import _ from 'lodash'
-import { games } from '../../utils/games'
+import { useGames } from '../../hooks/useGames'
 
 export const CustomSession = () => {
   const { user } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
+
+  const games = useGames()
+
   const {
     games: gameIds,
     items,
