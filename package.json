@@ -14,7 +14,10 @@
     "tsc": "tsc -b tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "check-deps": "depcruise src server lib vite.config.ts nitro.config.ts --ts-config tsconfig.json --include-only \"^(src|server|lib|vite\\.config\\.ts|nitro\\.config\\.ts)\" --output-type err && depcruise src/sw.ts src/serviceWorker --ts-config tsconfig.sw.json --include-only \"^src/(sw\\.ts|serviceWorker/)\" --output-type err && depcruise server lib vite.config.ts nitro.config.ts --ts-config tsconfig.node.json --include-only \"^(server|lib|vite\\.config\\.ts|nitro\\.config\\.ts)\" --output-type err",
+    "check-circular-deps": "yarn check-deps",
+    "view-deps": "depcruise src server lib vite.config.ts nitro.config.ts --ts-config tsconfig.json --include-only \"^(src|server|lib|vite\\.config\\.ts|nitro\\.config\\.ts)\" --output-type dot \"$@\" | node scripts/color-dependency-graph.mjs | dot -T svg > dependency-graph.svg && open dependency-graph.svg"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,css,md,html,json}": [
@@ -87,10 +90,12 @@
     "@vitejs/plugin-react": "^5.0.0",
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
+    "dependency-cruiser": "^17.4.2",
     "globals": "^16.5.0",
     "happy-dom": "^20.6.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "madge": "^8.0.0",
     "nitro": "^3.0.260522-beta",
     "prettier": "^3.7.4",
     "tailwindcss": "^4.1.18",
