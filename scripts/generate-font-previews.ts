@@ -2,7 +2,6 @@ import TextToSVG from 'text-to-svg'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { JAPANESE_FONTS } from '../src/utils/fonts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -27,15 +26,7 @@ const PACKAGE_MAP: Record<string, string> = {
 async function generatePreviews() {
   console.log('Generating font previews...')
 
-  for (const font of JAPANESE_FONTS) {
-    if (font.name === 'Default') continue
-
-    const fontPathRelative = PACKAGE_MAP[font.name]
-    if (!fontPathRelative) {
-      console.warn(`No font file mapping found for ${font.name}`)
-      continue
-    }
-
+  for (const [name, fontPathRelative] of Object.entries(PACKAGE_MAP)) {
     const fontPath = path.resolve(__dirname, '../node_modules', fontPathRelative)
 
     if (!fs.existsSync(fontPath)) {
@@ -48,20 +39,20 @@ async function generatePreviews() {
       const textToSVG = TextToSVG.loadSync(fontPath)
 
       const attributes = { fill: 'black', stroke: 'none' }
-      const options = { x: 0, y: 0, fontSize: 32, anchor: 'top', attributes }
+      const options = { x: 0, y: 0, fontSize: 32, anchor: 'top' as const, attributes }
 
       const svg = textToSVG.getSVG('人類社会のすべて\nあ い う え お', options)
 
       // Calculate viewBox to fit content strictly or use a fixed size?
       // text-to-svg returns an SVG string with width/height/viewBox set based on the text metrics.
 
-      const fileName = `${font.name.replace(/\s+/g, '_').toLowerCase()}.svg`
+      const fileName = `${name.replace(/\s+/g, '_').toLowerCase()}.svg`
       const outputPath = path.join(OUTPUT_DIR, fileName)
 
       fs.writeFileSync(outputPath, svg)
-      console.log(`Generated preview for ${font.name}: ${fileName}`)
+      console.log(`Generated preview for ${name}: ${fileName}`)
     } catch (error) {
-      console.error(`Error generating preview for ${font.name}:`, error)
+      console.error(`Error generating preview for ${name}:`, error)
     }
   }
 }
