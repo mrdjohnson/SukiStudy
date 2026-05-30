@@ -1,7 +1,6 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ESNext",
     "lib": ["ESNext", "webworker"],
     "libReplacement": true,
     "types": [
@@ -10,8 +9,14 @@
       "vite-plugin-comlink/client",
       "@types/serviceworker"
     ],
-    "noEmit": true
+    "noEmit": false,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.cache/tsc/sw",
+    "tsBuildInfoFile": "./node_modules/.cache/tsc/sw.tsbuildinfo"
   },
   "include": ["src/sw.ts", "src/serviceWorker"],
-  "exclude": []
+  "references": [{ "path": "./tsconfig.core.json" }]
 }
