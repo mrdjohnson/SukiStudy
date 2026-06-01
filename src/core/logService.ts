@@ -10,14 +10,15 @@ export interface LogEntry {
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
 
-const MAX_LOGS = 1500 // Limit logs to prevent memory issues
+const MAX_LOGS = 1000 // Limit logs to prevent memory issues
 
 const formatMessage = (...args: any[]): string => {
   return args
     .map(arg => {
       if (typeof arg === 'object') {
         try {
-          return JSON.stringify(arg, null, 2)
+          // Limit length to prevent excessively large log entries
+          return JSON.stringify(arg, null, 2).substring(0, 1000)
         } catch {
           return String(arg)
         }
