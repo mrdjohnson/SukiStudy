@@ -134,7 +134,7 @@ const handlePush = async (event: PushEvent) => {
       tag: notification.kind === 'show' ? 'review-due' : 'generic-return',
       renotify: false,
       data: {
-        url: 'https://localhost:3000' + notification.url,
+        url: notification.url,
         itemId: notification.kind === 'show' ? notification.itemId : '',
         kind: notification.kind,
       },
