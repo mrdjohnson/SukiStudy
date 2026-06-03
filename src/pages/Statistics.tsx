@@ -9,7 +9,7 @@ import { IconCheck, IconX } from '@tabler/icons-react'
 import { assignments, encounterItems, subjects } from '../core/db'
 import { encounterService } from '../services/encounterService'
 
-import type { Encounter, GameItem } from '../types'
+import type { Encounter, GameItem } from '../core/types'
 
 import { Icons } from '../components/Icons'
 import { openFlashcardModal } from '../components/modals/FlashcardModal'

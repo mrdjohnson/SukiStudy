@@ -58,7 +58,7 @@ module.exports = {
       severity: 'error',
       from: { path: '^src/serviceWorker/' },
       to: {
-        pathNot: '^src/(core|serviceWorker|types.ts)',
+        pathNot: '^src/(core|serviceWorker)',
         dependencyTypesNot: ['type-only'],
       },
     },
@@ -67,14 +67,14 @@ module.exports = {
       comment: 'utils/ can import from utils/ and core/',
       severity: 'error',
       from: { path: '^src/utils' },
-      to: { pathNot: '^src/(utils|core|data|types.ts|components/Icons.tsx)', dependencyTypesNot: ['type-only'] },
+      to: { pathNot: '^src/(utils|core|data|components/Icons.tsx)', dependencyTypesNot: ['type-only'] },
     },
     {
       name: 'core-to-non-types',
       comment: 'utils/ can import from utils/ and core/',
       severity: 'error',
       from: { path: '^src/core' },
-      to: { pathNot: '^src/(core|data|types.ts)', dependencyTypesNot: ['type-only'] },
+      to: { pathNot: '^src/(core|data)', dependencyTypesNot: ['type-only'] },
     },
     {
       name: 'no-orphans',

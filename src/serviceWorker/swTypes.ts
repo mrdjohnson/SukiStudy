@@ -1,4 +1,4 @@
-import { SubjectType } from '../types'
+import { SubjectType } from '../core/types'
 
 export type NotificationStudyItem = {
   id: number

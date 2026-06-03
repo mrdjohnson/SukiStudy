@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import type { GameComponent, GameItem } from '../../types'
+import type { GameComponent, GameItem } from '../../core/types'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'
 import { playSound } from '../../utils/sound'

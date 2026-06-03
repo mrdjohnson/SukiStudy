@@ -33,7 +33,7 @@ import logo from '@/src/assets/apple-touch-icon.png'
 import { openLogModal } from './modals/LogsModal'
 import { useDoubleMouseDown } from '../hooks/useDoubleMouseDown'
 import { IconDeviceDesktop, IconWorld } from '@tabler/icons-react'
-import type { Theme } from '../types'
+import type { Theme } from '../core/types'
 import {
   isPushNotificationSupported,
   sendTestPushNotification,

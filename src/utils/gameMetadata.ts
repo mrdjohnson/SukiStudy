@@ -1,5 +1,5 @@
 import { Icons } from '../components/Icons'
-import { SubjectType, type GameMetadata } from '../types'
+import { SubjectType, type GameMetadata } from '../core/types'
 
 export const gameMetadata: GameMetadata[] = [
   {

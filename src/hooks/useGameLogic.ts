@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useListState } from '@mantine/hooks'
 import { useNavigate } from 'react-router'
 
-import type { GameResultData, GameState, GameItem } from '../types'
+import type { GameResultData, GameState, GameItem } from '../core/types'
 import { gameMetadata } from '../utils/gameMetadata'
 import { playSound } from '../utils/sound'
 import { useSettings } from '../contexts/SettingsContext'

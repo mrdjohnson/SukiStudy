@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 import type { ComponentProps, PropsWithChildren } from 'react'
 import { GameResults } from './GameResults'
 import type { GameLogic } from '../hooks/useGameLogic'
-import type { GameItem } from '../types'
+import type { GameItem } from '../core/types'
 
 type GameHeaderProps<T extends GameItem> = PropsWithChildren<{
   gameLogic: GameLogic<T>

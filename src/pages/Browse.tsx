@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { SubjectType } from '../types'
-import type { Assignment, GameItem, GameItemStat } from '../types'
+import { SubjectType } from '../core/types'
+import type { Assignment, GameItem, GameItemStat } from '../core/types'
 import { Icons } from '../components/Icons'
 import { Button } from '../components/ui/Button'
 import { toHiragana, toRomanji } from '../utils/kana'

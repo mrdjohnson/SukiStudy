@@ -6,7 +6,7 @@ import type {
   Subject,
   Assignment,
   StudyMaterial,
-} from '../types'
+} from '../core/types'
 
 const BASE_URL = 'https://api.wanikani.com/v2'
 

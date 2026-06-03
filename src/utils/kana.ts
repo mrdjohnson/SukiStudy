@@ -1,4 +1,4 @@
-import { type Subject, SubjectType } from '../types'
+import { type Subject, SubjectType } from '../core/types'
 import { isHiragana, toHiragana, toKatakana, toRomaji as toRomanji } from 'wanakana'
 import _ from 'lodash'
 

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useSettings } from '../contexts/SettingsContext'
 import _ from 'lodash'
-import { SubjectType, type GameComponent, type GameDefinition } from '../types'
+import { SubjectType, type GameComponent, type GameDefinition } from '../core/types'
 import { gameMetadata } from '../utils/gameMetadata'
 
 const gameComponents: Record<string, GameComponent> = {

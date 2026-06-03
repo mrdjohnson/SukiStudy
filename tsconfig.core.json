@@ -11,5 +11,5 @@
     "outDir": "./node_modules/.cache/tsc/core",
     "tsBuildInfoFile": "./node_modules/.cache/tsc/core.tsbuildinfo"
   },
-  "include": ["src/core", "src/data/**/*.json", "src/types.ts"]
+  "include": ["src/core", "src/data/**/*.json"]
 }

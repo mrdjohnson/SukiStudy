@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { assignments, subjects } from '../../core/db'
-import type { Subject } from '../../types'
+import type { Subject } from '../../core/types'
 import { getLocalNotificationPreferences } from '../../core/preferencesStore'
 
 type NotificationAction = {

@@ -1,7 +1,7 @@
 import { useLocalStorage } from '@mantine/hooks'
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { type NotificationSchedule, SubjectType } from '../types'
+import { type NotificationSchedule, SubjectType } from '../core/types'
 import _ from 'lodash'
 import { useUser } from './UserContext'
 import { waniKaniService } from '../services/wanikaniService'

@@ -1,5 +1,5 @@
 import { preferences } from '../core/db'
-import type { NotificationPreferenceState, NotificationSchedule } from '../types'
+import type { NotificationPreferenceState, NotificationSchedule } from './types'
 
 const CURRENT_KEY = 'current'
 

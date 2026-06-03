@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { GameComponent, GameItem, MultiChoiceGameItem } from '../../types'
+import type { GameComponent, GameItem, MultiChoiceGameItem } from '../../core/types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { useSettings } from '../../contexts/SettingsContext'

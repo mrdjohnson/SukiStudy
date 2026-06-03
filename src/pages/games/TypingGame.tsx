@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { QuestionDisplay } from '../../components/QuestionDisplay'
-import type { GameComponent } from '../../types'
+import type { GameComponent } from '../../core/types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
 import { playSound } from '../../utils/sound'

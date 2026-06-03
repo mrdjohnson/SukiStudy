@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
-import { SubjectType } from '../../types'
+import { SubjectType } from '../../core/types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { Icons } from '../../components/Icons'
 import { Button } from '../../components/ui/Button'

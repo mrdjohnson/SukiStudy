@@ -1,5 +1,5 @@
 import { encounters, encounterItems, subjects } from '../core/db'
-import type { GameItem, Encounter, EncounterItem, GameItemStat } from '../types'
+import type { GameItem, Encounter, EncounterItem, GameItemStat } from '../core/types'
 import _ from 'lodash'
 import moment from 'moment'
 import { gameMetadata } from '../utils/gameMetadata'

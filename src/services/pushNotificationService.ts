@@ -1,4 +1,4 @@
-import type { NotificationSchedule } from '../types'
+import type { NotificationSchedule } from '../core/types'
 import {
   disableLocalNotificationPreferences,
   saveLocalNotificationPreferences,

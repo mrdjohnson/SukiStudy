@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import type { GameItem } from '../../types'
+import type { GameItem } from '../../core/types'
 import { Button } from '../../components/ui/Button'
 import { PageLoader } from '../../components/PageLoader'
 

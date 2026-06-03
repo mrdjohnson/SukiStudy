@@ -9,7 +9,7 @@ import type {
   Encounter,
   EncounterItem,
   Preferences,
-} from '../../types'
+} from '../types'
 import { initLogService, LogEntry } from '../logService'
 
 // Extended Collection class with upsertMany method

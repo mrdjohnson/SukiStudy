@@ -4,7 +4,7 @@ import { openFlashcardModal } from './modals/FlashcardModal'
 import type { GameLogic } from '../hooks/useGameLogic'
 import { GameItemIcon } from './GameItemIcon'
 import { IconReload } from '@tabler/icons-react'
-import type { GameItem } from '../types'
+import type { GameItem } from '../core/types'
 import clsx from 'clsx'
 import { Paper, Text } from '@mantine/core'
 

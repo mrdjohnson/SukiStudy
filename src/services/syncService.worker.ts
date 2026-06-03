@@ -13,7 +13,7 @@ import {
   type Assignment,
   type StudyMaterial,
   SubjectType,
-} from '../types'
+} from '../core/types'
 import _ from 'lodash'
 import { getKanaSubjects } from '../utils/kana'
 import { transformSubject } from '../utils/transformSubject'
