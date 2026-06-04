@@ -191,7 +191,7 @@ export const CustomGameSetup: React.FC = () => {
         </Button>
       </Group>
 
-      <Grid gutter="lg">
+      <Grid gap="lg">
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Stack gap="lg">
             {/* Game Selection */}

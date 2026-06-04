@@ -96,7 +96,7 @@ export const Login = () => {
               How do I connect?
             </Button>
 
-            <Collapse in={showHelp}>
+            <Collapse expanded={showHelp}>
               <Paper bg="gray.0" p="md" radius="sm">
                 <Text size="sm" mb="xs">
                   To use SukiStudy, you need a valid WaniKani account.
