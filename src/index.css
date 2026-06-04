@@ -22,8 +22,143 @@
   }
 }
 
+.landing-kanji {
+  animation: landing-float 18s ease-in-out infinite;
+}
+
+.landing-pulse-line {
+  animation: landing-pulse 2.8s ease-in-out infinite;
+}
+
+.landing-card-rise {
+  animation: landing-rise 7s ease-in-out infinite;
+}
+
+.landing-stroke-kanji {
+  stroke-dasharray: 820;
+  stroke-dashoffset: 820;
+  animation: landing-stroke 16s ease-in-out infinite;
+}
+
+[data-landing-reveal] {
+  --landing-reveal-x: 0;
+  --landing-reveal-y: 0;
+
+  opacity: 0;
+  transform: translate3d(var(--landing-reveal-x), var(--landing-reveal-y), 0);
+  transition:
+    opacity 700ms ease,
+    transform 850ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--landing-reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+[data-landing-reveal][data-reveal='left'] {
+  --landing-reveal-x: -34px;
+}
+
+[data-landing-reveal][data-reveal='right'] {
+  --landing-reveal-x: 34px;
+}
+
+[data-landing-reveal][data-reveal='bottom'] {
+  --landing-reveal-y: 36px;
+}
+
+[data-landing-reveal][data-visible='true'] {
+  --landing-reveal-x: 0;
+  --landing-reveal-y: 0;
+
+  opacity: 1;
+}
+
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-6deg);
+  }
+
+  50% {
+    transform: translate3d(14px, -22px, 0) rotate(5deg);
+  }
+}
+
+@keyframes landing-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes landing-rise {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes landing-stroke {
+  0% {
+    stroke-dashoffset: 820;
+    opacity: 0.08;
+  }
+
+  32% {
+    stroke-dashoffset: 0;
+    opacity: 0.16;
+  }
+
+  72% {
+    stroke-dashoffset: 0;
+    opacity: 0.1;
+  }
+
+  100% {
+    stroke-dashoffset: -820;
+    opacity: 0.05;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .landing-kanji,
+  .landing-pulse-line,
+  .landing-card-rise,
+  .landing-stroke-kanji,
+  .landing-marquee-content {
+    animation: none !important;
+  }
+
+  .landing-stroke-kanji {
+    stroke-dashoffset: 0;
+  }
+
+  [data-landing-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 @theme {
   --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Noto Serif';
 
   --color-surface: var(--color-surface);
   --color-surface-dim: var(--color-surface-dim);

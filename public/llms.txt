@@ -6,7 +6,6 @@ project is available on the home page and about page.
 Allowed public pages:
 - https://sukistudy.vercel.app/
 - https://sukistudy.vercel.app/landing
-- https://sukistudy.vercel.app/about
 
 The home route and /landing route show the same public landing experience for users who
 are not logged in.

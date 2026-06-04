@@ -4,7 +4,6 @@ import { PageLoader } from './components/PageLoader'
 
 // Direct imports (no code splitting)
 import { Login } from './pages/Login'
-import { About } from './pages/About'
 import { Landing } from './pages/Landing'
 
 const AuthApp = React.lazy(() => import('./AuthApp'))
@@ -12,8 +11,14 @@ const AuthApp = React.lazy(() => import('./AuthApp'))
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation()
 
+  console.log('Navigated to:', location.pathname)
+
   useEffect(() => {
-    window.scrollTo(0, 0)
+    // Only scroll-to-top for public pages; modal routes don't need it
+    const publicPaths = ['/landing', '/login', '/about']
+    if (publicPaths.includes(location.pathname)) {
+      window.scrollTo(0, 0)
+    }
   }, [location.pathname])
 
   return children
@@ -39,7 +44,7 @@ export default function AppRouter() {
         <Routes>
           <Route path="/landing" element={<Landing />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/about" element={<Navigate to="/landing#about" replace />} />
           <Route path="*" element={<Navigate to="/landing" />} />
         </Routes>
       </Layout>

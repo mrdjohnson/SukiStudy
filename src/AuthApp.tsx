@@ -19,7 +19,6 @@ import { useSyncManager } from './hooks/useSyncManager'
 
 // Direct imports (no code splitting)
 import { Login } from './pages/Login'
-import { About } from './pages/About'
 import { Landing } from './pages/Landing'
 
 import '@mantine/carousel/styles.css'
@@ -129,7 +128,7 @@ const AppRoutes = () => {
       <Route path="/landing" element={<Landing />} />
       <Route path="/login" element={user && !isGuest ? <Navigate to="/" /> : <Login />} />
 
-      {!user && <Route path="/about" element={<About />} />}
+      <Route path="/about" element={<Navigate to="/landing#about" replace />} />
 
       <Route element={<AuthWrapper />}>
         <Route path="/" element={<Dashboard />} />
@@ -153,8 +152,6 @@ const AppRoutes = () => {
         <Route path="/subjects/:subjectId" element={<Dashboard />} />
         <Route path="/settings" element={<Dashboard />} />
         <Route path="/settings/notifications" element={<Dashboard />} />
-
-        <Route path="/about" element={<About />} />
       </Route>
 
       {/* go to dashboard if at unknown page */}
