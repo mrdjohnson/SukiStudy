@@ -12,6 +12,7 @@ import { useUser, UserProvider } from './contexts/UserContext'
 import { SettingsProvider, useSettings } from './contexts/SettingsContext'
 
 import { saveLocalNotificationPreferences } from './core/preferencesStore'
+import { runStartupMigrations } from './migrations/runStartupMigrations'
 import { unsubscribeFromPushNotifications } from './services/pushNotificationService'
 
 import { useGames } from './hooks/useGames'
@@ -27,6 +28,8 @@ import '@mantine/charts/styles.css'
 
 // init dayjs plugins
 dayjs.extend(customParseFormat)
+
+runStartupMigrations()
 
 // Lazy-loaded pages (code split)
 const Dashboard = React.lazy(() =>

@@ -1,7 +1,18 @@
 import { preferences } from '../core/db'
-import type { NotificationPreferenceState, NotificationSchedule } from './types'
+import {
+  type ContentPreferenceState,
+  type NotificationPreferenceState,
+  type NotificationSchedule,
+} from './types'
 
 const CURRENT_KEY = 'current'
+
+export const defaultContentPreferences: Required<Omit<ContentPreferenceState, 'updatedAt'>> = {
+  hiddenSubjects: [],
+  gameLevelMin: 1,
+  gameLevelMax: 60,
+  dashboardSubjectSource: 'review',
+}
 
 const getPreferencesDocument = async () => {
   await preferences.isReady()
@@ -24,6 +35,24 @@ const updateNotificationPreference = async (updates: Partial<NotificationPrefere
   )
 
   return notification
+}
+
+export const updateContentPreference = async (updates: Partial<ContentPreferenceState>) => {
+  const current = await getPreferencesDocument()
+  const content: ContentPreferenceState = {
+    ...defaultContentPreferences,
+    ...current?.content,
+    ...updates,
+    updatedAt: Date.now(),
+  }
+
+  preferences.updateOne(
+    { id: CURRENT_KEY },
+    { $set: { id: CURRENT_KEY, content } },
+    { upsert: true },
+  )
+
+  return content
 }
 
 export const getLocalNotificationPreferences = async () => {
@@ -54,3 +83,9 @@ export const disableLocalNotificationPreferences = async () => {
     enabled: false,
   })
 }
+
+export const updateContentPreferenceKey =
+  (key: keyof Parameters<typeof updateContentPreference>[0]) =>
+  (updates: Parameters<typeof updateContentPreference>[0][typeof key]) => {
+    updateContentPreference({ [key]: updates })
+  }

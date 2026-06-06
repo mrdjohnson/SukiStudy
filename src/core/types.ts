@@ -256,7 +256,18 @@ export type NotificationPreferenceState = {
   updatedAt?: number
 }
 
+export type DashboardSubjectSource = 'review' | 'learned' | 'assigned'
+
+export type ContentPreferenceState = {
+  hiddenSubjects?: SubjectType[]
+  gameLevelMin?: number
+  gameLevelMax?: number
+  dashboardSubjectSource?: DashboardSubjectSource
+  updatedAt?: number
+}
+
 export type Preferences = {
   id: 'current'
   notification?: NotificationPreferenceState
+  content?: ContentPreferenceState
 }

@@ -6,6 +6,13 @@ import _ from 'lodash'
 import { useUser } from './UserContext'
 import { waniKaniService } from '../services/wanikaniService'
 import { JAPANESE_FONTS } from '../utils/fonts'
+import useReactivity from '../hooks/useReactivity'
+import { preferences } from '../core/db'
+import {
+  defaultContentPreferences,
+  updateContentPreference,
+  updateContentPreferenceKey,
+} from '../core/preferencesStore'
 
 interface Step {
   title: string
@@ -39,15 +46,6 @@ const useSettingsContext = () => {
     defaultValue: true,
   })
 
-  const [gameLevelMin, setGameLevelMin] = useLocalStorage({
-    key: 'suki_level_min',
-    defaultValue: 1,
-  })
-  const [gameLevelMax, setGameLevelMax] = useLocalStorage({
-    key: 'suki_level_max',
-    defaultValue: 60,
-  })
-
   const [gameSyncEnabled, setGameSyncEnabled] = useLocalStorage({
     key: 'suki_game_sync_enabled',
     defaultValue: true,
@@ -64,12 +62,6 @@ const useSettingsContext = () => {
     },
   })
 
-  // Content Settings
-  const [hiddenSubjects, setHiddenSubjects] = useLocalStorage<SubjectType[]>({
-    key: 'suki_hidden_subjects',
-    defaultValue: [],
-  })
-
   // Font Settings
   const [enabledFonts, setEnabledFonts] = useLocalStorage<string[]>({
     key: 'suki_enabled_fonts',
@@ -83,6 +75,18 @@ const useSettingsContext = () => {
   })
 
   const [helpSteps, setHelpSteps] = useState<Step[] | null>(null)
+
+  const contentPreferences = useReactivity(() => {
+    return {
+      ...defaultContentPreferences,
+      ...preferences.findOne({ id: 'current' })?.content,
+    }
+  }, [])
+
+  const hiddenSubjects = contentPreferences.hiddenSubjects
+  const gameLevelMin = contentPreferences.gameLevelMin
+  const gameLevelMax = contentPreferences.gameLevelMax
+  const dashboardSubjectSource = contentPreferences.dashboardSubjectSource
 
   const disabledSubjects = useMemo(() => {
     if (!isGuest) return []
@@ -109,7 +113,7 @@ const useSettingsContext = () => {
   }
 
   const toggleHiddenSubject = (subjectType: SubjectType) => {
-    setHiddenSubjects(prev => _.xor(prev, [subjectType]))
+    updateContentPreference({ hiddenSubjects: _.xor(hiddenSubjects, [subjectType]) })
   }
 
   const toggleAutoPlayAudio = () => setAutoPlayAudio(prev => !prev)
@@ -165,7 +169,7 @@ const useSettingsContext = () => {
       user?.subscription.max_level_granted &&
       gameLevelMax > user.subscription.max_level_granted
     ) {
-      setGameLevelMax(user.subscription.max_level_granted)
+      updateContentPreference({ gameLevelMax: user.subscription.max_level_granted })
     }
   }, [user?.subscription.max_level_granted, gameLevelMax])
 
@@ -201,9 +205,11 @@ const useSettingsContext = () => {
     toggleGameSettingsOverride,
 
     gameLevelMin,
-    setGameLevelMin,
+    setGameLevelMin: updateContentPreferenceKey('gameLevelMin'),
     gameLevelMax,
-    setGameLevelMax,
+    setGameLevelMax: updateContentPreferenceKey('gameLevelMax'),
+    dashboardSubjectSource,
+    setDashboardSubjectSource: updateContentPreferenceKey('dashboardSubjectSource'),
 
     gameSyncEnabled,
     toggleGameSyncEnabled,
