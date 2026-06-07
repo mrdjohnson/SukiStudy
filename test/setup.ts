@@ -1,4 +1,5 @@
-import { vi } from 'vitest'
+import { afterEach, vi } from 'vitest'
+import { setup } from 'vitest-indexeddb'
 
 export const mockWorkerOps = {
   syncUser: vi.fn().mockResolvedValue(undefined),
@@ -25,3 +26,26 @@ export const mockWorkerOps = {
 
 // Mock Worker just in case
 ;(globalThis as any).Worker = (globalThis as any).ComlinkWorker as any
+
+setup()
+
+afterEach(async () => {
+  vi.clearAllMocks()
+
+  const { subjects, assignments, studyMaterials, users, preferences } =
+    await import('../src/core/db')
+
+  await Promise.all([
+    subjects.isReady(),
+    assignments.isReady(),
+    studyMaterials.isReady(),
+    users.isReady(),
+    preferences.isReady(),
+  ])
+
+  subjects.removeMany({})
+  assignments.removeMany({})
+  studyMaterials.removeMany({})
+  users.removeMany({})
+  preferences.removeMany({})
+})

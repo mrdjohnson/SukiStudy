@@ -1753,6 +1753,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^10.4.0":
+  version: 10.4.0
+  resolution: "@faker-js/faker@npm:10.4.0"
+  checksum: 10/3eaaa501435584f8164cfdaac8cd666abe6186eaccb171592f559d942211f01cba60d00616307fbcf980cb8d19512b2b8c9e926e7472fc93df580d18483f8f17
+  languageName: node
+  linkType: hard
+
 "@fastify/busboy@npm:^2.0.0":
   version: 2.1.1
   resolution: "@fastify/busboy@npm:2.1.1"
@@ -7415,6 +7422,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fake-indexeddb@npm:^6.2.5":
+  version: 6.2.5
+  resolution: "fake-indexeddb@npm:6.2.5"
+  checksum: 10/a0b6a81413a8dd40d3ae31d6158ffa8a3d113981b11644e206874847c454d5a1519a9fe2b6008d8f66d5630ba96b3da43789a20b6462a0e7cadc008caea15ae8
+  languageName: node
+  linkType: hard
+
 "fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
@@ -7536,6 +7550,15 @@ __metadata:
   dependencies:
     to-regex-range: "npm:^5.0.1"
   checksum: 10/a7095cb39e5bc32fada2aa7c7249d3f6b01bd1ce461a61b0adabacccabd9198500c6fb1f68a7c851a657e273fce2233ba869638897f3d7ed2e87a2d89b4436ea
+  languageName: node
+  linkType: hard
+
+"fishery@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "fishery@npm:2.4.0"
+  dependencies:
+    lodash.mergewith: "npm:^4.6.2"
+  checksum: 10/53c0be0ba101eb64b94258bc30d648b093f65a4304635d8c7188162935f746abb40adbce8c63d77c1b21466cf0fba5de95b7e5e2db15e1c1bf186afba6e47cdc
   languageName: node
   linkType: hard
 
@@ -9164,6 +9187,13 @@ __metadata:
   version: 4.0.8
   resolution: "lodash.debounce@npm:4.0.8"
   checksum: 10/cd0b2819786e6e80cb9f5cda26b1a8fc073daaf04e48d4cb462fa4663ec9adb3a5387aa22d7129e48eed1afa05b482e2a6b79bfc99b86886364449500cbb00fd
+  languageName: node
+  linkType: hard
+
+"lodash.mergewith@npm:^4.6.2":
+  version: 4.6.2
+  resolution: "lodash.mergewith@npm:4.6.2"
+  checksum: 10/aea75a4492541a4902ac7e551dc6c54b722da0c187f84385d02e8fc33a7ae3454b837822446e5f63fcd5ad1671534ea408740b776670ea4d9c7890b10105fce0
   languageName: node
   linkType: hard
 
@@ -12655,6 +12685,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sukistudy@workspace:."
   dependencies:
+    "@faker-js/faker": "npm:^10.4.0"
     "@fontsource/kaisei-opti": "npm:^5.2.8"
     "@fontsource/klee-one": "npm:^5.2.8"
     "@fontsource/reggae-one": "npm:^5.2.8"
@@ -12703,6 +12734,7 @@ __metadata:
     dependency-cruiser: "npm:^17.4.2"
     embla-carousel: "npm:^8.5.2"
     embla-carousel-react: "npm:^8.5.2"
+    fishery: "npm:^2.4.0"
     globals: "npm:^16.5.0"
     happy-dom: "npm:^20.6.1"
     husky: "npm:^9.1.7"
@@ -12733,6 +12765,7 @@ __metadata:
     vite-plugin-vercel: "npm:^11.1.0"
     vite-tsconfig-paths: "npm:^6.1.1"
     vitest: "npm:^4.1.7"
+    vitest-indexeddb: "npm:^0.0.2"
     vitest-localstorage-mock: "npm:^0.1.2"
     wanakana: "npm:^5.3.1"
     web-push: "npm:^3.6.7"
@@ -13926,6 +13959,15 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10/3747c9b9dabdfa5b840630c39b2c764afb3c3762816f3148afe7d516edc1889b60b666adeb4e98761c26fb8ed5ba3a9770df5c0450443daf4cdfac110bc6df1c
+  languageName: node
+  linkType: hard
+
+"vitest-indexeddb@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "vitest-indexeddb@npm:0.0.2"
+  dependencies:
+    fake-indexeddb: "npm:^6.2.5"
+  checksum: 10/af7ac1c3812194b43b1204dc97b39cf6decf8bfd9f995fb2a35ed786553d768c18ef2f559d9bfdd8b0a046492d717167e8e6bb7a64354048f74b888f12395c1c
   languageName: node
   linkType: hard
 
