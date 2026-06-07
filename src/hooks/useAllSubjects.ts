@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { GameItem } from '../core/types'
 import { assignments, subjects } from '../core/db'
-import _ from 'lodash'
+import { allGameItems } from '../core/db/gameItems'
 import { useUser } from '../contexts/UserContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 export const useAllSubjects = (enabled: boolean = true) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(enabled)
   const { user } = useUser()
+  const { availableSubjects, gameLevelMin, gameLevelMax } = useSettings()
 
   const runQuery = useCallback(() => {
     if (!enabled) {
@@ -21,33 +23,15 @@ export const useAllSubjects = (enabled: boolean = true) => {
       return
     }
 
-    const allAssignments = assignments.find({}, { sort: { subject_id: 1 } }).fetch()
-
-    const kanaSubjects = subjects.find({ isKana: true }, { sort: { id: 1 } }).fetch()
-
-    const subjectIds = _.map(allAssignments, 'subject_id')
-    const relatedSubjects = subjects.find({ id: { $in: subjectIds } }, { sort: { id: 1 } }).fetch()
-    const subjectMap = _.keyBy(relatedSubjects, 'id')
-
-    const now = new Date()
-    const combined: GameItem[] = kanaSubjects.map(subject => ({ subject }))
-
-    allAssignments.forEach(a => {
-      const sub = subjectMap[a.subject_id]
-
-      if (sub) {
-        const availableAt = a.available_at ? new Date(a.available_at) : new Date(8640000000000000)
-        combined.push({
-          subject: sub,
-          assignment: a,
-          isReviewable: availableAt < now,
-        })
-      }
+    const combined = allGameItems({
+      subjectTypes: availableSubjects,
+      gameLevelMin,
+      gameLevelMax,
     })
 
     setItems(combined)
     setLoading(false)
-  }, [user, enabled])
+  }, [user, enabled, availableSubjects, gameLevelMin, gameLevelMax])
 
   useEffect(() => {
     runQuery()

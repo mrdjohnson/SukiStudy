@@ -96,17 +96,11 @@ describe('useLearnedSubjects', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    expect(subjectIdsOf(result)).toEqual([
-      dueKanji.id,
-      hiragana.id,
-      katakana.id,
-      futureVocabulary.id,
-    ])
+    expect(subjectIdsOf(result)).toEqual([hiragana.id, katakana.id, dueKanji.id])
     expect(result.current.items.map(item => item.isReviewable)).toEqual([
+      undefined,
+      undefined,
       true,
-      undefined,
-      undefined,
-      false,
     ])
   })
 
@@ -147,7 +141,7 @@ describe('useLearnedSubjects', () => {
       wrapper: HookTestProviders,
     })
 
-    await waitFor(() => expect(subjectIdsOf(result)).toEqual([visibleRadical.id, hiragana.id]))
+    await waitFor(() => expect(subjectIdsOf(result)).toEqual([hiragana.id, visibleRadical.id]))
   })
 
   it('uses content preferences for level bounds', async () => {
@@ -211,7 +205,7 @@ describe('useLearnedSubjects', () => {
       wrapper: HookTestProviders,
     })
 
-    await waitFor(() => expect(subjectIdsOf(result)).toEqual([radical.id, kanji.id]))
+    await waitFor(() => expect(subjectIdsOf(result)).toEqual([radical.id]))
 
     act(() => {
       assignments.updateOne(

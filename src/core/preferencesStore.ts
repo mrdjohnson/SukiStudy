@@ -62,8 +62,18 @@ export const getLocalNotificationPreferences = async () => {
   if (!schedule) return null
 
   return {
+    ...current,
     schedule,
     updatedAt: current.notification?.updatedAt ?? 0,
+  }
+}
+
+export const getContentPreferences = async () => {
+  const current = await getPreferencesDocument()
+
+  return {
+    ...defaultContentPreferences,
+    ...current?.content,
   }
 }
 

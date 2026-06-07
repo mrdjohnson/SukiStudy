@@ -1,7 +1,8 @@
 import _ from 'lodash'
 import { assignments, subjects } from '../../core/db'
-import type { Subject } from '../../core/types'
-import { getLocalNotificationPreferences } from '../../core/preferencesStore'
+import { gameItemsToLearn } from '../../core/db/gameItems'
+import type { ContentPreferenceState, Subject } from '../../core/types'
+import { getContentPreferences, getLocalNotificationPreferences } from '../../core/preferencesStore'
 
 type NotificationAction = {
   action: string
@@ -58,31 +59,15 @@ const subjectToNotificationData = (subject?: Subject) => {
   }
 }
 
-const getDueReviewItem = (now: number) => {
-  const dueAssignments = assignments
-    .find(
-      { hidden: false, available_at: { $not: undefined }, subject_id: { $not: undefined } },
-      { sort: { available_at: 1 }, limit: 10 },
-    )
-    .fetch()
-    .filter(assignment => new Date(assignment.available_at!).getTime() <= now)
+const getDueReviewItem = (now: number, contentPreferences: ContentPreferenceState) => {
+  const possibleItems = gameItemsToLearn({ now, ...contentPreferences, includeKana: undefined })
 
-  const assignmentMap = _.keyBy(dueAssignments, 'subject_id')
+  const { subject, assignment } = _.sample(possibleItems) ?? {}
 
-  const [dueSubject] = subjects
-    .find(
-      {
-        id: { $in: _.shuffle(dueAssignments).map(assignment => assignment.subject_id) },
-      },
-      { limit: 1 },
-    )
-    .fetch()
-
-  const subject = dueSubject || subjects.findOne({})
   const notificationData = subjectToNotificationData(subject)
 
   return {
-    assignment: assignmentMap[subject.id],
+    assignment,
     ...notificationData,
   }
 }
@@ -92,9 +77,9 @@ export async function buildSubjectNotification({
   now,
 }: DecisionContext): Promise<ReviewNotificationDecision> {
   try {
-    const preferences = await getLocalNotificationPreferences()
+    const notificationPreferences = await getLocalNotificationPreferences()
 
-    if (!preferences?.schedule.enabled) {
+    if (!notificationPreferences?.schedule.enabled) {
       return { kind: 'skip', reason: 'notifications-disabled' }
     }
 
@@ -102,10 +87,12 @@ export async function buildSubjectNotification({
       return { kind: 'skip', reason: 'unsupported-trigger' }
     }
 
+    const contentPreferences = await getContentPreferences()
+
     await subjects.isReady()
     await assignments.isReady()
 
-    const reviewItem = getDueReviewItem(now)
+    const reviewItem = getDueReviewItem(now, contentPreferences)
 
     if (!reviewItem) {
       return { kind: 'skip', reason: 'no-review-due' }

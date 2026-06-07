@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { SubjectType } from '../core/types'
-import type { GameItem, Subject } from '../core/types'
+import type { GameItem } from '../core/types'
 import { assignments, subjects } from '../core/db'
+import { availableGameItems } from '../core/db/gameItems'
 import { useUser } from '../contexts/UserContext'
 import { useSettings } from '../contexts/SettingsContext'
 import _ from 'lodash'
@@ -25,14 +25,6 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
       return
     }
 
-    // Query assignments locally
-    // Filter: SRS Stage > 0 (Learned)
-    const learnedAssignments = assignments
-      .find({ srs_stage: { $gt: 0 } }, { sort: { available_at: 1 } })
-      .fetch()
-
-    const learnedSubjectIds = learnedAssignments.map(a => a.subject_id)
-
     let subjectTypes = availableSubjects
 
     if (gameId) {
@@ -44,59 +36,24 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
         .value()
     }
 
-    // Fetch corresponding subjects
-    const learnedSubjects = subjects
-      .find({
-        id: { $in: learnedSubjectIds },
-        object: { $in: subjectTypes },
-        level: { $gte: gameLevelMin, $lte: gameLevelMax },
-      })
-      .fetch()
-
-    const kanaSubjectTypes = _.intersection(subjectTypes, [
-      SubjectType.HIRAGANA,
-      SubjectType.KATAKANA,
-    ])
-
-    let kanaSubjects: Subject[] = []
-
-    if (!_.isEmpty(kanaSubjectTypes)) {
-      kanaSubjects = subjects
-        .find({
-          object: { $in: kanaSubjectTypes },
-          level: { $gte: gameLevelMin, $lte: gameLevelMax },
-        })
-        .fetch()
-    }
-
-    const subjectMap = _.keyBy(learnedSubjects, 'id')
-
-    const now = new Date()
-    const combined: GameItem[] = kanaSubjects.map(subject => ({ subject }))
-
-    learnedAssignments.forEach(a => {
-      const sub = subjectMap[a.subject_id]
-
-      if (sub) {
-        const availableAt = a.available_at ? new Date(a.available_at) : new Date(8640000000000000)
-        combined.push({
-          subject: sub,
-          assignment: a,
-          isReviewable: availableAt < now,
-        })
-      }
-    })
-
-    // Sort: Reviewable first
-    combined.sort((a, b) => {
-      if (a.isReviewable && !b.isReviewable) return -1
-      if (!a.isReviewable && b.isReviewable) return 1
-      return 0
+    const combined = availableGameItems({
+      subjectTypes,
+      gameLevelMin,
+      gameLevelMax,
     })
 
     setItems(combined)
     setLoading(false)
-  }, [user, enabled, availableSubjects, getGameSettings, gameId])
+  }, [
+    user,
+    enabled,
+    availableSubjects,
+    disabledSubjects,
+    getGameSettings,
+    gameId,
+    gameLevelMin,
+    gameLevelMax,
+  ])
 
   useEffect(() => {
     runQuery()
