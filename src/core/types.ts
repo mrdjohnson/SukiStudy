@@ -241,6 +241,17 @@ export interface GameDefinition extends GameMetadata {
 
 export type Theme = 'light' | 'dark' | 'auto'
 
+export interface ThemeBackground {
+  id: string
+  portraitUrl: string
+  landscapeUrl: string
+  thumbUrl: string
+  authorName: string
+  authorUrl: string
+  unsplashUrl: string
+  alt: string | null
+}
+
 export type NotificationCadence = 'daily' | 'custom' | 'weekly'
 
 export type NotificationSchedule = {

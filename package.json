@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite build && vite preview",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 assets/apple-touch-icon.png",
+    "generate-wallpapers": "vite-node scripts/generate-wallpapers.ts",
     "scrape-kana": "tsx scripts/scrape-hiragana.ts && tsx scripts/scrape-katakana.ts",
     "prepare": "husky",
     "view-bundles": "vite-bundle-visualizer",
