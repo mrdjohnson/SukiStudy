@@ -18,14 +18,14 @@ import {
   UnstyledButton,
   Badge,
   Stack,
-  Input,
   useMatches,
   Center,
   Divider,
   Container,
-  Select,
   Tooltip,
   InputClearButton,
+  ActionIcon,
+  Radio,
 } from '@mantine/core'
 import { useUser } from '../contexts/UserContext'
 import _ from 'lodash'
@@ -34,6 +34,8 @@ import { colorByType } from '../utils/subject'
 import { GameItemIcon } from '../components/GameItemIcon'
 import { useLocalStorage } from '@mantine/hooks'
 import { encounterService } from '../services/encounterService'
+import { IconAdjustments, IconCheck, IconSearch } from '@tabler/icons-react'
+import { Sheet } from 'react-modal-sheet'
 
 type GameItemWithStat = GameItem & {
   stats?: GameItemStat
@@ -42,6 +44,13 @@ type GameItemWithStat = GameItem & {
 }
 
 const SRS_GROUPS = ['Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']
+
+const KanjiByType = {
+  [SubjectType.HIRAGANA]: '平仮名',
+  [SubjectType.KATAKANA]: '片仮名',
+  [SubjectType.RADICAL]: '部首',
+  [SubjectType.VOCABULARY]: '語彙',
+}
 
 const getStageLabel = (stage?: number) => {
   if (stage === undefined || stage === 0) return 'Lesson'
@@ -89,6 +98,19 @@ export const Browse: React.FC = () => {
     md: 60,
   })
 
+  const [optionsOpened, setOptionsOpened] = useState(false)
+
+  const reset = () => {
+    setLevels([])
+    setOnlyLearned(false)
+    setSrsFilter([])
+    setSearchQuery('')
+    setShowLevelSelect(false)
+    setOptionsOpened(false)
+    setTypes([])
+    setSortBy('default')
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
@@ -99,7 +121,9 @@ export const Browse: React.FC = () => {
         const assignmentMap = assignmentMapRef.current || {}
         const itemStatMap = itemStatMapRef.current || {}
 
-        const allSubjects = subjects.find({ object: { $in: types } }, { sort: { id: 1 } }).fetch()
+        const allSubjects = subjects
+          .find({ object: types[0] ? { $in: types } : { $not: undefined } }, { sort: { id: 1 } })
+          .fetch()
 
         setItems(
           _.chain(allSubjects)
@@ -237,6 +261,18 @@ export const Browse: React.FC = () => {
     return levels.join(', ')
   }, [levels])
 
+  const typeGroups = useMemo(() => {
+    return types.length === 0
+      ? [
+          SubjectType.HIRAGANA,
+          SubjectType.KATAKANA,
+          SubjectType.KANJI,
+          SubjectType.VOCABULARY,
+          SubjectType.RADICAL,
+        ]
+      : types
+  }, [types])
+
   if (loading && items.length === 0)
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -247,92 +283,25 @@ export const Browse: React.FC = () => {
     )
 
   return (
-    <Container size="lg" className="size-full max-w-full px-0! sm:px-2! md:px-4!">
+    <Container size="lg" className="size-full max-w-full px-2! sm:px-2! md:px-4!">
       {/* Filters Header */}
-      <Paper p="md" withBorder radius="md" mb="xl">
-        <Group justify="space-between" mb="md">
-          <Group>
-            <Title order={2}>Browse</Title>
-            {user && !isGuest && (
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={() => setShowLevelSelect(true)}
-                rightSection={<Icons.ChevronRight size={14} />}
-              >
-                Levels: {levelsLabel}
-              </Button>
-            )}
-          </Group>
-        </Group>
+      <Group wrap="nowrap" className="pb-4">
+        <TextInput
+          radius="xl"
+          placeholder="Search English, Kana, or Romanji..."
+          leftSection={<IconSearch size={16} />}
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.currentTarget.value)}
+          rightSection={
+            <InputClearButton onClick={() => setSearchQuery('')} hidden={!searchQuery} />
+          }
+          className="w-full"
+        />
 
-        <Stack gap="md">
-          <Select
-            label="Sort By"
-            placeholder="Sort items..."
-            data={[
-              { value: 'default', label: 'Default' },
-              { value: 'recent', label: 'Recently Reviewed' },
-              { value: 'reviews', label: 'Most Reviewed' },
-              { value: 'score_asc', label: 'Lowest Score' },
-              { value: 'score_desc', label: 'Highest Score' },
-            ]}
-            value={sortBy}
-            onChange={setSortBy}
-            allowDeselect={false}
-          />
-
-          <TextInput
-            label="Search"
-            placeholder="Search English, Kana, or Romanji..."
-            leftSection={<Icons.Sparkles size={16} />}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.currentTarget.value)}
-            rightSection={
-              <InputClearButton onClick={() => setSearchQuery('')} hidden={!searchQuery} />
-            }
-          />
-
-          {user && (
-            <Group gap="xs" className="justify-evenly! sm:justify-start! mt-1">
-              <Chip checked={onlyLearned} onChange={setOnlyLearned} variant="outline">
-                Learned Only
-              </Chip>
-              <Divider orientation="vertical" />
-              <Chip.Group multiple value={srsFilter} onChange={setSrsFilter}>
-                {SRS_GROUPS.map(label => (
-                  <Chip key={label} value={label} variant="light">
-                    {label}
-                  </Chip>
-                ))}
-              </Chip.Group>
-            </Group>
-          )}
-
-          <Box>
-            <Input.Label>Subject Types</Input.Label>
-
-            <Chip.Group
-              multiple
-              value={types}
-              onChange={types => setTypes(_.intersection(_.values(SubjectType), types))}
-            >
-              <Group gap="xs" className="justify-evenly! sm:justify-start! mt-1">
-                {_.map(SubjectType, subjectType => (
-                  <Chip
-                    key={subjectType}
-                    value={subjectType}
-                    variant="outline"
-                    color={colorByType[subjectType]}
-                  >
-                    {_.startCase(subjectType)}
-                  </Chip>
-                ))}
-              </Group>
-            </Chip.Group>
-          </Box>
-        </Stack>
-      </Paper>
+        <ActionIcon variant="subtle" onClick={() => setOptionsOpened(true)} radius="xl">
+          <IconAdjustments />
+        </ActionIcon>
+      </Group>
 
       {filteredItems.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
@@ -340,8 +309,8 @@ export const Browse: React.FC = () => {
           <p>No items match your filters.</p>
         </div>
       ) : (
-        <Stack gap="xl">
-          {types.map(type => {
+        <Stack gap="xl" className="pb-4">
+          {typeGroups.map(type => {
             const groupItems = groups[type]
 
             if (!groupItems) return null
@@ -462,8 +431,9 @@ export const Browse: React.FC = () => {
         title="Select Levels"
         centered
         scrollAreaComponent={Box}
+        zIndex={300}
       >
-        <SimpleGrid cols={5} spacing="xs">
+        <SimpleGrid cols={5} spacing="xs" translate="no">
           {Array.from({ length: 60 }, (_, i) => i + 1).map(l => (
             <Button
               key={l}
@@ -477,6 +447,217 @@ export const Browse: React.FC = () => {
           ))}
         </SimpleGrid>
       </Modal>
+
+      <Sheet isOpen={optionsOpened} onClose={() => setOptionsOpened(false)} style={{ zIndex: 200 }}>
+        <Sheet.Container className="rounded-t-2xl! rounded-b-none! overflow-hidden max-h-fit max-w-4xl! mx-auto! left-0! right-0!">
+          <Sheet.Content className="relative">
+            <Paper className="rounded-none!  md:px-4">
+              <Box className="py-4">
+                <Center>
+                  <Sheet.DragIndicator />
+                </Center>
+              </Box>
+
+              <Paper pt={0} radius="md" className="p-2">
+                <Stack gap="md">
+                  {user && !isGuest && (
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => setShowLevelSelect(true)}
+                      rightSection={<Icons.ChevronRight size={14} />}
+                    >
+                      Levels: {levelsLabel}
+                    </Button>
+                  )}
+
+                  <Box>
+                    <Text className="pb-2!">Subject Type {!types[0] && '(All)'}</Text>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Radio.Card
+                        className="row-span-2 bg-transparent! rounded-xl! p-3 text-start! flex! backdrop-blur-[1px]! h-full bg-linear-to-br from-white/20 to-transparent relative"
+                        onClick={() => setTypes(types => _.xor(types, [SubjectType.KANJI]))}
+                        checked={types.includes(SubjectType.KANJI)}
+                      >
+                        <div
+                          className="absolute top-0 w-full h-full text-6xl opacity-5 flex justify-center text-shadow-lg text-shadow-white text-black blur-[2px]"
+                          translate="no"
+                        >
+                          <Center>漢字</Center>
+                        </div>
+
+                        <span className="p-2 font-semibold text-xl">Kanji</span>
+                        <div className="absolute bottom-3 right-3">
+                          <Radio.Indicator
+                            icon={IconCheck}
+                            variant="outline"
+                            color={colorByType[SubjectType.KANJI]}
+                            className="bg-transparent!"
+                          />
+                        </div>
+                      </Radio.Card>
+
+                      {_.map(SubjectType, subjectType => {
+                        if (subjectType === SubjectType.KANJI) return null
+                        return (
+                          <Radio.Card
+                            className=" bg-black/30! rounded-xl! relative px-3! text-start! flex! py-3! overflow-hidden"
+                            onClick={() => setTypes(types => _.xor(types, [subjectType]))}
+                            checked={types.includes(subjectType)}
+                          >
+                            <div
+                              className="absolute -top-2 left-0 w-full h-full text-6xl text-black/60 text-shadow-white/20 text-shadow-sm opacity-20 text-center"
+                              translate="no"
+                            >
+                              {KanjiByType[subjectType]}
+                            </div>
+                            <Group className="justify-between! w-full">
+                              <span className="font-semibold font-lg">
+                                {_.startCase(subjectType)}
+                              </span>
+
+                              <Radio.Indicator
+                                icon={IconCheck}
+                                variant="outline"
+                                color={colorByType[subjectType]}
+                                className="bg-transparent!"
+                              />
+                            </Group>
+                          </Radio.Card>
+                        )
+                      })}
+                    </div>
+                  </Box>
+
+                  <Box>
+                    <Text className="pb-2!">Sort Order</Text>
+
+                    <Radio.Group
+                      onChange={setSortBy}
+                      value={sortBy}
+                      className="rounded-xl bg-black/60 p-2 px-8 relative overflow-hidden bg-linear-to-br to-white/20 from-transparent via-transparent via-80%"
+                      size="lg"
+                    >
+                      <div className="absolute -top-4 -left-8 w-24 h-24 bg-white/20 blur-2xl rounded-full group-hover:bg-white/30 transition-all"></div>
+
+                      <Stack className="py-2">
+                        <div onClick={() => setSortBy('default')}>
+                          <Radio
+                            classNames={{ body: 'justify-between! items-center' }}
+                            labelPosition="left"
+                            value="default"
+                            label="Default"
+                          />
+                        </div>
+
+                        <div onClick={() => setSortBy('recent')}>
+                          <Radio
+                            classNames={{ body: 'justify-between! items-center' }}
+                            labelPosition="left"
+                            value="recent"
+                            label="Recently Reviewed"
+                          />
+                        </div>
+
+                        <div onClick={() => setSortBy('reviews')}>
+                          <Radio
+                            classNames={{ body: 'justify-between! items-center' }}
+                            labelPosition="left"
+                            value="reviews"
+                            label="Most Reviewed"
+                          />
+                        </div>
+
+                        <div onClick={() => setSortBy('score_asc')}>
+                          <Radio
+                            classNames={{ body: 'justify-between! items-center' }}
+                            labelPosition="left"
+                            value="score_asc"
+                            label="Lowest Score"
+                          />
+                        </div>
+
+                        <div onClick={() => setSortBy('score_desc')}>
+                          <Radio
+                            classNames={{ body: 'justify-between! items-center' }}
+                            labelPosition="left"
+                            value="score_desc"
+                            label="Highest Score"
+                          />
+                        </div>
+                      </Stack>
+                    </Radio.Group>
+                  </Box>
+
+                  <Box>
+                    <Text className="pb-2!">Proficiency</Text>
+
+                    {user && (
+                      <Group gap="xs" className="justify-evenly! sm:justify-start! mt-1">
+                        <Chip checked={onlyLearned} onChange={setOnlyLearned} variant="outline">
+                          Learned Only
+                        </Chip>
+                        <Divider orientation="vertical" />
+                        <Chip.Group multiple value={srsFilter} onChange={setSrsFilter}>
+                          {SRS_GROUPS.map(label => (
+                            <Chip key={label} value={label} variant="light">
+                              {label}
+                            </Chip>
+                          ))}
+                        </Chip.Group>
+                      </Group>
+                    )}
+                  </Box>
+                </Stack>
+              </Paper>
+
+              <Paper className="z-10 sticky bottom-0 w-full pt-2 max-w-2xl mx-auto">
+                <Group className="p-2 px-8 justify-between!">
+                  <Button size="lg" variant="outline" onClick={reset} radius="lg">
+                    Reset
+                  </Button>
+
+                  <Button size="lg" onClick={() => setOptionsOpened(false)} radius="lg">
+                    Close
+                  </Button>
+                </Group>
+              </Paper>
+            </Paper>
+          </Sheet.Content>
+        </Sheet.Container>
+
+        <Sheet.Backdrop
+          onClick={() => setOptionsOpened(false)}
+          className=" backdrop-blur-xs bg-black/30"
+        />
+      </Sheet>
     </Container>
   )
 }
+
+// export const Browse = () => {
+//   const navigate = useNavigate()
+//   const [opened, { open, close }] = useDisclosure(false)
+
+//   const isMobile = useMatches({
+//     base: true,
+//     sm: false,
+//   })
+
+//   useEffect(() => {
+//     open()
+//   }, [])
+
+//   if (isMobile) {
+//     openModal({
+//       id: 'browse',
+//       fullScreen: isMobile,
+//       children: <BrowseContent />,
+//     })
+
+//     return
+//   }
+
+//   return <BrowseContent />
+// }

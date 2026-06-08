@@ -10,7 +10,7 @@ interface ReviewHistoryChartProps {
   results: EncounterItem[]
 }
 
-export const ReviewHistoryChart: React.FC<ReviewHistoryChartProps> = ({ results }) => {
+const ReviewHistoryChart: React.FC<ReviewHistoryChartProps> = ({ results }) => {
   const [dateRange, setDateRange] = useState<[string, string]>([
     moment().subtract(6, 'days').format('YYYY-MM-DD'),
     moment().format('YYYY-MM-DD'),
@@ -175,3 +175,5 @@ export const ReviewHistoryChart: React.FC<ReviewHistoryChartProps> = ({ results 
     </div>
   )
 }
+
+export default ReviewHistoryChart

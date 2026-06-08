@@ -58,12 +58,20 @@ const DashboardCarouselItem = ({
     openLogModal()
   })
 
+  const circle = (
+    <div
+      className="absolute top-0 -right-8 w-20 h-20  blur-2xl rounded-full group-hover:bg-white/30 transition-all"
+      style={{ backgroundColor: `var(--mantine-color-${color}-5)` }}
+    />
+  )
+
   if (message.type === 'main') {
     return (
       <Box
         className="bg-linear-to-r saturate-200 from-primary to-secondary via-primary rounded-2xl p-8 px-12 text-white shadow-xl relative overflow-hidden h-full w-full mx-2"
         onMouseDown={handleDoubleMouseDown}
       >
+        {circle}
         <div className="relative z-10 text-white">
           <h1 className="text-3xl font-bold">{message.title}</h1>
 
@@ -91,28 +99,38 @@ const DashboardCarouselItem = ({
       shadow="sm"
       p="md"
       withBorder
-      className="my-auto! rounded-2xl! relative overflow-hidden bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 px-6! w-full mx-2"
+      className="my-auto! rounded-2xl! relative overflow-hidden bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 px-6! w-full mx-2 backdrop-blur-xs"
       style={{
         borderLeft: `4px solid var(--mantine-color-${color}-5)`,
       }}
     >
+      {circle}
       <div className="flex items-start gap-4">
         {/* Icon Side */}
-        <ThemeIcon size={42} radius="md" variant="light" color={color} className="shrink-0">
-          {getMessageIcon(message.type)}
-        </ThemeIcon>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <Text
-              fw={700}
-              size="lg"
-              mb={4}
-              className="leading-tight text-gray-900 dark:text-gray-100"
-            >
-              {message.title}
-            </Text>
+            <Group wrap="nowrap">
+              <ThemeIcon
+                size={42}
+                radius="md"
+                variant="light"
+                color={color}
+                className="shrink-0 inline-flex"
+              >
+                {getMessageIcon(message.type)}
+              </ThemeIcon>
+
+              <Text
+                fw={700}
+                size="lg"
+                mb={4}
+                className="leading-tight text-gray-900 dark:text-gray-100"
+              >
+                {message.title}
+              </Text>
+            </Group>
 
             {/* Dismiss */}
             <CloseButton
@@ -167,12 +185,12 @@ export const DashboardMessageCarousel = () => {
       withControls={false}
       withIndicators={messages.length > 1}
       classNames={{
-        root: clsx(messages.length > 1 && 'pb-12'),
-        indicators: 'mt-9! py-2 bg-primary/20 rounded-full',
+        root: clsx('relative', messages.length > 1 && 'pb-14!'),
+        indicators: 'absolute! -bottom-4 right-0 left-0 mt-4',
       }}
     >
       {messages.map(message => (
-        <CarouselSlide key={message.id} className="flex">
+        <CarouselSlide key={message.id} className="flex relative bg-transparent!">
           <DashboardCarouselItem message={message} onDismiss={() => dismissMessage(message.id)} />
         </CarouselSlide>
       ))}

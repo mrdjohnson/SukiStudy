@@ -58,9 +58,10 @@ export const MultiChoiceSelectionItem = ({
       onClick={() => handleAnswer(option)}
       disabled={!!selectedAnswer || disabled}
       className={clsx(
-        'relative p-4 rounded-xl border-2 transition-all font-medium text-xl! w-full',
+        'relative p-2 rounded-xl border-2 transition-all font-medium text-xl! w-full max-h-20',
         btnClass,
       )}
+      translate="no"
     >
       <span className="relative inline-block">
         {option}

@@ -1,33 +1,35 @@
-import React from 'react'
-import { SubjectType } from '../core/types'
-import type { Subject } from '../core/types'
+import type { FC } from 'react'
 import { Icons } from './Icons'
-import { GameItemIcon } from './GameItemIcon'
-import { colorByType, themeByType } from '../utils/subject'
 import { clsx } from 'clsx'
-import { Badge, Stack, ActionIcon } from '@mantine/core'
+import { ActionIcon } from '@mantine/core'
 import { modals } from '@mantine/modals'
 
 interface FlashcardHeaderProps {
   modalId?: string
-  subject: Subject
-  type: SubjectType
-  playAudio: (e: React.MouseEvent) => void
   onClose?: () => void
 }
 
-export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
-  modalId,
-  subject,
-  type,
-  playAudio,
-}) => {
-  const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning
-  const primaryReading = subject.readings?.find(r => r.primary)?.reading
-
+export const FlashcardHeader: FC<FlashcardHeaderProps> = ({ modalId, onClose }) => {
   return (
-    <div className={clsx(`p-6 border-b relative`, themeByType[type])}>
-      <div className="flex gap-4">
+    <div className={clsx(`p-2`)}>
+      {/* <div className="rounded-full size-20 fixed -translate-x-1/2 -translate-y-1/2 bg-linear-to-br from-white/20 to-transparent -z-10"></div> */}
+      {modalId && (
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          onClick={e => {
+            e.stopPropagation()
+            onClose?.()
+            if (modalId) modals.close(modalId)
+          }}
+          className="border! border-transparent! border-r-white/20! border-b-white/20!"
+          radius="xl"
+          hiddenFrom="sm"
+        >
+          <Icons.X size={14} />
+        </ActionIcon>
+      )}
+      {/* <div className="flex gap-4" translate="no">
         <GameItemIcon subject={subject} size="lg" />
 
         <div className="flex-1 flex flex-col justify-center">
@@ -58,21 +60,6 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
             <Badge color={colorByType[type]} className="dark:text-white/80!">
               {type}
             </Badge>
-
-            {modalId && (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                onClick={e => {
-                  e.stopPropagation()
-                  modals.close(modalId)
-                }}
-                className="bg-white/20 hover:bg-white/40"
-                hiddenFrom="sm"
-              >
-                <Icons.X size={20} />
-              </ActionIcon>
-            )}
           </div>
 
           {subject.level > 0 && (
@@ -95,7 +82,7 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
             </a>
           )}
         </Stack>
-      </div>
+      </div> */}
     </div>
   )
 }

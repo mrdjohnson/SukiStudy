@@ -89,7 +89,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   return (
     <Paper
       className={clsx(
-        'text-center relative rounded-2xl pb-8 mb-12 h-48 dark:bg-black/30!',
+        'text-center relative rounded-2xl! pb-4 mb-6 h-48 dark:bg-black/30!',
         isInteractionEnabled && 'shadow-lg cursor-pointer group',
         className,
       )}
@@ -101,6 +101,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       }}
       withBorder
       shadow="md"
+      translate="no"
     >
       <SimpleGrid cols={3} className="pb-4 px-2">
         {/* Review Badge - Top Left */}

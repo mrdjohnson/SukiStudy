@@ -9,11 +9,20 @@ export const GameItemIcon = ({
   size = 'sm',
 }: {
   subject: Subject
-  size?: 'lg' | 'sm'
+  size?: 'lg' | 'sm' | 'xs'
 }) => {
   const color = bgColorByType[subject.object || 'vocabulary']
 
   const classes = useMemo(() => {
+    if (size === 'xs') {
+      return {
+        icon: 'size-8 min-w-8 rounded-md',
+        small: 'text-xs font-semibold',
+        medium: 'text-sm font-semibold',
+        large: 'text-lg font-bold',
+      }
+    }
+
     if (size === 'sm') {
       return {
         icon: 'h-12 min-w-12 rounded-lg',
@@ -41,6 +50,7 @@ export const GameItemIcon = ({
         (subject.characters?.length || 0) > 2 && classes.medium,
         (subject.characters?.length || 0) > 4 && classes.small,
       )}
+      translate="no"
     >
       {subject.characters || (
         <div className={clsx(classes.icon, 'w-fit')}>

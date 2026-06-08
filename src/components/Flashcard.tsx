@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { SubjectType } from '../core/types'
-import type { Subject, StudyMaterial } from '../core/types'
+import type { Subject, StudyMaterial, ReadingType } from '../core/types'
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
 import { ARTWORK_URLS } from '../utils/artworkUrls'
@@ -13,26 +13,44 @@ import {
   Group,
   Loader,
   Box,
-  Text,
-  Typography,
   Paper,
+  Text,
+  Badge,
+  HoverCard,
+  Center,
+  SegmentedControl,
+  SimpleGrid,
   useMatches,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
-import clsx from 'clsx'
+import { useDisclosure, useIntersection, useElementSize } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { studyMaterials, subjects } from '../core/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
 import Markdown from 'react-markdown'
-import { themeByType } from '../utils/subject'
 import useReactivity from '../hooks/useReactivity'
 import { encounterService } from '../services/encounterService'
-import { FlashcardHeader } from './FlashcardHeader'
+import {
+  IconPlayerPlay,
+  IconInfoCircle,
+  IconChevronCompactUp,
+  IconBulb,
+  IconChevronLeft,
+  IconChevronRight,
+} from '@tabler/icons-react'
+import { DynamicLanguageIcon } from './DynamicLanguageIcon'
+import { useSettings } from '../contexts/SettingsContext'
+import { SubjectHero } from './SubjectHero'
 
-const ReviewHistoryChart = React.lazy(() =>
-  import('./ReviewHistoryChart').then(m => ({ default: m.ReviewHistoryChart })),
-)
+const READING_EXPLANATIONS: Record<string, string> = {
+  onyomi:
+    'The Chinese-derived reading of a kanji, typically used when the kanji is part of a compound word.',
+  kunyomi:
+    'The native Japanese reading of a kanji, often used when the kanji stands alone as a word.',
+  nanori: 'Specialized readings used primarily for Japanese names.',
+}
+
+const ReviewHistoryChart = React.lazy(() => import('./ReviewHistoryChart'))
 
 type FlashcardProps = {
   index?: number
@@ -103,7 +121,7 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType; url?: string }> =
         <img
           src={imageUrl}
           alt={`${id} mnemonic visualization`}
-          className="rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 max-h-64 mx-auto object-contain transition-transform group-hover:scale-[1.02]"
+          className="rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 max-h-64 mx-auto object-contain transition-transform group-hover:scale-[1.02] backdrop-blur-sm! w-full bg-linear-to-br from-white/20 to-transparent"
           onError={handleError}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-lg pointer-events-none">
@@ -125,17 +143,19 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType; url?: string }> =
         styles={{ body: { backgroundColor: 'black' } }}
         zIndex={300}
       >
-        <div className="relative w-full h-screen flex items-center justify-center bg-black">
+        <div
+          className="relative w-full h-svh flex items-center justify-center bg-linear-to-br from-white/20 to-transparent backdrop-blur-sm!"
+          onClick={e => {
+            e.stopPropagation()
+            close()
+          }}
+        >
           <ActionIcon
             variant="filled"
             color="gray"
             size="lg"
             radius="xl"
             style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}
-            onClick={e => {
-              e.stopPropagation()
-              close()
-            }}
           >
             <Icons.X size={20} />
           </ActionIcon>
@@ -144,7 +164,7 @@ const MnemonicImage: React.FC<{ id: string; type: SubjectType; url?: string }> =
             fit="contain"
             h="90vh"
             w="auto"
-            onClick={e => e.stopPropagation()}
+            className="backdrop-blur-sm! rounded-xl!"
           />
         </div>
       </Modal>
@@ -159,11 +179,17 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   onIndexChanged,
   modalId,
 }: FlashcardProps) => {
-  const [components, setComponents] = useState<Subject[]>([])
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null)
-  const [audioIndex, setAudioIndex] = useState(0)
   const [itemIndex, setItemIndex] = useState(index)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const mnemonicScrollRef = useRef<HTMLDivElement>(null)
+  const [mnemonicTab, setMnemonicTab] = useState('meaning')
+  const [isReadingJapanese, setIsReadingJapanese] = useState(true)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioIndexRef = useRef(0)
+
+  const { ref: meaningSlideRef, height: meaningHeight } = useElementSize()
+  const { ref: readingSlideRef, height: readingHeight } = useElementSize()
 
   const allItems = useMemo(() => {
     return items || subjects.find({ id: { $in: ids } }).fetch()
@@ -182,9 +208,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   }, [subject?.id])
 
   useEffect(() => {
-    setAudioIndex(0)
     setStudyMaterial(null)
-    setComponents([])
 
     if (!subject) {
       return
@@ -193,14 +217,30 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     const studyMaterial = studyMaterials.findOne({ subject_id: subject.id })
 
     setStudyMaterial(studyMaterial || null)
+    setMnemonicTab('meaning')
+  }, [subject?.id])
 
-    if (!_.isEmpty(subject.component_subject_ids)) {
-      const subjectComponents = subjects
-        .find({ id: { $in: subject.component_subject_ids } })
-        .fetch()
-      setComponents(subjectComponents)
+  useEffect(() => {
+    if (mnemonicScrollRef.current) {
+      const index = mnemonicTab === 'meaning' ? 0 : 1
+      const slideWidth = mnemonicScrollRef.current.offsetWidth
+      mnemonicScrollRef.current.scrollTo({
+        left: index * slideWidth,
+        behavior: 'smooth',
+      })
     }
-  }, [subject])
+  }, [mnemonicTab])
+
+  const handleMnemonicScrollEnd = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft
+    const width = e.currentTarget.offsetWidth
+    if (width === 0) return
+    const index = Math.round(scrollLeft / width)
+    const newTab = index === 0 ? 'meaning' : 'reading'
+    if (newTab !== mnemonicTab) {
+      setMnemonicTab(newTab)
+    }
+  }
 
   useEffect(() => {
     setItemIndex(index)
@@ -216,6 +256,92 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     onIndexChanged?.(itemIndex - 1)
   }
 
+  const { ref: heroRef, entry } = useIntersection({
+    threshold: 0.5,
+  })
+
+  // The pinned header is visible if the hero is no longer intersecting the viewport
+  const pinned = entry ? !entry.isIntersecting : false
+
+  const meanings = useMemo(() => {
+    if (!subject) return []
+    return _.chain(subject.meanings)
+      .map('meaning')
+      .concat(..._.map(subject.auxiliary_meanings, 'meaning'))
+      .uniq()
+      .value()
+  }, [subject])
+
+  const readingGroups = useMemo(() => {
+    if (!subject || !subject.readings) return []
+
+    return _.chain(subject.readings)
+      .groupBy(r => r.type || '')
+      .map((readings, type) => ({
+        type: type || ('' as ReadingType),
+        readings: readings.map(reading => reading.reading).join(', '),
+      }))
+      .filter(({ readings }) => readings.length > 0)
+      .value()
+  }, [subject])
+
+  const { components, similars, vocabularies } = useMemo(() => {
+    if (!subject) return { components: [], similars: [], vocabularies: [] }
+
+    const ids = _.uniq([
+      ...(subject.component_subject_ids || []),
+      ..._.take(subject.visually_similar_subject_ids, 5),
+      ..._.take(subject.amalgamation_subject_ids, 5),
+    ])
+
+    const related = subjects.find({ id: { $in: ids } }).fetch()
+    const relatedById = _.keyBy(related, 'id')
+
+    const components = _.chain(subject.component_subject_ids)
+      .map(id => relatedById[id])
+      .compact()
+      .value()
+    const similars = _.chain(subject.visually_similar_subject_ids)
+      .map(id => relatedById[id])
+      .compact()
+      .value()
+    const vocabularies = _.chain(subject.amalgamation_subject_ids)
+      .map(id => relatedById[id])
+      .compact()
+      .value()
+
+    return {
+      components,
+      similars,
+      vocabularies,
+    }
+  }, [subject])
+
+  const contextSentences = useMemo(() => {
+    if (!subject) return null
+
+    if (subject.context_sentences || _.isEmpty(vocabularies)) return subject.context_sentences
+
+    const [vocabSubject] = vocabularies
+
+    if (
+      vocabSubject.component_subject_ids.length === 1 &&
+      vocabSubject.component_subject_ids[0] === subject.id
+    ) {
+      return vocabSubject.context_sentences
+    }
+
+    return null
+  }, [subject, vocabularies])
+
+  useEffect(() => {
+    viewportRef.current?.scrollTo({ top: 0 })
+  }, [subject?.id])
+
+  useEffect(() => {
+    audioIndexRef.current = 0
+  }, [subject?.id])
+
   if (!subject) return <Loader />
 
   const getSubjectType = (s: Subject): SubjectType => {
@@ -230,25 +356,27 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
   const type = getSubjectType(subject)
 
+  const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning
+  const primaryReading = subject.readings?.find(r => r.primary)?.reading
+  const hasAudio = !!subject.pronunciation_audios?.[0]
+
   const playAudio = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const audios = subject.pronunciation_audios || []
-    if (audios.length === 0) return
 
-    const audioUrl = audios[audioIndex % audios.length].url
-    if (audioRef.current) {
-      audioRef.current.src = audioUrl
-      audioRef.current.play()
-    } else {
-      const audio = new Audio(audioUrl)
-      audioRef.current = audio
-      audio.play()
+    const audios = subject.pronunciation_audios || []
+    const audioUrl = audios[audioIndexRef.current % audios.length]?.url
+    if (!audioUrl) return
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio()
     }
-    setAudioIndex(prev => prev + 1)
+
+    audioRef.current.src = audioUrl
+    void audioRef.current.play()
+    audioIndexRef.current += 1
   }
 
-  const primaryMeaning = subject.meanings.find(m => m.primary)?.meaning
-
+  // todo: if sentences are from the kanji then maybe reference its characters instead?
   const renderInteractiveSentence = (jaSentence: string) => {
     if (!subject.characters) return jaSentence
 
@@ -266,121 +394,335 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     })
   }
 
-  const meanings = useMemo(() => {
-    return _.chain(subject.meanings)
-      .map('meaning')
-      .concat(..._.map(subject.auxiliary_meanings, 'meaning'))
-      .without(primaryMeaning || '')
-      .uniq()
-      .value()
-  }, [])
-
   return (
-    <div className={`w-full max-w-2xl mx-auto h-full`} onClick={e => e.stopPropagation()}>
+    <div className={`w-full max-w-full mx-auto h-full`} onClick={e => e.stopPropagation()}>
       <div
-        className={`shadow-xl overflow-hidden flex flex-col h-full`}
+        className="overflow-hidden flex flex-col h-full bg-black/60 md:border md:border-white/15 sm:rounded-[32px] md:rounded-2xl! relative"
+        // style={{
+        //   boxShadow:
+        //     '0 28px 80px rgba(0, 0, 0, 0.46), 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.42)',
+        // }}
         onClick={e => e.stopPropagation()}
       >
-        <FlashcardHeader modalId={modalId} subject={subject} type={type} playAudio={playAudio} />
+        {/* top bar */}
+        <Group className="px-4 py-2">
+          {modalId && (
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={e => {
+                e.stopPropagation()
+                modals.close(modalId)
+              }}
+              className="border! border-transparent! border-b-white/20!"
+              radius="xl"
+            >
+              <Icons.X size={14} />
+            </ActionIcon>
+          )}
+
+          <Group className="ml-auto">
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={handlePrev}
+              disabled={!hasPrev}
+              className="border! border-transparent! border-l-white/20! border-b-white/20! text-white/50! disabled:opacity-0! transition-opacity duration-300 ease-in-out"
+              radius="xl"
+            >
+              <IconChevronLeft size={18} />
+            </ActionIcon>
+
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={handleNext}
+              disabled={!hasNext}
+              className="border! border-transparent! border-r-white/20! border-b-white/20! text-white/50! disabled:opacity-0! transition-opacity duration-300 ease-in-out"
+              radius="xl"
+            >
+              <IconChevronRight size={18} />
+            </ActionIcon>
+          </Group>
+        </Group>
+
+        <Box
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: 'var(--mantine-spacing-xs)',
+            height: 60,
+            zIndex: 1000000,
+            transform: `translate3d(0, ${pinned ? 0 : '-110px'}, 0)`,
+            transition: 'transform 400ms cubic-bezier(0.32, 0.72, 0, 1)',
+            backgroundColor: 'var(--mantine-color-body)',
+            borderBottom: '1px solid var(--mantine-color-default-border)',
+          }}
+          onClick={() => viewportRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="rounded-b-xl! cursor-pointer md:rounded-t-2xl!"
+        >
+          <Center className="absolute top-0 right-0 left-0 opacity-30">
+            <IconChevronCompactUp />
+          </Center>
+
+          <Group justify="space-between" h="100%" wrap="nowrap" className="relative flex">
+            <Group gap="sm" wrap="nowrap" translate="no" className="cursor-pointer">
+              <GameItemIcon subject={subject} size="xs" />
+              <Text fw={600} size="sm">
+                {toRomanji(primaryReading || '')}
+              </Text>
+              <Text c="dimmed" size="sm" lineClamp={1}>
+                {primaryMeaning}
+              </Text>
+            </Group>
+            {hasAudio && (
+              <ActionIcon
+                variant="subtle"
+                onClick={e => {
+                  e.stopPropagation()
+                  playAudio(e)
+                }}
+                radius="xl"
+              >
+                <IconPlayerPlay size={18} />
+              </ActionIcon>
+            )}
+          </Group>
+        </Box>
+
+        <div
+          className="fixed bottom-0 right-0 left-0 h-6 bg-black z-90"
+          style={{
+            maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+          }}
+        />
 
         <Paper
-          className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-left perspective-1000 max-h-full"
+          ref={viewportRef}
+          className="flex-1 overflow-y-auto py-6 p-4 pr-5 space-y-6 custom-scrollbar text-left max-h-full bg-transparent! relative w-full! scroll-p-6!"
+          style={{
+            maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+          }}
           shadow="sm"
+          translate="no"
         >
-          {/* todo: move this to meanings section */}
-          {studyMaterial && (
-            <div
-              className={clsx(
-                'text-black dark:text-gray-300 py-2 px-4 rounded-lg space-y-2',
-                themeByType[type],
-              )}
-            >
-              {studyMaterial.meaning_synonyms.length > 0 && (
-                <>
-                  <span className="text-xs font-bold uppercase">Your Synonyms:</span>
+          {/* hero section */}
+          <section
+            ref={heroRef}
+            className=" bg-linear-to-br from-white/20 to-transparent via-80% via-transparent border border-transparent border-b-white/10 border-r-white/10 rounded-4xl p-8 px-2 relative overflow-hidden flex flex-col items-center justify-center min-h-70 shadow-xs shadow-white/20 mb-4 group"
+          >
+            <SubjectHero subject={subject} />
+          </section>
 
-                  <div className="text-sm font-medium pl-2">
+          <section className="text-right font-semibold">{_.upperCase(type)}</section>
+
+          <section>
+            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+              Meanings
+            </h3>
+
+            <Group gap="sm">
+              {meanings.map(meaning => (
+                <Badge
+                  key={meaning}
+                  color="gray"
+                  variant="default"
+                  className="shrink-0 p-4! font-normal!"
+                  size="lg"
+                >
+                  {meaning}
+                </Badge>
+              ))}
+            </Group>
+
+            {studyMaterial && (
+              <Stack gap="xs" mt="md" className="pl-1">
+                {studyMaterial.meaning_synonyms.length > 0 && (
+                  <Group gap="xs">
+                    <Text size="xs" fw={700} tt="uppercase" c="dimmed">
+                      Synonyms:
+                    </Text>
                     {studyMaterial.meaning_synonyms.map(synonym => (
-                      <p key={synonym}>- {synonym}</p>
+                      <Badge key={synonym} size="sm" variant="light" color="gray">
+                        {synonym}
+                      </Badge>
                     ))}
-                  </div>
-                </>
-              )}
+                  </Group>
+                )}
 
-              {(studyMaterial.meaning_note || studyMaterial.reading_note) && (
-                <>
-                  <span className="text-xs font-bold uppercase pt-2">Your Notes:</span>
+                {studyMaterial.meaning_note && (
+                  <Box>
+                    <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                      Meaning Note:
+                    </Text>
+                    <Text size="sm">{studyMaterial.meaning_note}</Text>
+                  </Box>
+                )}
 
-                  <div className="text-sm font-medium pl-2">
-                    {studyMaterial.meaning_note && <p>{studyMaterial.meaning_note}</p>}
-                    {studyMaterial.reading_note && <p>{studyMaterial.reading_note}</p>}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                {studyMaterial.reading_note && (
+                  <Box>
+                    <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                      Reading Note:
+                    </Text>
+                    <Text size="sm">{studyMaterial.reading_note}</Text>
+                  </Box>
+                )}
+              </Stack>
+            )}
+          </section>
 
-          {subject.isKana ? (
-            <div className="prose prose-spacing text-gray-800 prose-code:text-gray-800 dark:text-gray-300 dark:prose-code:text-gray-300">
-              <Markdown>{subject.meaning_mnemonic}</Markdown>
-            </div>
-          ) : (
-            <Typography>
-              <div dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }} />
-            </Typography>
-          )}
+          {/* hide if there are no readings */}
+          <section hidden={!readingGroups[0]}>
+            <Group className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+              Readings
+              <Button
+                variant="transparent"
+                color="white"
+                onClick={() => setIsReadingJapanese(!isReadingJapanese)}
+              >
+                <DynamicLanguageIcon japanese={isReadingJapanese} />
+              </Button>
+            </Group>
 
-          {subject.reading_mnemonic && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Reading Mnemonic
+            <Group gap="sm" grow align="stretch">
+              {readingGroups.map(({ type, readings }) => (
+                <Paper key={type} className="p-3 rounded-xl! relative group/reading">
+                  <Stack gap="xs">
+                    {type && (
+                      <Group className="justify-between!">
+                        <Text className="text-xs! uppercase font-bold opacity-70">{type}</Text>
+
+                        {READING_EXPLANATIONS[type] && (
+                          <HoverCard width={300} position="bottom" withArrow withinPortal={false}>
+                            <HoverCard.Target>
+                              <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                size="xs"
+                                className="opacity-50"
+                              >
+                                <IconInfoCircle size={14} />
+                              </ActionIcon>
+                            </HoverCard.Target>
+
+                            <HoverCard.Dropdown className="z-50">
+                              <Text>{READING_EXPLANATIONS[type]}</Text>
+                            </HoverCard.Dropdown>
+                          </HoverCard>
+                        )}
+                      </Group>
+                    )}
+                    <Text className="text-primary! font-semibold! text-lg">
+                      {isReadingJapanese ? readings : toRomanji(readings)}
+                    </Text>
+                  </Stack>
+                </Paper>
+              ))}
+            </Group>
+          </section>
+
+          <section>
+            <Stack mb="xs">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-300 uppercase tracking-wider">
+                <IconBulb size={14} /> Mnemonics
               </h3>
 
-              <Typography>
-                <div dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }} />
-              </Typography>
-            </div>
-          )}
+              {subject.reading_mnemonic && (
+                <SegmentedControl
+                  size="xs"
+                  radius="xl"
+                  value={mnemonicTab}
+                  onChange={setMnemonicTab}
+                  data={[
+                    { label: 'Meaning', value: 'meaning' },
+                    { label: 'Reading', value: 'reading' },
+                  ]}
+                  className="bg-black/30! p-2! backdrop-blur-sm"
+                />
+              )}
+            </Stack>
 
-          {subject.readings?.[0] && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Readings
-              </h3>
+            <div
+              className="overflow-hidden transition-[height] duration-300 ease-in-out backdrop-blur-sm p-4 rounded-xl bg-black/30"
+              style={{
+                height:
+                  mnemonicTab === 'meaning' ? (meaningHeight || 0) + 30 : (readingHeight || 0) + 30,
+              }}
+            >
+              <div
+                ref={mnemonicScrollRef}
+                onScrollEnd={handleMnemonicScrollEnd}
+                className="flex items-start overflow-x-auto snap-x snap-mandatory scrollbar-hide no-scrollbar scroll-smooth gap-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                {/* Meaning Slide */}
+                <div className="w-full shrink-0 snap-start">
+                  <div ref={meaningSlideRef}>
+                    <Stack gap="md">
+                      <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
+                        {subject.isKana ? (
+                          <Markdown>{subject.meaning_mnemonic}</Markdown>
+                        ) : (
+                          <div dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }} />
+                        )}
+                      </div>
 
-              <div className="space-y-3">
-                {subject.readings.map(reading => (
-                  <div key={reading.reading}>
-                    {reading.reading}, {toRomanji(reading.reading)}
+                      {subject.meaning_hint && (
+                        <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
+                          <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                            Hint
+                          </Text>
+                          <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
+                            <div dangerouslySetInnerHTML={{ __html: subject.meaning_hint }} />
+                          </div>
+                        </Box>
+                      )}
+                    </Stack>
                   </div>
-                ))}
+                </div>
+
+                {/* Reading Slide */}
+                {!!subject.reading_mnemonic && (
+                  <div className="w-full shrink-0 snap-start">
+                    <div ref={readingSlideRef}>
+                      <Stack gap="md">
+                        <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
+                          <div dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }} />
+                        </div>
+                        {subject.reading_hint && (
+                          <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
+                            <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                              Hint
+                            </Text>
+                            <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
+                              <div dangerouslySetInnerHTML={{ __html: subject.reading_hint }} />
+                            </div>
+                          </Box>
+                        )}
+                      </Stack>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </section>
 
-          {meanings[0] && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Meanings
-              </h3>
-
-              <div className="space-y-3">
-                {meanings.map(meaning => (
-                  <div key={meaning}>{meaning}</div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {subject.context_sentences && subject.context_sentences.length > 0 && (
+          {contextSentences && contextSentences.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Context Sentences
               </h3>
 
-              <div className="space-y-3">
-                {subject.context_sentences.slice(0, 5).map((s, i) => (
-                  <Box key={i} className="p-3 rounded-lg text-sm bg-gray-300 dark:bg-gray-600">
+              <div className="rounded-xl backdrop-blur-md px-3 divide-y divide-white/20">
+                {contextSentences.slice(0, 5).map((s, i) => (
+                  <Box key={i} className="px-3 py-4 text-sm">
                     <Text className="mb-1 font-medium text-black">
                       {renderInteractiveSentence(s.ja)}
                     </Text>
@@ -463,96 +805,115 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             </div>
           )}
 
-          {components.length > 0 && (
-            <div className="pt-4 border-t border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                {type === SubjectType.VOCABULARY ? 'Kanji Composition' : 'Radicals'}
-              </h3>
-
-              <Group>
-                {components.map(subject => (
-                  <Stack
-                    gap="xs"
-                    className="bg-gray-200 dark:bg-slate-600 p-2 px-4 rounded-md cursor-pointer"
-                    onClick={() => openFlashcardModal([subject])}
-                  >
-                    <GameItemIcon subject={subject} />
-
-                    {subject.meanings?.[0]?.meaning && (
-                      <Text className="text-sm! leading-tight! truncate! px-1 text-center">
-                        {subject.meanings?.[0]?.meaning}
-                      </Text>
-                    )}
-                  </Stack>
-                ))}
-              </Group>
-            </div>
-          )}
+          <OtherSubjectsSection otherSubjects={components} title="Composition" />
+          <OtherSubjectsSection otherSubjects={similars} title="Similar" />
+          <OtherSubjectsSection otherSubjects={vocabularies} title="Vocabulary" />
         </Paper>
-
-        <Group className="py-4 px-4 shrink-0" hidden={!(hasPrev || hasNext)}>
-          <Button
-            variant="subtle"
-            onClick={handlePrev}
-            leftSection={<Icons.ChevronLeft className="w-5 h-5" />}
-            disabled={!hasPrev}
-            className={clsx(!hasPrev && 'hidden!')}
-          >
-            Prev
-          </Button>
-
-          <Button
-            variant="subtle"
-            onClick={handleNext}
-            disabled={!hasNext}
-            rightSection={<Icons.ChevronRight className="w-5 h-5" />}
-            className={clsx('ml-auto', !hasNext && 'hidden!')}
-          >
-            Next
-          </Button>
-        </Group>
       </div>
-
-      <style>{`
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-        .transform-style-3d {
-          transform-style: preserve-3d;
-        }
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-      `}</style>
     </div>
   )
 }
 
-const FlashcardModalWrapper: React.FC<{ items: Subject[]; index: number }> = ({ items, index }) => {
+const OtherSubjectsSection = ({
+  otherSubjects,
+  title,
+}: {
+  otherSubjects: Subject[]
+  title: string
+}) => {
+  if (otherSubjects.length === 0) return null
+  return (
+    <div className="">
+      <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">{title}</h3>
+
+      <SimpleGrid
+        cols={{ base: 1, sm: 2, lg: 3 }}
+        spacing="sm"
+        verticalSpacing="sm"
+        className="transition-all ease-in-out duration-300"
+      >
+        {otherSubjects.map((component, index) => (
+          <Group
+            gap="xs"
+            className="group bg-black/30! dark:bg-slate-600 p-4 rounded-xl cursor-pointer w-full min-w-0 border-[0.5px] border-transparent border-r-white/20 border-b-white/20 relative overflow-hidden backdrop-blur-sm"
+            onClick={() => openFlashcardModal(otherSubjects, index)}
+            key={component.id}
+            wrap="nowrap"
+          >
+            <div className="absolute -top-8 -left-8 w-24 h-24 bg-white/20 blur-2xl rounded-full group-hover:bg-white/30 transition-all"></div>
+
+            <div className="shrink-0">
+              <GameItemIcon subject={component} />
+            </div>
+
+            {component.meanings?.[0]?.meaning && (
+              <Text className="font-semibold! leading-tight! truncate! px-1 text-left min-w-0 group-hover:text-white!">
+                {component.meanings?.[0]?.meaning}
+              </Text>
+            )}
+          </Group>
+        ))}
+      </SimpleGrid>
+    </div>
+  )
+}
+
+const FlashcardModalWrapper: React.FC<{
+  items: Subject[]
+  index: number
+  onIndexChanged?: (i: number) => void
+}> = ({ items, index, onIndexChanged }) => {
   const modalId = items[index].id.toString()
-  const isMobile = useMatches({ base: true, xs: false })
+  const isMobile = useMatches({ base: true, sm: false })
+  const { themeBackground } = useSettings()
+  const modalRef = useRef<HTMLDivElement>(null)
+
+  const backgroundUrl = themeBackground
+    ? isMobile
+      ? themeBackground.portraitUrl
+      : themeBackground.landscapeUrl
+    : ''
 
   useEffect(() => {
     modals.updateModal({
       modalId,
       fullScreen: isMobile,
       withCloseButton: false,
+      overlayProps: {
+        style: backgroundUrl
+          ? { backgroundImage: `url(${backgroundUrl})` }
+          : { backgroundColor: 'black' },
+        className: `bg-cover! bg-no-repeat brightness-75!`,
+      },
     })
   }, [modalId, isMobile])
 
   return (
-    <div onClick={() => modals.close(modalId)} className="h-full mx-auto my-auto">
-      <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-        <Flashcard items={items} index={index} modalId={modalId} />
+    <div
+      onClick={() => modals.close(modalId)}
+      className="h-full mx-auto my-auto bg-transparent! dark"
+      id="flashcardModal"
+      ref={modalRef}
+      data-mantine-color-scheme="light"
+    >
+      <Suspense
+        fallback={
+          <Center className="w-screen h-svh items-center">
+            <Loader />
+          </Center>
+        }
+      >
+        <Flashcard items={items} index={index} modalId={modalId} onIndexChanged={onIndexChanged} />
       </Suspense>
     </div>
   )
 }
 
-export function openFlashcardModal(items: Subject[], index = 0) {
+export const openFlashcardModal = (
+  items: Subject[],
+  index = 0,
+  onIndexChanged?: (i: number) => void,
+) => {
   modals.open({
     modalId: items[index].id.toString(),
     title: null,
@@ -560,7 +921,10 @@ export function openFlashcardModal(items: Subject[], index = 0) {
     padding: 0,
     size: 'lg',
     centered: true,
-    children: <FlashcardModalWrapper items={items} index={index} />,
-    classNames: { body: 'max-h-full overflow-hidden', content: 'flex!' },
+    children: <FlashcardModalWrapper items={items} index={index} onIndexChanged={onIndexChanged} />,
+    classNames: {
+      body: 'max-h-full overflow-hidden bg-transparent! w-full',
+      content: 'flex! bg-transparent! w-full',
+    },
   })
 }

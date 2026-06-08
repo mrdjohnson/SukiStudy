@@ -11,7 +11,7 @@ export const Footer = ({
   showLastUpdated?: boolean
 }) => {
   return (
-    <footer className="py-6 mt-auto">
+    <footer className="pt-6 mt-auto">
       <Container size="lg" className="text-center text-gray-400 text-sm font-semibold">
         {showLastUpdated && (
           <Text size="xs" c="dimmed" className="text-center" mb="xs">
