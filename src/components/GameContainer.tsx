@@ -1,12 +1,11 @@
-import { useNavigate } from 'react-router'
-import type { Path } from 'react-router'
-import { useMatches, Button, Container, Group, Title, ActionIcon } from '@mantine/core'
-import { Icons } from './Icons'
-import { useMemo } from 'react'
 import type { ComponentProps, PropsWithChildren } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useMatches, Button, Container, Group } from '@mantine/core'
+import { Icons } from './Icons'
 import { GameResults } from './GameResults'
-import type { GameLogic } from '../hooks/useGameLogic'
-import type { GameItem } from '../core/types'
+import { type GameLogic } from '../hooks/useGameLogic'
+import { type GameItem } from '../core/types'
+import { useDrawerRouteHeader } from './DrawerRoute'
 
 type GameHeaderProps<T extends GameItem> = PropsWithChildren<{
   gameLogic: GameLogic<T>
@@ -20,8 +19,6 @@ type GameHeaderProps<T extends GameItem> = PropsWithChildren<{
   isLastGame?: boolean
 }>
 
-const Back = -1 as Partial<Path>
-
 export const GameContainer = <T extends GameItem>({
   gameLogic,
   children,
@@ -30,11 +27,9 @@ export const GameContainer = <T extends GameItem>({
   clearDisabled,
   onHint,
   hintDisabled,
-  shouldNavigateBack = false,
   onPlayAgain,
   isLastGame,
 }: GameHeaderProps<T>) => {
-  const navigate = useNavigate()
   const buttonSizes = useMatches({
     base: 'md',
     lg: 'sm',
@@ -50,6 +45,14 @@ export const GameContainer = <T extends GameItem>({
     endGame,
     isWaitingForNextRound,
   } = gameLogic
+
+  const { pushHeader, popHeader } = useDrawerRouteHeader()
+
+  useEffect(() => {
+    pushHeader({ title: game.name })
+
+    return popHeader
+  }, [game.name, pushHeader, popHeader])
 
   const bottomButton = useMemo(() => {
     let props: Partial<ComponentProps<typeof Button>>
@@ -106,33 +109,18 @@ export const GameContainer = <T extends GameItem>({
   }
 
   return (
-    <Container size="sm" className="mt-4 size-full px-0! sm:px-2! md:px-4!">
-      <Group className="justify-between! pb-8 md:mx-4 flex-nowrap!">
-        <div className="flex items-center gap-2">
-          <ActionIcon
-            variant="subtle"
-            onClick={() => navigate(shouldNavigateBack ? Back : '/session/games')}
-          >
-            <Icons.ChevronLeft />
-          </ActionIcon>
-        </div>
-
-        <Group>
-          <Title order={3} className="mx-auto!">
-            {game.name}
-          </Title>
-        </Group>
-
-        <Group>
-          <span className="font-bold text-gray-500 ml-auto">
-            {gameState.roundNumber} / {gameState.maxRoundNumber}
-          </span>
-        </Group>
+    <Container size="sm" className="size-full px-0! sm:px-2! md:px-4! max-h-full flex flex-col">
+      <Group className="justify-between! pb-2 md:mx-4 flex-nowrap! shrink-0!">
+        <span className="font-bold text-gray-500 ml-auto mr-auto -mt-2">
+          {gameState.roundNumber} / {gameState.maxRoundNumber}
+        </span>
       </Group>
 
-      <div className="px-2">{children}</div>
+      <div className="p-2 overflow-hidden shrink max-h-full flex flex-col justify-center">
+        {children}
+      </div>
 
-      <Group className="justify-between! pt-8 md:mx-4 flex-nowrap!">
+      <Group className="justify-between! pt-4 px-2 md:mx-4 flex-nowrap! shrink-0! max-w-lg place-self-center w-full">
         <Button
           variant="outline"
           size={buttonSizes}
@@ -148,8 +136,9 @@ export const GameContainer = <T extends GameItem>({
           size={buttonSizes}
           onClick={onHint}
           disabled={!onHint || hintDisabled}
+          className="disabled:hidden!"
         >
-          <Icons.Lightbulb className="size-4 text-yellow-500" />
+          <Icons.Lightbulb className="size-4 " />
         </Button>
 
         {bottomButton}

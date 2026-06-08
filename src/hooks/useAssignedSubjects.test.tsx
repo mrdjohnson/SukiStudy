@@ -117,7 +117,11 @@ describe('useAssignedSubjects', () => {
     ])
   })
 
-  it('finishes with no items when there are no unlocked assignments to learn', async () => {
+  it('includes kana when there are no unlocked assignments to learn', async () => {
+    const hiragana = await subjectFactory.create(
+      { id: -1 },
+      { transient: { type: SubjectType.HIRAGANA } },
+    )
     const futureKanji = await subjectFactory.create(
       { id: 101 },
       { transient: { type: SubjectType.KANJI } },
@@ -142,11 +146,14 @@ describe('useAssignedSubjects', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    expect(result.current.items).toEqual([])
+    expect(subjectIdsOf(result)).toEqual([hiragana.id])
+    expect(result.current.items[0].assignment).toBeUndefined()
   })
 
   it('reruns when subject data changes', async () => {
-    await seedContentPreferences({ hiddenSubjects: [SubjectType.VOCABULARY] })
+    await seedContentPreferences({
+      hiddenSubjects: [SubjectType.HIRAGANA, SubjectType.KATAKANA, SubjectType.VOCABULARY],
+    })
 
     const visibleLessonSubject = await subjectFactory.create(
       { id: 101 },

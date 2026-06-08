@@ -1,26 +1,34 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { Icons } from '../../components/Icons'
 import { useGames } from '../../hooks/useGames'
-import { ActionIcon, Container, Group, Title } from '@mantine/core'
+import { ActionIcon, Container, Group } from '@mantine/core'
+import { useDrawerRouteHeader } from '../../components/DrawerRoute'
 
 export const GameMenu: React.FC = () => {
   const navigate = useNavigate()
 
   const availableGames = useGames()
 
+  const { pushHeader, resetHeader } = useDrawerRouteHeader()
+
+  useEffect(() => {
+    pushHeader({
+      title: (
+        <Group>
+          Games{' '}
+          <ActionIcon variant="transparent" onClick={() => navigate('/settings')}>
+            <Icons.Settings />
+          </ActionIcon>
+        </Group>
+      ),
+    })
+
+    return resetHeader
+  }, [navigate, pushHeader, resetHeader])
+
   return (
-    <Container size="md" className="mt-4">
-      <Group className="gap-4 mb-8 justify-between! -mx-2 md:-mx-4">
-        <ActionIcon variant="subtle" onClick={() => navigate('/')}>
-          <Icons.ChevronLeft />
-        </ActionIcon>
-
-        <Title order={2}>Mini Games</Title>
-
-        <div />
-      </Group>
-
+    <Container size="md" className="max-h-full overflow-scroll h-full py-4">
       {/* Custom Game Banner */}
       <div className="mb-8">
         <button

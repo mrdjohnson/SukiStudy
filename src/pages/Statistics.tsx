@@ -192,8 +192,7 @@ export const Statistics = () => {
   }
 
   return (
-    <Container className="space-y-4! md:space-y-8! px-0! sm:px-2! md:px-4! flex flex-col flex-1">
-      <Title order={2}>Statistics</Title>
+    <Container className="space-y-4! md:space-y-8! p-2! md:px-4! flex flex-col flex-1 h-full">
       {/* Summary Cards */}
       <SimpleGrid cols={{ base: 2, xs: 4 }}>
         <Paper radius="lg" shadow="sm" p={{ base: 'sm', sm: 'lg' }} withBorder>

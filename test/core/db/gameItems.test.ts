@@ -22,10 +22,7 @@ describe('game item queries', () => {
       { id: -1, level: 1 },
       { transient: { type: SubjectType.HIRAGANA } },
     )
-    const _katakana = await subjectFactory.create(
-      { id: -2, level: 1 },
-      { transient: { type: SubjectType.KATAKANA } },
-    )
+    await subjectFactory.create({ id: -2, level: 1 }, { transient: { type: SubjectType.KATAKANA } })
 
     await assignmentFactory.create({ id: 101 }, { transient: { subject: dueVocabulary, now } })
     await assignmentFactory.create(

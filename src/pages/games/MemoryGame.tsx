@@ -155,31 +155,32 @@ export const MemoryGame: GameComponent = ({ items: propItems, onComplete, isLast
 
   return (
     <GameContainer gameLogic={gameLogic} onPlayAgain={initGame} isLastGame={isLastGame}>
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 grid-rows-4 sm:grid-rows-3 sm:grid-cols-4 gap-4 max-h-full overflow-hidden shrink">
         {cards.map((card, idx) => (
-          <div
-            key={card.id}
-            onClick={() => handleCardClick(idx)}
-            className={clsx(
-              'aspect-3/4 rounded-xl perspective-1000 transition-all duration-300',
-              card.isMatched && 'opacity-50 grayscale pointer-events-none',
-              !card.isMatched && !card.isFlipped && 'cursor-pointer',
-            )}
-          >
+          <div key={card.id}>
             <div
+              onClick={() => handleCardClick(idx)}
               className={clsx(
-                'relative w-full h-full transition-transform duration-500 transform-style-3d',
-                card.isFlipped && 'rotate-y-180',
+                'aspect-3/4 rounded-xl perspective-1000 transition-all duration-300 max-h-full mx-auto',
+                card.isMatched && 'opacity-50 grayscale pointer-events-none',
+                !card.isMatched && !card.isFlipped && 'cursor-pointer',
               )}
             >
-              <div className="absolute inset-0 backface-hidden bg-linear-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
-                <img src={logo} className="size-12 opacity-40" alt={'flipped card ' + idx} />
-              </div>
-
               <div
-                className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
+                className={clsx(
+                  'relative w-full h-full transition-transform duration-500 transform-style-3d',
+                  card.isFlipped && 'rotate-y-180',
+                )}
               >
-                <MemoryGameCardContent content={card.content} />
+                <div className="absolute inset-0 backface-hidden bg-linear-to-br from-red-700 to-amber-900 rounded-xl shadow-md border-2 border-amber-200 flex items-center justify-center">
+                  <img src={logo} className="size-12 opacity-40" alt={'flipped card ' + idx} />
+                </div>
+
+                <div
+                  className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl shadow-lg border-2 flex flex-col items-center justify-center p-2 text-center`}
+                >
+                  <MemoryGameCardContent content={card.content} />
+                </div>
               </div>
             </div>
           </div>

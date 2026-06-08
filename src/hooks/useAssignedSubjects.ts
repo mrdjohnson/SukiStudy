@@ -8,17 +8,10 @@ import { useSettings } from '../contexts/SettingsContext'
 export const useAssignedSubjects = () => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
-  const { user, isGuest } = useUser()
+  const { user } = useUser()
   const { availableSubjects, gameLevelMin, gameLevelMax } = useSettings()
 
   const runQuery = useCallback(() => {
-    // GUEST MODE
-    if (isGuest) {
-      // todo, set up kana items to learn in the future
-      setLoading(false)
-      return
-    }
-
     if (!user) {
       setLoading(false)
       return
@@ -28,11 +21,12 @@ export const useAssignedSubjects = () => {
       subjectTypes: availableSubjects,
       gameLevelMin,
       gameLevelMax,
+      includeKana: true,
     })
 
     setItems(combined)
     setLoading(false)
-  }, [user, isGuest, availableSubjects, gameLevelMin, gameLevelMax])
+  }, [user, availableSubjects, gameLevelMin, gameLevelMax])
 
   useEffect(() => {
     runQuery()

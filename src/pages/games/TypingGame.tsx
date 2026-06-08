@@ -176,8 +176,8 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
               isInteractionEnabled={answered}
             />
 
-            <div className="max-w-sm mx-auto">
-              <form onSubmit={checkAnswer} className="relative">
+            <div className="max-w-lg w-full mx-auto">
+              <form onSubmit={checkAnswer} className="relative w-full">
                 <TextInput
                   value={input}
                   size="lg"
@@ -186,6 +186,9 @@ export const TypingGame: GameComponent = ({ items: propItems, onComplete, isLast
                   disabled={answered}
                   placeholder="Type meaning or reading..."
                   ref={inputRef}
+                  classNames={{
+                    root: 'w-full',
+                  }}
                 />
                 <div
                   className={`mt-3 text-center font-bold h-6 ${feedback.includes('Incorrect') ? 'text-red-500' : 'text-green-600'}`}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import type { GameComponent, MultiChoiceGameItem } from '../../core/types'
 import { useLearnedSubjects } from '../../hooks/useLearnedSubjects'
 import { Icons } from '../../components/Icons'
@@ -212,12 +212,13 @@ export const MatchingGame: GameComponent = ({ items: propItems, onComplete, isLa
 
   return (
     <GameContainer gameLogic={gameLogic} onPlayAgain={initGame} isLastGame={isLastGame}>
-      <div className="flex gap-8 justify-center">
-        {/* Left Column */}
-        <div className="flex-1 space-y-4">{leftItems.map(createItemCard('left'))}</div>
-
-        {/* Right Column */}
-        <div className="flex-1 space-y-4">{rightItems.map(createItemCard('right'))}</div>
+      <div className="gap-4 justify-center grid grid-cols-2 ">
+        {_.zip(leftItems, rightItems).map(([leftItem, rightItem]) => (
+          <Fragment key={`${leftItem?.id || 'left'}-${rightItem?.id || 'right'}`}>
+            {createItemCard('left')(leftItem!)}
+            {createItemCard('right')(rightItem!)}
+          </Fragment>
+        ))}
       </div>
     </GameContainer>
   )

@@ -335,7 +335,7 @@ export const ConnectGame: GameComponent = ({ items: propItems, onComplete, isLas
 
       <div
         ref={containerRef}
-        className="relative mx-auto aspect-square max-w-[320px] touch-none"
+        className="relative mx-auto aspect-square max-w-[320px] touch-none flex-1 size-full"
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}

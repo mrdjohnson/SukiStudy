@@ -63,7 +63,7 @@ export const Review = () => {
   const Component = currentGame.component
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto p-2 h-full">
       {/* force the key to let the game know this is new data */}
       {<Component {...commonProps} key={currentGame.id + roundNumber} />}
     </div>
