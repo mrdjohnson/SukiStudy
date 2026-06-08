@@ -90,7 +90,7 @@ describe('game item queries', () => {
     const startedVocabulary = await subjectFactory.create({ id: 23, level: 4 })
     const futureVocabulary = await subjectFactory.create({ id: 24, level: 4 })
     const hiddenVocabulary = await subjectFactory.create({ id: 25, level: 4 })
-    await subjectFactory.create(
+    const hiragana = await subjectFactory.create(
       { id: -21, level: 1 },
       { transient: { type: SubjectType.HIRAGANA } },
     )
@@ -127,6 +127,14 @@ describe('game item queries', () => {
       isReviewable: false,
       subject: { id: lessonVocabulary.id },
     })
+
+    const itemsWithKana = gameItemsToLearn({
+      subjectTypes: [SubjectType.VOCABULARY, SubjectType.HIRAGANA],
+      includeKana: true,
+      now,
+    })
+
+    expect(itemsWithKana.map(item => item.subject.id)).toEqual([hiragana.id, lessonVocabulary.id])
   })
 
   it('returns every visible assignment-backed item plus allowed kana', async () => {
