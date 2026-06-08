@@ -2363,7 +2363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/carousel@npm:^9.3.0":
+"@mantine/carousel@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/carousel@npm:9.3.0"
   peerDependencies:
@@ -2377,7 +2377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/charts@npm:^9.3.0":
+"@mantine/charts@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/charts@npm:9.3.0"
   peerDependencies:
@@ -2390,7 +2390,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/colors-generator@npm:^9.3.0":
+"@mantine/colors-generator@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/colors-generator@npm:9.3.0"
   peerDependencies:
@@ -2399,7 +2399,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^9.3.0":
+"@mantine/core@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/core@npm:9.3.0"
   dependencies:
@@ -2416,7 +2416,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/dates@npm:^9.3.0":
+"@mantine/dates@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/dates@npm:9.3.0"
   dependencies:
@@ -2431,7 +2431,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:^9.3.0":
+"@mantine/form@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/form@npm:9.3.0"
   dependencies:
@@ -2444,7 +2444,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^9.3.0":
+"@mantine/hooks@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/hooks@npm:9.3.0"
   peerDependencies:
@@ -2453,7 +2453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:^9.3.0":
+"@mantine/modals@npm:^9.2.2":
   version: 9.3.0
   resolution: "@mantine/modals@npm:9.3.0"
   peerDependencies:
@@ -3568,21 +3568,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons-react@npm:^3.35.0":
-  version: 3.35.0
-  resolution: "@tabler/icons-react@npm:3.35.0"
+"@tabler/icons-react@npm:^3.43.0":
+  version: 3.44.0
+  resolution: "@tabler/icons-react@npm:3.44.0"
   dependencies:
-    "@tabler/icons": "npm:3.35.0"
+    "@tabler/icons": "npm:3.44.0"
   peerDependencies:
     react: ">= 16"
-  checksum: 10/778c43f47f1ebb585d01eff271213e5ee6ba5de936fe8fbbf85cff1b128ab7a0cf9b4e39338df38deb8168a6f795145fb84b834da31ed1e394f6798060ae1483
+  checksum: 10/4ade826704090dd0e46ca334e72cd25655cdf7b9093bde9130b5e50f42b8ef9a8e825e7a6f593225ff406b65e5fd046902ca2d17a56ca2b5096d6b8bebca7135
   languageName: node
   linkType: hard
 
-"@tabler/icons@npm:3.35.0":
-  version: 3.35.0
-  resolution: "@tabler/icons@npm:3.35.0"
-  checksum: 10/f1a14161a3d020edcb23445a411ccaa15e89780d59504b4bb2c0dda1088f27e974eac281bcb1ebb4c2759b1fc53358f038832d39f953ad33b43ffb504836fe3e
+"@tabler/icons@npm:3.44.0":
+  version: 3.44.0
+  resolution: "@tabler/icons@npm:3.44.0"
+  checksum: 10/1d26b7b4b14efe4fc4e2f69e6bcb6142765fab2479ec68680bc5bd3c6c586b0b7018efd25d7281bb25bc468565c6473387b45137353ef73b75d8dc0c8171efae
   languageName: node
   linkType: hard
 
@@ -6765,6 +6765,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"embla-carousel-wheel-gestures@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "embla-carousel-wheel-gestures@npm:8.1.0"
+  dependencies:
+    wheel-gestures: "npm:^2.2.5"
+  peerDependencies:
+    embla-carousel: ^8.0.0 || ~8.0.0-rc03
+  checksum: 10/49ca84caa0164a0f35de62db535e99f9b0ba1d6cf5fec513210acda9559113534969b77bbcce5dc6491e299c1443771fdab4106444e3be14f3766b5dd7a4d99d
+  languageName: node
+  linkType: hard
+
 "embla-carousel@npm:8.6.0, embla-carousel@npm:^8.5.2":
   version: 8.6.0
   resolution: "embla-carousel@npm:8.6.0"
@@ -7601,6 +7612,28 @@ __metadata:
     hasown: "npm:^2.0.2"
     mime-types: "npm:^2.1.12"
   checksum: 10/52ecd6e927c8c4e215e68a7ad5e0f7c1031397439672fd9741654b4a94722c4182e74cc815b225dcb5be3f4180f36428f67c6dd39eaa98af0dcfdd26c00c19cd
+  languageName: node
+  linkType: hard
+
+"framer-motion@npm:^12.40.0":
+  version: 12.40.0
+  resolution: "framer-motion@npm:12.40.0"
+  dependencies:
+    motion-dom: "npm:^12.40.0"
+    motion-utils: "npm:^12.39.0"
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/2e74f03ef09ea48a92d418741d925725951eaeaf2d716865b26d8c0aab4e0b4a2d337d596693bdb641209d9d170055d677423ba1d2a76a07d15ca11c0eb677fc
   languageName: node
   linkType: hard
 
@@ -9978,6 +10011,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"motion-dom@npm:^12.40.0":
+  version: 12.40.0
+  resolution: "motion-dom@npm:12.40.0"
+  dependencies:
+    motion-utils: "npm:^12.39.0"
+  checksum: 10/280cae8811b63ef76e9eb7982e6ace9e74a132e11e7595f6aa6a3699003a9c233eeb681694e938825cf724148e1689302f8b2cce168a8a0c8cef2082ad32b38b
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.39.0":
+  version: 12.39.0
+  resolution: "motion-utils@npm:12.39.0"
+  checksum: 10/5aa2972bf38c44e44e0a39a70202ce69d585d88d28b37975ca0849756b8614e28d5ebd263ed806e94886b1fe684ce28ee630c4556c465581eaa6dca420249486
+  languageName: node
+  linkType: hard
+
+"motion@npm:^12.38.0":
+  version: 12.40.0
+  resolution: "motion@npm:12.40.0"
+  dependencies:
+    framer-motion: "npm:^12.40.0"
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/31922a23309321d851d942d8e838869eada94dee6c73973bda2d7f76a4acce9d3668f1d6d420ef0972ad9c41a52dde3c2a1b066220680224da8e5ac4dadaaa2c
+  languageName: node
+  linkType: hard
+
 "mri@npm:1.2.0":
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
@@ -11059,6 +11129,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-modal-sheet@npm:^5.6.0":
+  version: 5.6.0
+  resolution: "react-modal-sheet@npm:5.6.0"
+  dependencies:
+    react-use-measure: "npm:2.1.7"
+  peerDependencies:
+    motion: ">=11"
+    react: ">=16"
+  checksum: 10/bedce6099c74ea912d0209b9e3a2c6089c3861ad73fd477f35b5929db830a93aecb83be5273c278534eba2d1233cdc62c90d8fc9c062789a102970b39c719595
+  languageName: node
+  linkType: hard
+
 "react-number-format@npm:^5.4.5":
   version: 5.4.5
   resolution: "react-number-format@npm:5.4.5"
@@ -11171,6 +11253,19 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10/62498094ff3877a37f351b29e6cad9e38b2eb1ac3c0cb27ebf80aee96554f80b35e17bdb552bcd7ac8b7cb9904fea93ea5668f2057c73d38f90b5d46bb9b27ab
+  languageName: node
+  linkType: hard
+
+"react-use-measure@npm:2.1.7":
+  version: 2.1.7
+  resolution: "react-use-measure@npm:2.1.7"
+  peerDependencies:
+    react: ">=16.13"
+    react-dom: ">=16.13"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/d3cbd359b97728654904a7b3b42c2bcac95596702d482bd497362869eeb040f0e585eb7073cfe76a6055783215581f5db5d2be3ba5b78668f0dd0be5b3330e67
   languageName: node
   linkType: hard
 
@@ -12693,21 +12788,21 @@ __metadata:
     "@fontsource/yuji-mai": "npm:^5.2.7"
     "@fontsource/zen-kurenaido": "npm:^5.2.8"
     "@fontsource/zen-old-mincho": "npm:^5.2.8"
-    "@mantine/carousel": "npm:^9.3.0"
-    "@mantine/charts": "npm:^9.3.0"
-    "@mantine/colors-generator": "npm:^9.3.0"
-    "@mantine/core": "npm:^9.3.0"
-    "@mantine/dates": "npm:^9.3.0"
-    "@mantine/form": "npm:^9.3.0"
-    "@mantine/hooks": "npm:^9.3.0"
-    "@mantine/modals": "npm:^9.3.0"
+    "@mantine/carousel": "npm:^9.2.2"
+    "@mantine/charts": "npm:^9.2.2"
+    "@mantine/colors-generator": "npm:^9.2.2"
+    "@mantine/core": "npm:^9.2.2"
+    "@mantine/dates": "npm:^9.2.2"
+    "@mantine/form": "npm:^9.2.2"
+    "@mantine/hooks": "npm:^9.2.2"
+    "@mantine/modals": "npm:^9.2.2"
     "@maverick-js/signals": "npm:^6.0.0"
     "@playwright/test": "npm:^1.58.2"
     "@signaldb/core": "npm:^1.8.1"
     "@signaldb/indexeddb": "npm:^1.1.0"
     "@signaldb/maverickjs": "npm:^1.0.0"
     "@signaldb/react": "npm:^1.0.1"
-    "@tabler/icons-react": "npm:^3.35.0"
+    "@tabler/icons-react": "npm:^3.43.0"
     "@tailwindcss/typography": "npm:^0.5.19"
     "@tailwindcss/vite": "npm:^4.1.18"
     "@testing-library/dom": "npm:^10.4.1"
@@ -12734,6 +12829,7 @@ __metadata:
     dependency-cruiser: "npm:^17.4.2"
     embla-carousel: "npm:^8.5.2"
     embla-carousel-react: "npm:^8.5.2"
+    embla-carousel-wheel-gestures: "npm:^8.1.0"
     fishery: "npm:^2.4.0"
     globals: "npm:^16.5.0"
     happy-dom: "npm:^20.6.1"
@@ -12742,12 +12838,14 @@ __metadata:
     lodash: "npm:^4.17.21"
     madge: "npm:^8.0.0"
     moment: "npm:^2.30.1"
+    motion: "npm:^12.38.0"
     nitro: "npm:^3.0.260522-beta"
     prettier: "npm:^3.7.4"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     react-is: "npm:^19.2.1"
     react-markdown: "npm:^10.1.0"
+    react-modal-sheet: "npm:^5.6.0"
     react-router: "npm:^7.10.1"
     react-router-dom: "npm:^7.10.1"
     recharts: "npm:^3.7.0"
@@ -14157,6 +14255,13 @@ __metadata:
     tr46: "npm:^1.0.1"
     webidl-conversions: "npm:^4.0.2"
   checksum: 10/769fd35838b4e50536ae08d836472e86adbedda1d5493ea34353c55468147e7868b91d2535b59e01a9e7331ab7e4cdfdf5490c279c045da23c327cf33e32f755
+  languageName: node
+  linkType: hard
+
+"wheel-gestures@npm:^2.2.5":
+  version: 2.2.48
+  resolution: "wheel-gestures@npm:2.2.48"
+  checksum: 10/f9eefc90b2abde6e41d045f35c4b1cb486f9b2b2772724a590a794c3bc3d03c52301470b139f4812eec19eca495bf59e8cf85fe6cb8bb5abe786264c97d9ac4e
   languageName: node
   linkType: hard
 
