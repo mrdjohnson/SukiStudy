@@ -2,6 +2,7 @@ import { useLocalStorage } from '@mantine/hooks'
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { type NotificationSchedule, SubjectType } from '../core/types'
+import type { ThemeBackground } from '../core/types'
 import _ from 'lodash'
 import { useUser } from './UserContext'
 import { waniKaniService } from '../services/wanikaniService'
@@ -10,9 +11,13 @@ import useReactivity from '../hooks/useReactivity'
 import { preferences } from '../core/db'
 import {
   defaultContentPreferences,
+  defaultSyncPreferences,
   updateContentPreference,
   updateContentPreferenceKey,
+  updateSyncPreference,
+  updateSyncPreferenceKey,
 } from '../core/preferencesStore'
+import { getDefaultBackground } from '../utils/defaultWallpaper'
 
 interface Step {
   title: string
@@ -73,13 +78,28 @@ const useSettingsContext = () => {
     key: 'suki_game_overrides',
     defaultValue: {},
   })
+  const [themeBackground, setThemeBackground] = useLocalStorage<ThemeBackground | null>({
+    key: 'suki_theme_background',
+    defaultValue: undefined,
+  })
 
   const [helpSteps, setHelpSteps] = useState<Step[] | null>(null)
 
-  const contentPreferences = useReactivity(() => {
+  const currentPreferences = useReactivity(() => {
+    return preferences.findOne({ id: 'current' })
+  }, [])
+
+  const contentPreferences = useMemo(() => {
     return {
       ...defaultContentPreferences,
-      ...preferences.findOne({ id: 'current' })?.content,
+      ...currentPreferences?.content,
+    }
+  }, [currentPreferences])
+
+  const syncPreferences = useMemo(() => {
+    return {
+      ...defaultSyncPreferences,
+      ...currentPreferences?.sync,
     }
   }, [])
 
@@ -87,6 +107,8 @@ const useSettingsContext = () => {
   const gameLevelMin = contentPreferences.gameLevelMin
   const gameLevelMax = contentPreferences.gameLevelMax
   const dashboardSubjectSource = contentPreferences.dashboardSubjectSource
+  const autoWaniKaniUpdatesEnabled = syncPreferences.autoWaniKaniUpdatesEnabled
+  const waniKaniUpdatePromptDismissed = syncPreferences.waniKaniUpdatePromptDismissed
 
   const disabledSubjects = useMemo(() => {
     if (!isGuest) return []
@@ -119,6 +141,12 @@ const useSettingsContext = () => {
   const toggleAutoPlayAudio = () => setAutoPlayAudio(prev => !prev)
   const toggleAutoConvertTyping = () => setAutoConvertTyping(prev => !prev)
   const toggleGameSyncEnabled = () => setGameSyncEnabled(prev => !prev)
+  const toggleWaniKaniAutoUpdatesEnabled = () => {
+    updateSyncPreference({
+      autoWaniKaniUpdatesEnabled: !autoWaniKaniUpdatesEnabled,
+      waniKaniUpdatePromptDismissed: true,
+    })
+  }
 
   const toggleEnabledFont = (fontName: string) => {
     setEnabledFonts(prev => _.xor(prev, [fontName]))
@@ -181,6 +209,12 @@ const useSettingsContext = () => {
     }
   }, [gameSyncEnabled, isGuest])
 
+  useEffect(() => {
+    if (themeBackground === undefined) {
+      setThemeBackground(getDefaultBackground())
+    }
+  }, [themeBackground])
+
   return {
     soundEnabled,
     toggleSound,
@@ -213,6 +247,11 @@ const useSettingsContext = () => {
 
     gameSyncEnabled,
     toggleGameSyncEnabled,
+    autoWaniKaniUpdatesEnabled,
+    toggleWaniKaniAutoUpdatesEnabled,
+    waniKaniUpdatePromptDismissed,
+    setWaniKaniUpdatePromptDismissed: updateSyncPreferenceKey('waniKaniUpdatePromptDismissed'),
+    updateWaniKaniSyncPreferences: updateSyncPreference,
 
     notificationSchedule,
     setNotificationSchedule,
@@ -220,6 +259,8 @@ const useSettingsContext = () => {
     enabledFonts,
     toggleEnabledFont,
     availableFonts,
+    themeBackground,
+    setThemeBackground,
   }
 }
 

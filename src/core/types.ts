@@ -50,6 +50,8 @@ export interface StudyMaterial {
   hidden: boolean
 }
 
+export type ReadingType = 'onyomi' | 'kunyomi' | 'nanori' | undefined
+
 export interface Subject {
   id: number // Required for SignalDB matching, though optional in raw API type
   object?: SubjectType
@@ -79,7 +81,7 @@ export interface Subject {
     type: 'whitelist' | 'blacklist'
   }[]
   readings?: {
-    type: string
+    type?: ReadingType
     primary: boolean
     reading: string
     accepted_answer: boolean
@@ -88,7 +90,9 @@ export interface Subject {
   amalgamation_subject_ids: number[]
   visually_similar_subject_ids: number[]
   meaning_mnemonic: string
+  meaning_hint?: string
   reading_mnemonic?: string
+  reading_hint?: string
   lesson_position: number
   spaced_repetition_system_id: number
   pronunciation_audios?: {

@@ -1,36 +1,72 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useState, useRef, Suspense } from 'react'
 import { useNetwork } from '@mantine/hooks'
-import { useNavigate, useParams } from 'react-router'
-import { assignments, encounters, subjects } from '../core/db'
-import { Icons } from '../components/Icons'
+import { useNavigate, useLocation, useMatch } from 'react-router'
+import { subjects } from '../core/db'
 import { Button } from '../components/ui/Button'
-import { useUser } from '../contexts/UserContext'
-import { Badge, Container, Group, Paper, SimpleGrid, Text, useMatches } from '@mantine/core'
-import clsx from 'clsx'
-import { DashboardMessageCarousel } from '../components/dashboard/DashboardMessageCarousel'
-import { openFlashcardModal } from '../components/modals/FlashcardModal'
+import { ActionIcon, Box, Center, Group, Paper } from '@mantine/core'
 
 import useReactivity from '../hooks/useReactivity'
 
-import { Footer } from '../components/Footer'
+import { IconCategory2, IconInfoCircle, IconSchool, IconWifiOff } from '@tabler/icons-react'
+import { Carousel } from '@mantine/carousel'
+import { type Subject } from '../core/types'
+import _ from 'lodash'
+import { openFlashcardModal } from '../components/modals/FlashcardModal'
+import { type EmblaCarouselType } from 'embla-carousel'
+import { Sheet } from 'react-modal-sheet'
+import Options from './Options'
+import clsx from 'clsx'
+
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
+import { SubjectHero } from '../components/SubjectHero'
+import { useSettings } from '../contexts/SettingsContext'
+import { gameItemsToLearn } from '../core/db/gameItems'
 
 export const Dashboard: React.FC = () => {
-  const { isGuest } = useUser()
-  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const { subjectId } = useParams()
+  const subjectMatch = useMatch('/subjects/:subjectId')
+  const subjectId = subjectMatch?.params.subjectId
   const openedSubjectIdRef = useRef<string | null>(null)
   const { online } = useNetwork()
-  const gridWidth = useMatches({
-    base: 1,
-    sm: 3,
-  })
+  const location = useLocation()
+  const { availableSubjects, dashboardSubjectSource, gameLevelMin, gameLevelMax } = useSettings()
 
-  const gameCount = useReactivity(() => encounters.find().count())
+  const [embla, setEmbla] = useState<EmblaCarouselType | null>(null)
+  const [optionsOpened, setOptionsOpened] = useState(false)
+
+  const wheelPlugin = useRef(
+    WheelGesturesPlugin({
+      forceWheelAxis: 'y', // Forces vertical mouse scrolling to move horizontal slides
+    }),
+  )
 
   useEffect(() => {
-    assignments.isReady().then(() => setLoading(false))
-  }, [])
+    // close option sheet after redirect
+    setTimeout(() => {
+      setOptionsOpened(false)
+    }, 300)
+  }, [location.pathname])
+
+  const dashboardSubjects = useReactivity(() => {
+    return _.chain(
+      gameItemsToLearn({
+        subjectTypes: availableSubjects,
+        gameLevelMin,
+        gameLevelMax,
+        includeKana: true,
+      }),
+    )
+      .sampleSize(20)
+      .map('subject')
+      .value()
+  }, [availableSubjects, gameLevelMin, gameLevelMax])
+
+  const emptyDashboardLabel =
+    dashboardSubjectSource === 'assigned'
+      ? 'No assignments available'
+      : dashboardSubjectSource === 'learned'
+        ? 'No learned items'
+        : 'No reviews due'
 
   useEffect(() => {
     if (!subjectId || openedSubjectIdRef.current === subjectId) return
@@ -50,176 +86,151 @@ export const Dashboard: React.FC = () => {
     })()
   }, [navigate, subjectId])
 
-  const lessonsCount = useReactivity(() => {
-    return assignments
-      .find({
-        srs_stage: 0,
-        hidden: false,
-        unlocked_at: { $ne: null },
-      })
-      .count()
-  })
-
-  const reviewsCount = useReactivity(() => {
-    const now = new Date().toISOString()
-
-    return assignments
-      .find({
-        available_at: { $lte: now },
-        hidden: false,
-      })
-      .count()
-  })
-
-  if (loading)
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="animate-spin text-indigo-600">
-          <Icons.RotateCcw />
-        </div>
-      </div>
-    )
-
   return (
     <>
-      <Container className="mx-auto max-w-full! space-y-4 md:space-y-8 px-0! md:px-2! py-4 md:py-8">
-        <Group justify="flex-end" className="-mt-4 md:-mt-8 mb-2">
-          {isGuest && (
-            <Badge color="orange" variant="light" size="lg" radius="md">
-              Guest
-            </Badge>
-          )}
+      <div
+        className={clsx(
+          'w-screen h-svh flex overflow-hidden transition-opacity ease-in-out duration-300',
+          optionsOpened && 'opacity-0',
+        )}
+      >
+        {!online && (
+          <IconWifiOff
+            className="drop-shadow-[2px_2px_2px_rgba(0,0,0,0.5)] absolute top-3 right-3 w-fit! text-white"
+            stroke={3}
+          />
+        )}
 
-          {!online && (
-            <Badge color="red" variant="light" size="lg" radius="md">
-              Offline
-            </Badge>
-          )}
+        <Group
+          gap="sm"
+          wrap="nowrap"
+          className="justify-between! absolute! z-10 w-full bottom-6 py-0 px-6 pointer-events-none max-w-4xl left-0! right-0! mx-auto!"
+        >
+          <ActionIcon
+            color="gray"
+            radius="xl"
+            size="input-xl"
+            onClick={() => setOptionsOpened(true)}
+            className="pointer-events-auto"
+          >
+            <IconCategory2 />
+          </ActionIcon>
+
+          {/* <Button
+            color="gray"
+            radius="xl"
+            className="px-4! flex! max-h-20! h-14!"
+            classNames={{ label: 'py-4!' }}
+            onClick={() => navigate('/session/review')}
+          >
+            <Group wrap="nowrap">
+              <IconSchool />
+              Practice
+            </Group>
+          </Button> */}
+
+          <ActionIcon
+            color="gray"
+            radius="xl"
+            size="input-xl"
+            onClick={() => navigate('/session/review')}
+            className="pointer-events-auto"
+          >
+            <IconSchool />
+          </ActionIcon>
+          {/* <ActionIcon color="gray" radius="xl" size="input-xl" onClick={() => navigate('/browse')}>
+            <IconSearch />
+          </ActionIcon> */}
         </Group>
 
-        <DashboardMessageCarousel />
+        <Carousel
+          slideSize="100%"
+          height="100%"
+          orientation="vertical"
+          withIndicators={false}
+          withControls={false}
+          emblaOptions={{
+            loop: true,
+            dragFree: false,
+            align: 'center',
+          }}
+          className="w-full bg-black/10 backdrop-blur-[0.3px] text-white text-shadow-[2px_2px_2px_rgba(0,0,0,0.5)] text-shadow-black"
+          getEmblaApi={setEmbla}
+          plugins={[wheelPlugin.current]}
+        >
+          {dashboardSubjects.map((subject, index) => (
+            <Slide
+              key={subject.id}
+              subject={subject}
+              onInfoClick={() =>
+                openFlashcardModal(dashboardSubjects, index, i => embla?.scrollTo(i))
+              }
+            />
+          ))}
 
-        {/* Action Cards */}
-        <SimpleGrid cols={isGuest ? 1 : gridWidth}>
-          {!isGuest && (
-            <>
-              <Paper
-                withBorder
-                shadow="md"
-                radius="lg"
-                className="p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-secondary/30 group dark:shadow-slate-500! dark:shadow-sm! transition-all ease-in-out duration-300"
-              >
-                <div className="bg-pink-100 dark:bg-pink-900 p-4 rounded-full mb-4 group-hover:bg-pink-200 dark:group-hover:bg-pink-800 transition-colors w-fit place-self-center">
-                  <Icons.Layers className="w-8 h-8 text-pink-600 dark:text-pink-300 dark:group-hover:text-pink-200" />
-                </div>
-
-                <h3 className="text-xl font-bold mb-1">{lessonsCount} Lessons</h3>
-                <Text c="dimmed">New items to learn</Text>
+          {dashboardSubjects.length === 0 && (
+            <Carousel.Slide>
+              <Center className="h-full">
                 <Button
-                  variant={lessonsCount > 0 ? 'primary' : 'outline'}
-                  disabled={lessonsCount === 0}
-                  onClick={() => navigate('/session/lesson')}
-                  className="w-36! mt-6"
+                  color="gray"
+                  radius="xl"
+                  size="lg"
+                  onClick={() => navigate('/session/review')}
                 >
-                  Start Lessons
+                  {emptyDashboardLabel}
                 </Button>
-              </Paper>
-
-              <Paper
-                withBorder
-                shadow="md"
-                radius="lg"
-                className={clsx(
-                  'p-6 rounded-2xl flex flex-col items-center justify-center text-center',
-
-                  reviewsCount === 0
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:border-secondary/30 transition-colors group',
-                )}
-              >
-                <div className="bg-sky-100 dark:bg-sky-900 p-4 rounded-full mb-4 group-hover:bg-sky-200 dark:group-hover:bg-sky-800 w-fit place-self-center transition-all ease-in-out duration-300">
-                  <Icons.RotateCcw className="w-8 h-8 text-sky-600 dark:text-sky-300 dark:group-hover:text-sky-200" />
-                </div>
-
-                <h3 className="text-xl font-bold mb-1">{reviewsCount} Reviews</h3>
-                <Text c="dimmed">Items to recall</Text>
-
-                <div>
-                  <Button
-                    className="flex-1 w-36! mt-6"
-                    variant="light"
-                    disabled={reviewsCount === 0}
-                    onClick={() => navigate('/session/review')}
-                    rightSection={<Icons.Gamepad2 className="w-5 h-5" />}
-                  >
-                    Start
-                  </Button>
-                </div>
-              </Paper>
-            </>
+              </Center>
+            </Carousel.Slide>
           )}
+        </Carousel>
+      </div>
 
-          <Paper
-            withBorder
-            shadow="md"
-            radius="lg"
-            className="p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-secondary/30 group dark:shadow-slate-500! dark:shadow-sm! transition-all ease-in-out duration-300"
-          >
-            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full mb-4 group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors w-fit place-self-center">
-              <Icons.Gamepad2 className="w-8 h-8 text-green-600 dark:text-green-300 dark:group-hover:text-green-200" />
-            </div>
+      <Sheet
+        isOpen={optionsOpened}
+        onClose={() => setOptionsOpened(false)}
+        style={{ zIndex: 20 }}
+        detent="content"
+      >
+        <Sheet.Container className="rounded-t-2xl! rounded-b-none! overflow-hidden max-w-3xl! mx-auto! left-0! right-0!">
+          <Sheet.Content>
+            <Suspense fallback={<div />}>
+              <Paper className="rounded-none!">
+                <Box className="py-4">
+                  <Center>
+                    <Sheet.DragIndicator />
+                  </Center>
+                </Box>
 
-            <h3 className="text-xl font-bold mb-1">Mini Games</h3>
-            <Text c="dimmed">Review while having fun</Text>
-
-            <Button
-              variant="outline"
-              onClick={() => navigate('/session/games')}
-              className="w-36! mt-6"
-            >
-              Play Games
-            </Button>
-          </Paper>
-        </SimpleGrid>
-
-        {/* Statistics Link (Conditional) */}
-        <Paper
-          withBorder
-          shadow="md"
-          radius="lg"
-          className={clsx(
-            'p-6 rounded-2xl flex flex-col items-center justify-center text-center transition-all ease-in-out duration-300',
-            gameCount === 0
-              ? 'opacity-50 cursor-not-allowed'
-              : 'hover:border-secondary/30 group  cursor-pointer dark:shadow-amber-800! dark:shadow-sm! dark:hover:shadow-md! ',
-          )}
-          onClick={() => gameCount > 0 && navigate('/stats')}
-        >
-          <div className="bg-amber-100 dark:bg-amber-900 p-4 rounded-full mb-4 group-hover:bg-amber-200 dark:group-hover:bg-amber-800 w-fit place-self-center ">
-            <Icons.Activity className="w-8 h-8 text-amber-600 dark:text-amber-300 dark:group-hover:text-amber-200" />
-          </div>
-          <h3 className="text-xl font-bold mb-1">Your Stats</h3>
-          <Text c="dimmed">View your game history and item breakdown.</Text>
-        </Paper>
-
-        {/* Quick Browse */}
-        <Paper
-          withBorder
-          shadow="md"
-          radius="lg"
-          className="p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-secondary/30 group cursor-pointer dark:shadow-blue-800! dark:shadow-sm! dark:hover:shadow-md! transition-all ease-in-out duration-300"
-          onClick={() => navigate('/browse')}
-        >
-          <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors w-fit place-self-center">
-            <Icons.BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-300 dark:group-hover:text-blue-200" />
-          </div>
-
-          <h3 className="text-xl font-bold mb-1">Browse Content</h3>
-          <Text c="dimmed">Explore all kana, radicals, kanji, and vocabulary by level.</Text>
-        </Paper>
-      </Container>
-
-      <Footer />
+                <Options />
+              </Paper>
+            </Suspense>
+          </Sheet.Content>
+        </Sheet.Container>
+        <Sheet.Backdrop onClick={() => setOptionsOpened(false)} />
+      </Sheet>
     </>
+  )
+}
+
+type SlideProps = {
+  subject: Subject
+  onInfoClick?: () => void
+}
+
+const Slide = ({ subject, onInfoClick }: SlideProps) => {
+  return (
+    <Carousel.Slide>
+      <div className="justify-center h-full flex">
+        <Center className=" flex-col gap-6">
+          <SubjectHero subject={subject} onClick={onInfoClick} />
+
+          <Group className="mt-20">
+            <Button variant="transparent" color="white" size="xl" onClick={onInfoClick}>
+              <IconInfoCircle className="drop-shadow-[2px_2px_2px_rgba(0,0,0,0.5)]" size={48} />
+            </Button>
+          </Group>
+        </Center>
+      </div>
+    </Carousel.Slide>
   )
 }

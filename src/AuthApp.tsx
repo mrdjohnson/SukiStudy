@@ -1,12 +1,14 @@
 import React, { useEffect, Suspense } from 'react'
-import { Route, Routes, Navigate, Outlet, useSearchParams } from 'react-router'
-import { ModalsProvider } from '@mantine/modals'
+import { Route, Routes, Navigate, Outlet, useSearchParams, useLocation } from 'react-router'
+import { modals, ModalsProvider } from '@mantine/modals'
+import { Text } from '@mantine/core'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 
 import { Header } from './components/Header'
 import { Icons } from './components/Icons'
 import { PageLoader } from './components/PageLoader'
+import { DrawerRoute } from './components/DrawerRoute'
 
 import { useUser, UserProvider } from './contexts/UserContext'
 import { SettingsProvider, useSettings } from './contexts/SettingsContext'
@@ -54,15 +56,25 @@ const FontLoader = React.lazy(() =>
   import('./components/FontLoader').then(m => ({ default: m.FontLoader })),
 )
 const PWABadge = React.lazy(() => import('./PWABadge'))
+const Settings = React.lazy(() =>
+  import('./pages/Settings').then(m => ({ default: m.SettingsModal })),
+)
 
 export const AuthWrapper = () => {
   const { user, loading, loginAsGuest } = useUser()
-  const { notificationSchedule, setNotificationSchedule } = useSettings()
+  const {
+    notificationSchedule,
+    setNotificationSchedule,
+    autoWaniKaniUpdatesEnabled,
+    waniKaniUpdatePromptDismissed,
+    updateWaniKaniSyncPreferences,
+  } = useSettings()
   const [searchParams, setSearchParams] = useSearchParams()
   const [notificationDisabledMessage, setNotificationDisabledMessage] = React.useState(false)
   const hasMigratedNotificationPreferences = React.useRef(false)
+  const hasOpenedWaniKaniUpdatePrompt = React.useRef(false)
 
-  const isSyncing = useSyncManager(user)
+  const isSyncing = useSyncManager(user, { autoWaniKaniUpdatesEnabled })
 
   useEffect(() => {
     if (hasMigratedNotificationPreferences.current || !notificationSchedule.enabled) return
@@ -70,6 +82,45 @@ export const AuthWrapper = () => {
     hasMigratedNotificationPreferences.current = true
     void saveLocalNotificationPreferences(notificationSchedule)
   }, [notificationSchedule])
+
+  useEffect(() => {
+    if (
+      !user ||
+      user.is_guest ||
+      waniKaniUpdatePromptDismissed ||
+      hasOpenedWaniKaniUpdatePrompt.current
+    ) {
+      return
+    }
+
+    hasOpenedWaniKaniUpdatePrompt.current = true
+
+    modals.openConfirmModal({
+      title: 'Download WaniKani items?',
+      children: (
+        <Text size="sm">
+          SukiStudy can download your WaniKani subjects, assignments, and study materials for
+          offline practice and automatic updates. This can be a large first download on mobile.
+        </Text>
+      ),
+      labels: { confirm: 'Download now', cancel: 'Kana only' },
+      closeOnClickOutside: false,
+      closeOnEscape: false,
+      withCloseButton: false,
+      onCancel: () => {
+        updateWaniKaniSyncPreferences({
+          autoWaniKaniUpdatesEnabled: false,
+          waniKaniUpdatePromptDismissed: true,
+        })
+      },
+      onConfirm: () => {
+        updateWaniKaniSyncPreferences({
+          autoWaniKaniUpdatesEnabled: true,
+          waniKaniUpdatePromptDismissed: true,
+        })
+      },
+    })
+  }, [user, waniKaniUpdatePromptDismissed, updateWaniKaniSyncPreferences])
 
   // Handle guest login from landing page
   useEffect(() => {
@@ -121,40 +172,129 @@ export const AuthWrapper = () => {
   )
 }
 
+/**
+ * Modal routes layer — renders page content inside bottom-sheet modals
+ * while the Dashboard stays visible underneath.
+ */
+const DrawerRoutes = () => {
+  const location = useLocation()
+  const availableGames = useGames()
+
+  // Only render modal routes when NOT on the dashboard root
+  if (location.pathname === '/') {
+    return null
+  }
+
+  return (
+    <Routes location={location}>
+      <Route
+        path="/session/lesson"
+        element={
+          <DrawerRoute title="Lesson">
+            <Session />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/session/review"
+        element={
+          <DrawerRoute title="Review">
+            <Review />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/session/games"
+        element={
+          <DrawerRoute title="Games">
+            <GameMenu />
+          </DrawerRoute>
+        }
+      />
+
+      {availableGames.map(game => (
+        <Route
+          key={game.id}
+          path={'/session/games/' + game.id}
+          element={
+            <DrawerRoute title={game.name}>
+              <game.component />
+            </DrawerRoute>
+          }
+        />
+      ))}
+
+      <Route
+        path="/session/custom"
+        element={
+          <DrawerRoute title="Custom Session">
+            <CustomGameSetup />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/session/custom/play"
+        element={
+          <DrawerRoute title="Custom Game">
+            <CustomSession />
+          </DrawerRoute>
+        }
+      />
+
+      <Route
+        path="/browse"
+        element={
+          <DrawerRoute title="Browse">
+            <Browse />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/stats"
+        element={
+          <DrawerRoute title="Statistics">
+            <Statistics />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <DrawerRoute title="Settings">
+            <Settings />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/settings/notifications"
+        element={<Navigate to="/settings?tab=notifications" replace />}
+      />
+    </Routes>
+  )
+}
+
 // Inner app component that uses UserProvider context
 const AppRoutes = () => {
   const { user, isGuest } = useUser()
-  const availableGames = useGames()
 
   return (
     <Routes>
       <Route path="/landing" element={<Landing />} />
       <Route path="/login" element={user && !isGuest ? <Navigate to="/" /> : <Login />} />
 
-      <Route path="/about" element={<Navigate to="/landing#about" replace />} />
+      {!user && <Route path="/about" element={<Navigate to="/landing#about" replace />} />}
 
       <Route element={<AuthWrapper />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/session/lesson" element={<Session />} />
-        <Route path="/session/review" element={<Review />} />
-
-        <Route path="/session/games" element={<GameMenu />} />
-
-        {availableGames.map(game => (
-          <Route key={game.id} path={'/session/games/' + game.id} element={<game.component />} />
-        ))}
-
-        {/* go to games menu if at unknown game page */}
-        <Route path="/session/games/*" element={<Navigate to="/session/games" />} />
-
-        <Route path="/session/custom" element={<CustomGameSetup />} />
-        <Route path="/session/custom/play" element={<CustomSession />} />
-
-        <Route path="/browse" element={<Browse />} />
-        <Route path="/stats" element={<Statistics />} />
-        <Route path="/subjects/:subjectId" element={<Dashboard />} />
-        <Route path="/settings" element={<Dashboard />} />
-        <Route path="/settings/notifications" element={<Dashboard />} />
+        {/* Dashboard always renders as the base layer */}
+        <Route
+          path="*"
+          element={
+            <>
+              <Dashboard />
+              <DrawerRoutes />
+            </>
+          }
+        />
       </Route>
 
       {/* go to dashboard if at unknown page */}
@@ -166,12 +306,12 @@ const AppRoutes = () => {
 // For authenticated users
 export default function AuthApp() {
   return (
-    <ModalsProvider>
-      <UserProvider>
-        <SettingsProvider>
+    <UserProvider>
+      <SettingsProvider>
+        <ModalsProvider>
           <AppRoutes />
-        </SettingsProvider>
-      </UserProvider>
-    </ModalsProvider>
+        </ModalsProvider>
+      </SettingsProvider>
+    </UserProvider>
   )
 }

@@ -29,7 +29,7 @@ export default function AppRouter() {
 
   // Check if user has a token or is on public pages
   // This allows landing page to render without initializing the database
-  const hasToken = localStorage.getItem('wk_token') !== null
+  const hasToken = !!localStorage.getItem('wk_token')
   const isPublicPage =
     location.pathname === '/' ||
     location.pathname === '/landing' ||

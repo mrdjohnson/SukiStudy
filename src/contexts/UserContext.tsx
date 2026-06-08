@@ -35,24 +35,23 @@ const GUEST_TOKEN = 'guest_token'
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
-  const user = useReactivity(() => users.findOne({ id: 'current' }) || null)
+  const user = useReactivity(() => {
+    return users.findOne({ id: 'current' }) || null
+  }, [])
 
   useEffect(() => {
     const init = async () => {
       await users.isReady()
       const dbUser = users.findOne({ id: 'current' })
-      const storedToken = localStorage.getItem('wk_token')
+      const storedToken = localStorage.getItem('wk_token') || undefined
 
       if (dbUser) {
         setLoading(false)
 
-        if (storedToken && storedToken !== GUEST_TOKEN) {
-          waniKaniService.setToken(storedToken)
-        }
+        if (storedToken === GUEST_TOKEN || !storedToken) return
 
-        if (dbUser.is_guest) {
-          users.updateOne({ id: 'current' }, { $set: { is_guest: false } })
-        }
+        waniKaniService.setToken(storedToken)
+        users.updateOne({ id: 'current' }, { $set: { is_guest: false } })
 
         return
       }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Button } from '../components/ui/Button'
 import {
   TextInput,
@@ -12,15 +12,21 @@ import {
   LoadingOverlay,
   ActionIcon,
   Box,
+  useMatches,
 } from '@mantine/core'
 import clsx from 'clsx'
 import logo from '@/src/assets/apple-touch-icon.png'
 import { useNavigate } from 'react-router'
 import { useLocalStorage } from '@mantine/hooks'
 import { IconInfoCircle } from '@tabler/icons-react'
+import { getDefaultBackground } from '../utils/defaultWallpaper'
 
 export const Login = () => {
   const navigate = useNavigate()
+  const isMobile = useMatches({
+    base: true,
+    sm: false,
+  })
 
   const [token, setToken] = useLocalStorage({ key: 'wk_token', defaultValue: '' })
   const [error, setError] = useState('')
@@ -43,8 +49,24 @@ export const Login = () => {
     }
   }
 
+  const backgroundImage = useMemo(() => {
+    const defaultBackground = getDefaultBackground()
+
+    if (!defaultBackground) return undefined
+
+    const url = isMobile ? defaultBackground.portraitUrl : defaultBackground.landscapeUrl
+
+    return `url(${url})`
+  }, [isMobile])
+
   return (
-    <Box className="min-h-screen flex items-center justify-center px-4 relative font-sans">
+    <Box className="min-h-svh flex items-center justify-center px-4 relative font-sans">
+      <Box
+        aria-hidden
+        className="fixed inset-0 bg-cover bg-top-left bg-no-repeat"
+        style={{ backgroundImage }}
+      />
+      <Box aria-hidden className="fixed inset-0 bg-black/55 backdrop-blur-[1px]" />
       <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
 
       <Card
@@ -52,7 +74,7 @@ export const Login = () => {
         shadow="lg"
         radius="lg"
         withBorder
-        className={clsx(loading && 'border-blue-500!')}
+        className={clsx('relative z-10', loading && 'border-blue-500!')}
       >
         <Stack align="center" mb={30}>
           <ActionIcon size={64} radius="xl" color="#ff0000" variant="filled">
