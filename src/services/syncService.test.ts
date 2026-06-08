@@ -48,6 +48,21 @@ describe('syncService', () => {
     })
   })
 
+  describe('sync', () => {
+    it('can run local kana sync without remote WaniKani sync', async () => {
+      localStorage.setItem('wk_token', 'test-token')
+
+      await syncService.sync({ includeWaniKani: false })
+
+      expect(mockWorkerOps.populateKana).toHaveBeenCalled()
+      expect(mockWorkerOps.setToken).not.toHaveBeenCalled()
+      expect(mockWorkerOps.syncUser).not.toHaveBeenCalled()
+      expect(mockWorkerOps.syncSubjects).not.toHaveBeenCalled()
+      expect(mockWorkerOps.syncAssignments).not.toHaveBeenCalled()
+      expect(mockWorkerOps.syncStudyMaterials).not.toHaveBeenCalled()
+    })
+  })
+
   describe('migrateSubjects', () => {
     it('should migrate if never run', async () => {
       await syncService.migrateSubjects()

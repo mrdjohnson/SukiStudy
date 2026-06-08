@@ -4,6 +4,10 @@ import type { User } from '../core/types'
 
 const SYNC_INTERVAL_MS = 60 * 60 * 1000 // 60 minutes
 
+type SyncManagerOptions = {
+  autoWaniKaniUpdatesEnabled?: boolean
+}
+
 /**
  * Hook that manages syncing for both offline and online (WaniKani) data.
  * Only runs when a user is present.
@@ -13,14 +17,19 @@ const SYNC_INTERVAL_MS = 60 * 60 * 1000 // 60 minutes
  * - Periodic syncing (every 60 minutes)
  * - Sync on network reconnection
  */
-export const useSyncManager = (user: User | null) => {
+export const useSyncManager = (
+  user: User | null,
+  { autoWaniKaniUpdatesEnabled = false }: SyncManagerOptions = {},
+) => {
   const [isSyncing, startTransition] = useTransition()
 
   const sync = () => {
     startTransition(async () => {
       console.log('SyncManager: Running sync...')
 
-      await syncService.sync()
+      await syncService.sync({
+        includeWaniKani: !!user && !user.is_guest && autoWaniKaniUpdatesEnabled,
+      })
     })
   }
 
@@ -43,7 +52,7 @@ export const useSyncManager = (user: User | null) => {
       console.log('SyncManager: Cleaning up sync manager')
       clearInterval(interval)
     }
-  }, [user?.id]) // Re-run if user changes (login/logout)
+  }, [user?.id, user?.is_guest, autoWaniKaniUpdatesEnabled]) // Re-run if user or auto-sync changes
 
   return isSyncing
 }

@@ -16,6 +16,15 @@ const syncServiceWorker = new ComlinkWorker<typeof import('./syncService.worker.
   { type: 'module' },
 )
 
+type SyncOptions = {
+  includeWaniKani?: boolean
+  forceWaniKani?: boolean
+}
+
+type WaniKaniSyncOptions = {
+  forceSync?: boolean
+}
+
 /**
  * Utility function to check if a sync should be skipped based on last sync time
  * @param syncKey - The localStorage key for this sync type
@@ -95,9 +104,15 @@ export const syncService = {
     }
   },
 
-  async sync() {
+  async sync({ includeWaniKani = true, forceWaniKani = false }: SyncOptions = {}) {
     await this.offlineSync()
 
+    if (!includeWaniKani) return
+
+    await this.syncWaniKani({ forceSync: forceWaniKani })
+  },
+
+  async syncWaniKani({ forceSync = false }: WaniKaniSyncOptions = {}) {
     try {
       if (!navigator.onLine) {
         return
@@ -114,10 +129,10 @@ export const syncService = {
       await this.syncUser()
 
       await this.migrateSubjects()
-      await this.syncSubjects()
+      await this.syncSubjects(forceSync)
       await this.migrateAssignments()
-      await this.syncAssignments()
-      await this.syncStudyMaterials()
+      await this.syncAssignments(forceSync)
+      await this.syncStudyMaterials(forceSync)
       await this.syncEncounterItems()
 
       console.log('[Sync] Synchronization complete.')
@@ -175,18 +190,26 @@ export const syncService = {
     )
   },
 
-  async syncAssignments() {
-    await maybeRunSync(SYNC_KEYS.ASSIGNMENTS, async () => {
-      const lastSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
-      await syncServiceWorker.syncAssignments(lastSync)
-    })
+  async syncAssignments(forceSync = false) {
+    await maybeRunSync(
+      SYNC_KEYS.ASSIGNMENTS,
+      async () => {
+        const lastSync = localStorage.getItem(SYNC_KEYS.ASSIGNMENTS)
+        await syncServiceWorker.syncAssignments(lastSync)
+      },
+      { forceSync },
+    )
   },
 
-  async syncStudyMaterials() {
-    await maybeRunSync(SYNC_KEYS.MATERIALS, async () => {
-      const lastSync = localStorage.getItem(SYNC_KEYS.MATERIALS)
-      await syncServiceWorker.syncStudyMaterials(lastSync)
-    })
+  async syncStudyMaterials(forceSync = false) {
+    await maybeRunSync(
+      SYNC_KEYS.MATERIALS,
+      async () => {
+        const lastSync = localStorage.getItem(SYNC_KEYS.MATERIALS)
+        await syncServiceWorker.syncStudyMaterials(lastSync)
+      },
+      { forceSync },
+    )
   },
 
   async populateKana(forcePopulate = false) {

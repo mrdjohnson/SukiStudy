@@ -4,6 +4,7 @@ import { setup } from 'vitest-indexeddb'
 export const mockWorkerOps = {
   syncUser: vi.fn().mockResolvedValue(undefined),
   migrateSubjects: vi.fn().mockResolvedValue(undefined),
+  migrateKanaVocabSubjects: vi.fn().mockResolvedValue(undefined),
   syncSubjects: vi.fn().mockResolvedValue(undefined),
   migrateAssignments: vi.fn().mockResolvedValue(undefined),
   syncAssignments: vi.fn().mockResolvedValue(undefined),
