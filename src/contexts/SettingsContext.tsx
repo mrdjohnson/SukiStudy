@@ -11,11 +11,8 @@ import useReactivity from '../hooks/useReactivity'
 import { preferences } from '../core/db'
 import {
   defaultContentPreferences,
-  defaultSyncPreferences,
   updateContentPreference,
   updateContentPreferenceKey,
-  updateSyncPreference,
-  updateSyncPreferenceKey,
 } from '../core/preferencesStore'
 import { getDefaultBackground } from '../utils/defaultWallpaper'
 
@@ -33,6 +30,14 @@ export interface GameSettings {
 const useSettingsContext = () => {
   const { user, isGuest } = useUser()
 
+  const [isUpdatePromptDismissed, setIsUpdatePromptDismissed] = useLocalStorage({
+    key: 'is_update_prompt_dismissed',
+    defaultValue: false,
+  })
+  const [autoUpdatesEnabled, setAutoUpdatesEnabled] = useLocalStorage({
+    key: 'auto_updates_enabled',
+    defaultValue: false,
+  })
   const [soundEnabled, setSoundEnabled] = useLocalStorage({ key: 'suki_sound', defaultValue: true })
   const [romanjiEnabled, setRomanjiEnabled] = useLocalStorage({
     key: 'suki_romanji',
@@ -96,19 +101,10 @@ const useSettingsContext = () => {
     }
   }, [currentPreferences])
 
-  const syncPreferences = useMemo(() => {
-    return {
-      ...defaultSyncPreferences,
-      ...currentPreferences?.sync,
-    }
-  }, [])
-
   const hiddenSubjects = contentPreferences.hiddenSubjects
   const gameLevelMin = contentPreferences.gameLevelMin
   const gameLevelMax = contentPreferences.gameLevelMax
   const dashboardSubjectSource = contentPreferences.dashboardSubjectSource
-  const autoWaniKaniUpdatesEnabled = syncPreferences.autoWaniKaniUpdatesEnabled
-  const waniKaniUpdatePromptDismissed = syncPreferences.waniKaniUpdatePromptDismissed
 
   const disabledSubjects = useMemo(() => {
     if (!isGuest) return []
@@ -141,11 +137,9 @@ const useSettingsContext = () => {
   const toggleAutoPlayAudio = () => setAutoPlayAudio(prev => !prev)
   const toggleAutoConvertTyping = () => setAutoConvertTyping(prev => !prev)
   const toggleGameSyncEnabled = () => setGameSyncEnabled(prev => !prev)
-  const toggleWaniKaniAutoUpdatesEnabled = () => {
-    updateSyncPreference({
-      autoWaniKaniUpdatesEnabled: !autoWaniKaniUpdatesEnabled,
-      waniKaniUpdatePromptDismissed: true,
-    })
+  const toggleAutoUpdatesEnabled = () => {
+    setAutoUpdatesEnabled(!autoUpdatesEnabled)
+    setIsUpdatePromptDismissed(true)
   }
 
   const toggleEnabledFont = (fontName: string) => {
@@ -215,6 +209,8 @@ const useSettingsContext = () => {
     }
   }, [themeBackground])
 
+  console.log({ currentPreferences })
+
   return {
     soundEnabled,
     toggleSound,
@@ -247,11 +243,10 @@ const useSettingsContext = () => {
 
     gameSyncEnabled,
     toggleGameSyncEnabled,
-    autoWaniKaniUpdatesEnabled,
-    toggleWaniKaniAutoUpdatesEnabled,
-    waniKaniUpdatePromptDismissed,
-    setWaniKaniUpdatePromptDismissed: updateSyncPreferenceKey('waniKaniUpdatePromptDismissed'),
-    updateWaniKaniSyncPreferences: updateSyncPreference,
+    autoUpdatesEnabled,
+    toggleAutoUpdatesEnabled,
+    isUpdatePromptDismissed,
+    setIsUpdatePromptDismissed,
 
     notificationSchedule,
     setNotificationSchedule,

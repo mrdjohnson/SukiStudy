@@ -5,7 +5,7 @@ import type { User } from '../core/types'
 const SYNC_INTERVAL_MS = 60 * 60 * 1000 // 60 minutes
 
 type SyncManagerOptions = {
-  autoWaniKaniUpdatesEnabled?: boolean
+  autoUpdatesEnabled?: boolean
 }
 
 /**
@@ -19,7 +19,7 @@ type SyncManagerOptions = {
  */
 export const useSyncManager = (
   user: User | null,
-  { autoWaniKaniUpdatesEnabled = false }: SyncManagerOptions = {},
+  { autoUpdatesEnabled = false }: SyncManagerOptions = {},
 ) => {
   const [isSyncing, startTransition] = useTransition()
 
@@ -28,7 +28,7 @@ export const useSyncManager = (
       console.log('SyncManager: Running sync...')
 
       await syncService.sync({
-        includeWaniKani: !!user && !user.is_guest && autoWaniKaniUpdatesEnabled,
+        includeWaniKani: !!user && !user.is_guest && autoUpdatesEnabled,
       })
     })
   }
@@ -52,7 +52,7 @@ export const useSyncManager = (
       console.log('SyncManager: Cleaning up sync manager')
       clearInterval(interval)
     }
-  }, [user?.id, user?.is_guest, autoWaniKaniUpdatesEnabled]) // Re-run if user or auto-sync changes
+  }, [user?.id, user?.is_guest, autoUpdatesEnabled]) // Re-run if user or auto-sync changes
 
   return isSyncing
 }

@@ -3,7 +3,6 @@ import {
   type ContentPreferenceState,
   type NotificationPreferenceState,
   type NotificationSchedule,
-  type SyncPreferenceState,
 } from './types'
 
 const CURRENT_KEY = 'current'
@@ -13,11 +12,6 @@ export const defaultContentPreferences: Required<Omit<ContentPreferenceState, 'u
   gameLevelMin: 1,
   gameLevelMax: 60,
   dashboardSubjectSource: 'review',
-}
-
-export const defaultSyncPreferences: Required<Omit<SyncPreferenceState, 'updatedAt'>> = {
-  autoWaniKaniUpdatesEnabled: false,
-  waniKaniUpdatePromptDismissed: false,
 }
 
 const getPreferencesDocument = async () => {
@@ -61,20 +55,6 @@ export const updateContentPreference = async (updates: Partial<ContentPreference
   return content
 }
 
-export const updateSyncPreference = async (updates: Partial<SyncPreferenceState>) => {
-  const current = await getPreferencesDocument()
-  const sync: SyncPreferenceState = {
-    ...defaultSyncPreferences,
-    ...current?.sync,
-    ...updates,
-    updatedAt: Date.now(),
-  }
-
-  preferences.updateOne({ id: CURRENT_KEY }, { $set: { id: CURRENT_KEY, sync } }, { upsert: true })
-
-  return sync
-}
-
 export const getLocalNotificationPreferences = async () => {
   const current = await getPreferencesDocument()
   const schedule = current?.notification?.schedule
@@ -94,15 +74,6 @@ export const getContentPreferences = async () => {
   return {
     ...defaultContentPreferences,
     ...current?.content,
-  }
-}
-
-export const getSyncPreferences = async () => {
-  const current = await getPreferencesDocument()
-
-  return {
-    ...defaultSyncPreferences,
-    ...current?.sync,
   }
 }
 
@@ -127,10 +98,4 @@ export const updateContentPreferenceKey =
   (key: keyof Parameters<typeof updateContentPreference>[0]) =>
   (updates: Parameters<typeof updateContentPreference>[0][typeof key]) => {
     updateContentPreference({ [key]: updates })
-  }
-
-export const updateSyncPreferenceKey =
-  (key: keyof Parameters<typeof updateSyncPreference>[0]) =>
-  (updates: Parameters<typeof updateSyncPreference>[0][typeof key]) => {
-    updateSyncPreference({ [key]: updates })
   }

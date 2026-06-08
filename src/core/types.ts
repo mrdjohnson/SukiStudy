@@ -271,12 +271,6 @@ export type NotificationPreferenceState = {
   updatedAt?: number
 }
 
-export type SyncPreferenceState = {
-  autoWaniKaniUpdatesEnabled?: boolean
-  waniKaniUpdatePromptDismissed?: boolean
-  updatedAt?: number
-}
-
 export type DashboardSubjectSource = 'review' | 'learned' | 'assigned'
 
 export type ContentPreferenceState = {
@@ -291,5 +285,4 @@ export type Preferences = {
   id: 'current'
   notification?: NotificationPreferenceState
   content?: ContentPreferenceState
-  sync?: SyncPreferenceState
 }

@@ -65,16 +65,17 @@ export const AuthWrapper = () => {
   const {
     notificationSchedule,
     setNotificationSchedule,
-    autoWaniKaniUpdatesEnabled,
-    waniKaniUpdatePromptDismissed,
-    updateWaniKaniSyncPreferences,
+    autoUpdatesEnabled,
+    isUpdatePromptDismissed,
+    setIsUpdatePromptDismissed,
+    toggleAutoUpdatesEnabled,
   } = useSettings()
   const [searchParams, setSearchParams] = useSearchParams()
   const [notificationDisabledMessage, setNotificationDisabledMessage] = React.useState(false)
   const hasMigratedNotificationPreferences = React.useRef(false)
   const hasOpenedWaniKaniUpdatePrompt = React.useRef(false)
 
-  const isSyncing = useSyncManager(user, { autoWaniKaniUpdatesEnabled })
+  const isSyncing = useSyncManager(user, { autoUpdatesEnabled })
 
   useEffect(() => {
     if (hasMigratedNotificationPreferences.current || !notificationSchedule.enabled) return
@@ -87,7 +88,7 @@ export const AuthWrapper = () => {
     if (
       !user ||
       user.is_guest ||
-      waniKaniUpdatePromptDismissed ||
+      isUpdatePromptDismissed ||
       hasOpenedWaniKaniUpdatePrompt.current
     ) {
       return
@@ -108,19 +109,13 @@ export const AuthWrapper = () => {
       closeOnEscape: false,
       withCloseButton: false,
       onCancel: () => {
-        updateWaniKaniSyncPreferences({
-          autoWaniKaniUpdatesEnabled: false,
-          waniKaniUpdatePromptDismissed: true,
-        })
+        setIsUpdatePromptDismissed(true)
       },
       onConfirm: () => {
-        updateWaniKaniSyncPreferences({
-          autoWaniKaniUpdatesEnabled: true,
-          waniKaniUpdatePromptDismissed: true,
-        })
+        toggleAutoUpdatesEnabled()
       },
     })
-  }, [user, waniKaniUpdatePromptDismissed, updateWaniKaniSyncPreferences])
+  }, [user, isUpdatePromptDismissed])
 
   // Handle guest login from landing page
   useEffect(() => {

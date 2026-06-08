@@ -97,8 +97,8 @@ export const SettingsModal = () => {
     setGameLevelMax,
     gameSyncEnabled,
     toggleGameSyncEnabled,
-    autoWaniKaniUpdatesEnabled,
-    toggleWaniKaniAutoUpdatesEnabled,
+    autoUpdatesEnabled,
+    toggleAutoUpdatesEnabled,
   } = useSettings()
 
   const isMobile = useMatches({
@@ -286,14 +286,14 @@ export const SettingsModal = () => {
                 <div>
                   <Text fw={500}>Auto-update WaniKani Items</Text>
                   <Text size="xs" c="dimmed">
-                    {autoWaniKaniUpdatesEnabled
+                    {autoUpdatesEnabled
                       ? 'Subjects, assignments, and study materials update automatically'
                       : 'Kana stays available without downloading WaniKani items'}
                   </Text>
                 </div>
                 <Switch
-                  checked={autoWaniKaniUpdatesEnabled}
-                  onChange={toggleWaniKaniAutoUpdatesEnabled}
+                  checked={autoUpdatesEnabled}
+                  onChange={toggleAutoUpdatesEnabled}
                   disabled={isGuest}
                 />
               </Group>
