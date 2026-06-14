@@ -33,20 +33,11 @@ setup()
 afterEach(async () => {
   vi.clearAllMocks()
 
-  const { subjects, assignments, studyMaterials, users, preferences } =
-    await import('../src/core/db')
+  const databases = await import('../src/core/db')
 
-  await Promise.all([
-    subjects.isReady(),
-    assignments.isReady(),
-    studyMaterials.isReady(),
-    users.isReady(),
-    preferences.isReady(),
-  ])
+  for (const database of Object.values(databases)) {
+    await database.isReady()
 
-  subjects.removeMany({})
-  assignments.removeMany({})
-  studyMaterials.removeMany({})
-  users.removeMany({})
-  preferences.removeMany({})
+    database.removeMany({})
+  }
 })
