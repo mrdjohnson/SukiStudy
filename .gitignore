@@ -19,6 +19,7 @@ playwright-report
 test-results
 .env
 dependency-graph.svg
+graphify-out
 
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .yarn/*
