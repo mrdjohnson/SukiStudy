@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
+import React, { useState, useEffect, useRef, useMemo, Suspense, useSyncExternalStore } from 'react'
+import clsx from 'clsx'
 import { SubjectType } from '../core/types'
 import type { Subject, StudyMaterial, ReadingType } from '../core/types'
 import { Icons } from './Icons'
@@ -20,10 +21,13 @@ import {
   Center,
   SegmentedControl,
   SimpleGrid,
+  Tooltip,
+  UnstyledButton,
   useMatches,
 } from '@mantine/core'
 import { useDisclosure, useIntersection, useElementSize } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
+import { flashcardStack } from './flashcardStack'
 import { studyMaterials, subjects } from '../core/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
@@ -31,6 +35,7 @@ import Markdown from 'react-markdown'
 import useReactivity from '../hooks/useReactivity'
 import { encounterService } from '../services/encounterService'
 import {
+  IconArrowLeft,
   IconPlayerPlay,
   IconInfoCircle,
   IconChevronCompactUp,
@@ -52,9 +57,16 @@ const READING_EXPLANATIONS: Record<string, string> = {
 
 const ReviewHistoryChart = React.lazy(() => import('./ReviewHistoryChart'))
 
+export const getFlashcardCrumbLabel = (subject: Subject) =>
+  subject.characters ||
+  subject.meanings.find(meaning => meaning.primary)?.meaning ||
+  subject.meanings[0]?.meaning ||
+  subject.slug
+
 type FlashcardProps = {
   index?: number
   modalId?: string
+  depth?: number
   onIndexChanged?: (value: number) => void
 } & (
   | {
@@ -178,7 +190,9 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   index = 0,
   onIndexChanged,
   modalId,
+  depth = 0,
 }: FlashcardProps) => {
+  const crumbs = useSyncExternalStore(flashcardStack.subscribe, flashcardStack.getSnapshot)
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null)
   const [itemIndex, setItemIndex] = useState(index)
   const viewportRef = useRef<HTMLDivElement>(null)
@@ -342,6 +356,28 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     audioIndexRef.current = 0
   }, [subject?.id])
 
+  // Keep this level's breadcrumb pointed at whatever subject is on screen.
+  useEffect(() => {
+    if (!subject || !modalId) return
+
+    flashcardStack.update(depth, { id: subject.id, label: getFlashcardCrumbLabel(subject) })
+  }, [subject?.id, depth, modalId])
+
+  const hasParent = depth > 0
+  const visibleCrumbs = crumbs.slice(0, depth + 1)
+
+  const handleClose = () => {
+    // The stack is trimmed in the modal's onClose handler, so closing the top
+    // modal reveals the parent (back) at deeper levels and dismisses at the root.
+    if (modalId) modals.close(modalId)
+  }
+
+  const navigateToCrumb = (targetDepth: number) => {
+    for (let level = crumbs.length - 1; level > targetDepth; level -= 1) {
+      modals.close(crumbs[level].modalId)
+    }
+  }
+
   if (!subject) return <Loader />
 
   const getSubjectType = (s: Subject): SubjectType => {
@@ -405,23 +441,62 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         onClick={e => e.stopPropagation()}
       >
         {/* top bar */}
-        <Group className="px-4 py-2">
+        <Group className="px-4 py-2" wrap="nowrap" gap="xs">
           {modalId && (
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              onClick={e => {
-                e.stopPropagation()
-                modals.close(modalId)
-              }}
-              className="border! border-transparent! border-b-white/20!"
-              radius="xl"
-            >
-              <Icons.X size={14} />
-            </ActionIcon>
+            <Tooltip label={hasParent ? 'Back' : 'Close'} openDelay={300} withinPortal={false}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                aria-label={hasParent ? 'Back to previous item' : 'Close'}
+                onClick={e => {
+                  e.stopPropagation()
+                  handleClose()
+                }}
+                className="border! border-transparent! border-b-white/20! shrink-0"
+                radius="xl"
+              >
+                {hasParent ? <IconArrowLeft size={16} /> : <Icons.X size={14} />}
+              </ActionIcon>
+            </Tooltip>
           )}
 
-          <Group className="ml-auto">
+          {visibleCrumbs.length > 1 && (
+            <Group
+              gap={2}
+              wrap="nowrap"
+              translate="no"
+              className="min-w-0 flex-1 overflow-x-auto no-scrollbar"
+            >
+              {visibleCrumbs.map((crumb, crumbIndex) => {
+                const isCurrent = crumbIndex === depth
+
+                return (
+                  <Group gap={2} wrap="nowrap" key={crumb.modalId} className="shrink-0">
+                    {crumbIndex > 0 && (
+                      <IconChevronRight size={12} className="text-white/40 shrink-0" />
+                    )}
+                    <UnstyledButton
+                      disabled={isCurrent}
+                      onClick={e => {
+                        e.stopPropagation()
+                        if (!isCurrent) navigateToCrumb(crumbIndex)
+                      }}
+                      className={clsx(
+                        'max-w-32 truncate text-xs transition-colors',
+                        isCurrent
+                          ? 'cursor-default font-semibold text-white'
+                          : 'text-white/50 hover:text-white/90',
+                      )}
+                    >
+                      {crumb.label}
+                    </UnstyledButton>
+                  </Group>
+                )
+              })}
+            </Group>
+          )}
+
+          <Group className="ml-auto shrink-0" wrap="nowrap" gap="xs">
             <ActionIcon
               variant="subtle"
               color="gray"
@@ -836,7 +911,7 @@ const OtherSubjectsSection = ({
           <Group
             gap="xs"
             className="group bg-black/30! dark:bg-slate-600 p-4 rounded-xl cursor-pointer w-full min-w-0 border-[0.5px] border-transparent border-r-white/20 border-b-white/20 relative overflow-hidden backdrop-blur-sm"
-            onClick={() => openFlashcardModal(otherSubjects, index)}
+            onClick={() => openFlashcardModal(otherSubjects, index, undefined, { child: true })}
             key={component.id}
             wrap="nowrap"
           >
@@ -861,8 +936,9 @@ const OtherSubjectsSection = ({
 const FlashcardModalWrapper: React.FC<{
   items: Subject[]
   index: number
+  depth: number
   onIndexChanged?: (i: number) => void
-}> = ({ items, index, onIndexChanged }) => {
+}> = ({ items, index, depth, onIndexChanged }) => {
   const modalId = items[index].id.toString()
   const isMobile = useMatches({ base: true, sm: false })
   const { themeBackground } = useSettings()
@@ -903,25 +979,59 @@ const FlashcardModalWrapper: React.FC<{
           </Center>
         }
       >
-        <Flashcard items={items} index={index} modalId={modalId} onIndexChanged={onIndexChanged} />
+        <Flashcard
+          items={items}
+          index={index}
+          depth={depth}
+          modalId={modalId}
+          onIndexChanged={onIndexChanged}
+        />
       </Suspense>
     </div>
   )
+}
+
+type OpenFlashcardModalOptions = {
+  /** Drilling into a related subject — stacks on top instead of starting fresh. */
+  child?: boolean
 }
 
 export const openFlashcardModal = (
   items: Subject[],
   index = 0,
   onIndexChanged?: (i: number) => void,
+  options: OpenFlashcardModalOptions = {},
 ) => {
+  const subject = items[index]
+  const modalId = subject.id.toString()
+  const crumb = { id: subject.id, label: getFlashcardCrumbLabel(subject), modalId }
+
+  if (options.child) {
+    flashcardStack.push(crumb)
+  } else {
+    flashcardStack.reset(crumb)
+  }
+
+  const depth = flashcardStack.getSnapshot().length - 1
+
   modals.open({
-    modalId: items[index].id.toString(),
+    modalId,
     title: null,
     withCloseButton: false,
     padding: 0,
     size: 'lg',
     centered: true,
-    children: <FlashcardModalWrapper items={items} index={index} onIndexChanged={onIndexChanged} />,
+    // Trim the trail however the modal closes (button, overlay, or escape) so
+    // the breadcrumbs stay in sync with the stack of open modals.
+    onClose: () => flashcardStack.truncate(depth),
+    children: (
+      <FlashcardModalWrapper
+        items={items}
+        index={index}
+        depth={depth}
+        onIndexChanged={onIndexChanged}
+      />
+    ),
     classNames: {
       body: 'max-h-full overflow-hidden bg-transparent! w-full',
       content: 'flex! bg-transparent! w-full',
