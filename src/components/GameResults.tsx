@@ -3,10 +3,12 @@ import { Button } from './ui/Button'
 import { openFlashcardModal } from './modals/FlashcardModal'
 import type { GameLogic } from '../hooks/useGameLogic'
 import { GameItemIcon } from './GameItemIcon'
-import { IconReload } from '@tabler/icons-react'
+import { IconBookmarkPlus, IconReload } from '@tabler/icons-react'
 import type { GameItem } from '../core/types'
 import clsx from 'clsx'
 import { Paper, Text } from '@mantine/core'
+import { modals } from '@mantine/modals'
+import { CollectionPicker } from './collections/CollectionPicker'
 
 interface GameResultsProps<T extends GameItem> {
   gameLogic: GameLogic<T>
@@ -26,6 +28,18 @@ export const GameResults = <T extends GameItem>({
 
   const Icon = gameInfo ? gameInfo.icon : Icons.Trophy
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
+  const resultSubjects = gameItems.map(item => item.subject)
+
+  const openCollectionPicker = () => {
+    const modalId = `save-results-${gameState.gameId}-${gameState.startTime}`
+
+    modals.open({
+      modalId,
+      title: 'Save Results',
+      size: 'lg',
+      children: <CollectionPicker subjects={resultSubjects} onDone={() => modals.close(modalId)} />,
+    })
+  }
 
   return (
     <div className={clsx('max-w-2xl mx-auto animate-fade-in', isReview ? 'pb-6' : 'p-6')}>
@@ -96,6 +110,16 @@ export const GameResults = <T extends GameItem>({
       </Paper>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={openCollectionPicker}
+          className="w-full sm:w-auto min-w-[200px]"
+        >
+          <IconBookmarkPlus className="mr-2 w-5 h-5" />
+          Save Items
+        </Button>
+
         {onPlayAgain && (
           <Button
             size="lg"

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { SubjectType } from '../../../src/core/types'
-import { allGameItems, availableGameItems, gameItemsToLearn } from '../../../src/core/db/gameItems'
+import { subjectCollections } from '../../../src/core/db'
+import {
+  allGameItems,
+  availableGameItems,
+  collectionGameItems,
+  gameItemsToLearn,
+} from '../../../src/core/db/gameItems'
 import { assignmentFactory, subjectFactory } from '../../factories'
 
 const now = new Date('2026-06-04T00:00:00.000Z')
@@ -175,5 +181,168 @@ describe('game item queries', () => {
       burnedVocabulary.id,
     ])
     expect(items.map(item => item.isReviewable)).toEqual([undefined, true, false, true])
+  })
+
+  it('excludes hidden subjects from due review items', async () => {
+    const visible = await subjectFactory.create({ id: 91, level: 5 })
+    const hidden = await subjectFactory.create({ id: 92, level: 5 })
+
+    await assignmentFactory.create({ id: 911 }, { transient: { subject: visible, now } })
+    await assignmentFactory.create({ id: 912 }, { transient: { subject: hidden, now } })
+
+    subjectCollections.insert({
+      id: 'system-hidden',
+      name: 'Hidden',
+      subjectIds: [hidden.id],
+      source: 'system',
+      seed: 2,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+
+    const items = availableGameItems({ now })
+
+    expect(items.map(item => item.subject.id)).toEqual([visible.id])
+  })
+
+  it('limits game items to selected collections', async () => {
+    const selectedVocabulary = await subjectFactory.create({ id: 41, level: 8 })
+    const unselectedVocabulary = await subjectFactory.create({ id: 42, level: 8 })
+    const selectedKana = await subjectFactory.create(
+      { id: -41, level: 1 },
+      { transient: { type: SubjectType.HIRAGANA } },
+    )
+
+    await assignmentFactory.create({ id: 401 }, { transient: { subject: selectedVocabulary, now } })
+    await assignmentFactory.create(
+      { id: 402 },
+      { transient: { subject: unselectedVocabulary, now } },
+    )
+
+    subjectCollections.insert({
+      id: 'favorites',
+      name: 'Favorites',
+      subjectIds: [selectedVocabulary.id, selectedKana.id],
+      source: 'user',
+      seed: 123,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+
+    const items = availableGameItems({
+      collectionIds: ['favorites'],
+      subjectTypes: [SubjectType.VOCABULARY, SubjectType.HIRAGANA],
+      includeKana: true,
+      now,
+    })
+
+    expect(items.map(item => item.subject.id)).toEqual([selectedKana.id, selectedVocabulary.id])
+  })
+})
+
+describe('collectionGameItems', () => {
+  it('returns collection subjects directly, even without assignments', async () => {
+    const savedKanji = await subjectFactory.create(
+      { id: 51, level: 8 },
+      { transient: { type: SubjectType.KANJI } },
+    )
+    const savedKana = await subjectFactory.create(
+      { id: -51, level: 1 },
+      { transient: { type: SubjectType.HIRAGANA } },
+    )
+    // Not in the collection — should be ignored.
+    await subjectFactory.create({ id: 52, level: 8 })
+
+    subjectCollections.insert({
+      id: 'favorites',
+      name: 'Favorites',
+      subjectIds: [savedKanji.id, savedKana.id],
+      source: 'user',
+      seed: 1,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+
+    const items = collectionGameItems({ collectionIds: ['favorites'] })
+
+    expect(items.map(item => item.subject.id)).toEqual([savedKana.id, savedKanji.id])
+    expect(items.every(item => item.assignment === undefined)).toBe(true)
+  })
+
+  it('respects hidden subject types and the level range', async () => {
+    const inRangeKanji = await subjectFactory.create(
+      { id: 61, level: 5 },
+      { transient: { type: SubjectType.KANJI } },
+    )
+    const hiddenVocabulary = await subjectFactory.create({ id: 62, level: 5 })
+    const outOfLevelKanji = await subjectFactory.create(
+      { id: 63, level: 40 },
+      { transient: { type: SubjectType.KANJI } },
+    )
+
+    subjectCollections.insert({
+      id: 'favorites',
+      name: 'Favorites',
+      subjectIds: [inRangeKanji.id, hiddenVocabulary.id, outOfLevelKanji.id],
+      source: 'user',
+      seed: 1,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+
+    const items = collectionGameItems({
+      collectionIds: ['favorites'],
+      hiddenSubjects: [SubjectType.VOCABULARY],
+      gameLevelMin: 1,
+      gameLevelMax: 10,
+    })
+
+    expect(items.map(item => item.subject.id)).toEqual([inRangeKanji.id])
+  })
+
+  it('excludes hidden subjects from collection items', async () => {
+    const visible = await subjectFactory.create({ id: 81, level: 5 })
+    const hidden = await subjectFactory.create({ id: 82, level: 5 })
+
+    subjectCollections.insert({
+      id: 'favorites',
+      name: 'Favorites',
+      subjectIds: [visible.id, hidden.id],
+      source: 'user',
+      seed: 1,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+    subjectCollections.insert({
+      id: 'system-hidden',
+      name: 'Hidden',
+      subjectIds: [hidden.id],
+      source: 'system',
+      seed: 2,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+
+    const items = collectionGameItems({ collectionIds: ['favorites'] })
+
+    expect(items.map(item => item.subject.id)).toEqual([visible.id])
+  })
+
+  it('returns nothing when no collections are selected or they are empty', async () => {
+    await subjectFactory.create({ id: 71, level: 5 })
+
+    subjectCollections.insert({
+      id: 'empty',
+      name: 'Empty',
+      subjectIds: [],
+      source: 'user',
+      seed: 1,
+      createdAt: now.getTime(),
+      updatedAt: now.getTime(),
+    })
+
+    expect(collectionGameItems({})).toEqual([])
+    expect(collectionGameItems({ collectionIds: [] })).toEqual([])
+    expect(collectionGameItems({ collectionIds: ['empty'] })).toEqual([])
   })
 })

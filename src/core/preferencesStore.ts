@@ -12,6 +12,9 @@ export const defaultContentPreferences: Required<Omit<ContentPreferenceState, 'u
   gameLevelMin: 1,
   gameLevelMax: 60,
   dashboardSubjectSource: 'review',
+  dashboardCollectionIds: [],
+  studyCollectionIds: [],
+  notificationCollectionIds: [],
 }
 
 const getPreferencesDocument = async () => {

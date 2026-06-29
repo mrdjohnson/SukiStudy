@@ -60,7 +60,12 @@ const subjectToNotificationData = (subject?: Subject) => {
 }
 
 const getDueReviewItem = (now: number, contentPreferences: ContentPreferenceState) => {
-  const possibleItems = gameItemsToLearn({ now, ...contentPreferences, includeKana: undefined })
+  const possibleItems = gameItemsToLearn({
+    now,
+    ...contentPreferences,
+    collectionIds: contentPreferences.notificationCollectionIds,
+    includeKana: undefined,
+  })
 
   const { subject, assignment } = _.sample(possibleItems) ?? {}
 

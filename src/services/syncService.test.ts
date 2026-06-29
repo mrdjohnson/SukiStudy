@@ -52,7 +52,11 @@ describe('syncService', () => {
     it('can run local kana sync without remote WaniKani sync', async () => {
       localStorage.setItem('wk_token', 'test-token')
 
-      await syncService.sync({ includeWaniKani: false })
+      // populateKana flushes (a real timer) before syncing the kana collection,
+      // so advance fake timers while the sync runs.
+      const syncPromise = syncService.sync({ includeWaniKani: false })
+      await vi.runAllTimersAsync()
+      await syncPromise
 
       expect(mockWorkerOps.populateKana).toHaveBeenCalled()
       expect(mockWorkerOps.setToken).not.toHaveBeenCalled()

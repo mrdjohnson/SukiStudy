@@ -14,6 +14,7 @@ import {
   Anchor,
   Center,
   ActionIcon,
+  SegmentedControl,
   Tabs,
   Paper,
 } from '@mantine/core'
@@ -40,6 +41,7 @@ import { flush } from '../utils/flush'
 import { Footer } from '../components/Footer'
 import { AppearancePanel } from '../components/settings/AppearancePanel'
 import { NotificationPanel } from '../components/settings/NotificationPanel'
+import { CollectionMultiSelect } from '../components/collections/CollectionMultiSelect'
 
 const settingsTabs = ['general', 'appearance', 'notifications'] as const
 type SettingsTab = (typeof settingsTabs)[number]
@@ -95,6 +97,12 @@ export const SettingsModal = () => {
     setGameLevelMin,
     gameLevelMax,
     setGameLevelMax,
+    dashboardSubjectSource,
+    setDashboardSubjectSource,
+    dashboardCollectionIds,
+    setDashboardCollectionIds,
+    studyCollectionIds,
+    setStudyCollectionIds,
     gameSyncEnabled,
     toggleGameSyncEnabled,
     autoUpdatesEnabled,
@@ -369,8 +377,6 @@ export const SettingsModal = () => {
                 </Stack>
               )}
 
-              {/* 
-              TODO: add ability to control dashboard items
               <Stack gap="xs" mt="sm">
                 <Text fw={500}>Dashboard Items</Text>
                 <SegmentedControl
@@ -382,9 +388,24 @@ export const SettingsModal = () => {
                     { value: 'review', label: 'Reviews' },
                     { value: 'learned', label: 'Learned' },
                     { value: 'assigned', label: 'Assigned' },
+                    { value: 'collections', label: 'Collections' },
                   ]}
                 />
-              </Stack> */}
+              </Stack>
+
+              <CollectionMultiSelect
+                label="Dashboard Collections"
+                description="Limit dashboard items to one or more collections."
+                value={dashboardCollectionIds}
+                onChange={setDashboardCollectionIds}
+              />
+
+              <CollectionMultiSelect
+                label="Study Collections"
+                description="Limit lessons, reviews, and default game sessions to selected collections."
+                value={studyCollectionIds}
+                onChange={setStudyCollectionIds}
+              />
             </Stack>
 
             <Divider />

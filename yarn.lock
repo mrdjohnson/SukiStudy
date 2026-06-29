@@ -1786,7 +1786,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react-dom@npm:^2.1.8":
+"@floating-ui/react-dom@npm:^2.1.2, @floating-ui/react-dom@npm:^2.1.8":
   version: 2.1.8
   resolution: "@floating-ui/react-dom@npm:2.1.8"
   dependencies:
@@ -2309,6 +2309,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@isoterik/react-word-cloud@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@isoterik/react-word-cloud@npm:1.3.0"
+  dependencies:
+    "@floating-ui/react-dom": "npm:^2.1.2"
+    csstype: "npm:^3.1.3"
+    d3-cloud: "npm:^1.2.7"
+    d3-scale: "npm:^4.0.2"
+    d3-scale-chromatic: "npm:^3.1.0"
+    react-fast-compare: "npm:^3.2.2"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10/45481f4badc0379cf679592a7a060718dec6e02ee2f73f1cb25d82b079987dbd0595bf94454eb855cde878c153f44f82b23f6fb98ff2f43f2722552b2672a955
+  languageName: node
+  linkType: hard
+
 "@jridgewell/gen-mapping@npm:^0.3.12, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.13
   resolution: "@jridgewell/gen-mapping@npm:0.3.13"
@@ -2536,6 +2553,13 @@ __metadata:
     "@emnapi/core": ^1.7.1
     "@emnapi/runtime": ^1.7.1
   checksum: 10/1db3dc7eeb981306b09360487bd8ce4dfa5588d273bd8ea9f07dccca1b4ade57b675414180fc9bb66966c6c50b17208b0263194993e2f7f92cc7af28bda4d1af
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:^2.0.1":
+  version: 2.2.0
+  resolution: "@noble/hashes@npm:2.2.0"
+  checksum: 10/b1b78bedc2a01394be047429f3d888905015fe8a09f1b7e43e0b5736b54133df62f73dcc73ede43af38e96e86156afb45b86973fdeaa95d9f0880333c3fc0907
   languageName: node
   linkType: hard
 
@@ -2885,6 +2909,19 @@ __metadata:
   version: 0.129.0
   resolution: "@oxc-transform/binding-win32-x64-msvc@npm:0.129.0"
   conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@paralleldrive/cuid2@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@paralleldrive/cuid2@npm:3.3.0"
+  dependencies:
+    "@noble/hashes": "npm:^2.0.1"
+    bignumber.js: "npm:^9.3.1"
+    error-causes: "npm:^3.0.2"
+  bin:
+    cuid2: bin/cuid2.js
+  checksum: 10/e30db76e23a2bc49d332f0e8ce0e5e0e347f8b104dff9351d326f0cad03db52a27536569fb2acabe47be4d77387c2def76c8bb0e7a53566ab38dd201a55becf0
   languageName: node
   linkType: hard
 
@@ -5519,6 +5556,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bignumber.js@npm:^9.3.1":
+  version: 9.3.1
+  resolution: "bignumber.js@npm:9.3.1"
+  checksum: 10/1be0372bf0d6d29d0a49b9e6a9cefbd54dad9918232ad21fcd4ec39030260773abf0c76af960c6b3b98d3115a3a71e61c6a111812d1395040a039cfa178e0245
+  languageName: node
+  linkType: hard
+
 "bindings@npm:^1.4.0":
   version: 1.5.0
   resolution: "bindings@npm:1.5.0"
@@ -6136,7 +6180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.2.2":
+"csstype@npm:^3.1.3, csstype@npm:^3.2.2":
   version: 3.2.3
   resolution: "csstype@npm:3.2.3"
   checksum: 10/ad41baf7e2ffac65ab544d79107bf7cd1a4bb9bab9ac3302f59ab4ba655d5e30942a8ae46e10ba160c6f4ecea464cc95b975ca2fefbdeeacd6ac63f12f99fe1f
@@ -6152,10 +6196,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"d3-cloud@npm:^1.2.7":
+  version: 1.2.9
+  resolution: "d3-cloud@npm:1.2.9"
+  dependencies:
+    d3-dispatch: "npm:^1.0.3"
+  checksum: 10/1e304f7278b534a0397d463dfa13c62c8c79ef4baebe4275374619994110024529a1ec3bf4faeeef620fa7b86b7997cf42114506d7f2cdda961402456295ddc9
+  languageName: node
+  linkType: hard
+
 "d3-color@npm:1 - 3":
   version: 3.1.0
   resolution: "d3-color@npm:3.1.0"
   checksum: 10/536ba05bfd9f4fcd6fa289b5974f5c846b21d186875684637e22bf6855e6aba93e24a2eb3712985c6af3f502fbbfa03708edb72f58142f626241a8a17258e545
+  languageName: node
+  linkType: hard
+
+"d3-dispatch@npm:^1.0.3":
+  version: 1.0.6
+  resolution: "d3-dispatch@npm:1.0.6"
+  checksum: 10/c04770f3055cf3841b4640fcf41ed75f31c599b0e32a9fa8d51939a780c8bff9e849f2335960ce3f5b9b9294d26fd11b7ee4040d1668f7a7a1140925fddb3f60
   languageName: node
   linkType: hard
 
@@ -6173,7 +6233,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-interpolate@npm:1.2.0 - 3, d3-interpolate@npm:^3.0.1":
+"d3-interpolate@npm:1 - 3, d3-interpolate@npm:1.2.0 - 3, d3-interpolate@npm:^3.0.1":
   version: 3.0.1
   resolution: "d3-interpolate@npm:3.0.1"
   dependencies:
@@ -6186,6 +6246,16 @@ __metadata:
   version: 3.1.0
   resolution: "d3-path@npm:3.1.0"
   checksum: 10/8e97a9ab4930a05b18adda64cf4929219bac913a5506cf8585631020253b39309549632a5cbeac778c0077994442ddaaee8316ee3f380e7baf7566321b84e76a
+  languageName: node
+  linkType: hard
+
+"d3-scale-chromatic@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "d3-scale-chromatic@npm:3.1.0"
+  dependencies:
+    d3-color: "npm:1 - 3"
+    d3-interpolate: "npm:1 - 3"
+  checksum: 10/25df6a7c621b9171df8b2225e98e41c0a6bcac4de02deb4807280b31116e8f495c5ac93301796098ee5b698cb690154e8138d90d72fd1fe36744c60e02a3d8c4
   languageName: node
   linkType: hard
 
@@ -6925,6 +6995,13 @@ __metadata:
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
   checksum: 10/1d20d825cdcce8d811bfbe86340f4755c02655a7feb2f13f8c880566d9d72a3f6c92c192a6867632e490d6da67b678271f46e01044996a6443e870331100dfdd
+  languageName: node
+  linkType: hard
+
+"error-causes@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "error-causes@npm:3.0.2"
+  checksum: 10/0f70b8f0a9c0ed3b891964c11bdd87487cd8d8641d2ec84e5fe01c83dd5fd97d53944b97ff91018a4a2de805714220d213eaee75a0dff3b6b7cf2510413d0d28
   languageName: node
   linkType: hard
 
@@ -11093,6 +11170,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-fast-compare@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "react-fast-compare@npm:3.2.2"
+  checksum: 10/a6826180ba75cefba1c8d3ac539735f9b627ca05d3d307fe155487f5d0228d376dac6c9708d04a283a7b9f9aee599b637446635b79c8c8753d0b4eece56c125c
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^17.0.1":
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
@@ -12788,6 +12872,7 @@ __metadata:
     "@fontsource/yuji-mai": "npm:^5.2.7"
     "@fontsource/zen-kurenaido": "npm:^5.2.8"
     "@fontsource/zen-old-mincho": "npm:^5.2.8"
+    "@isoterik/react-word-cloud": "npm:^1.3.0"
     "@mantine/carousel": "npm:^9.2.2"
     "@mantine/charts": "npm:^9.2.2"
     "@mantine/colors-generator": "npm:^9.2.2"
@@ -12797,6 +12882,7 @@ __metadata:
     "@mantine/hooks": "npm:^9.2.2"
     "@mantine/modals": "npm:^9.2.2"
     "@maverick-js/signals": "npm:^6.0.0"
+    "@paralleldrive/cuid2": "npm:^3.3.0"
     "@playwright/test": "npm:^1.58.2"
     "@signaldb/core": "npm:^1.8.1"
     "@signaldb/indexeddb": "npm:^1.1.0"

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router'
+import React, { useEffect, useMemo, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
 import { SubjectType } from '../../core/types'
 import { useAllSubjects } from '../../hooks/useAllSubjects'
 import { Icons } from '../../components/Icons'
@@ -29,11 +29,15 @@ import { openFlashcardModal } from '../../components/modals/FlashcardModal'
 import { useLocalStorage } from '@mantine/hooks'
 import clsx from 'clsx'
 import { GameItemIcon } from '../../components/GameItemIcon'
+import { CollectionMultiSelect } from '../../components/collections/CollectionMultiSelect'
 
 export const CustomGameSetup: React.FC = () => {
   const { user, isGuest } = useUser()
   const { availableSubjects, disabledSubjects } = useSettings()
-  const { items: learnedItems, loading } = useAllSubjects(true)
+  const [searchParams] = useSearchParams()
+  const hasHydratedSearchParams = useRef(false)
+  const shouldSelectCollectionItems = useRef(false)
+  const pendingCollectionSelectionIds = useRef<string[]>([])
 
   const [selectedGames, setSelectedGames] = useLocalStorage<string[]>({
     key: 'custom-setup-selected-games',
@@ -66,6 +70,14 @@ export const CustomGameSetup: React.FC = () => {
   const [showLevelSelect, setShowLevelSelect] = useLocalStorage<boolean>({
     key: 'custom-setup-show-level-select',
     defaultValue: false,
+  })
+  const [selectedCollectionIds, setSelectedCollectionIds] = useLocalStorage<string[]>({
+    key: 'custom-setup-collection-ids',
+    defaultValue: [],
+  })
+
+  const { items: learnedItems, loading } = useAllSubjects(true, {
+    collectionIds: selectedCollectionIds,
   })
 
   const navigate = useNavigate()
@@ -122,6 +134,50 @@ export const CustomGameSetup: React.FC = () => {
 
   const filteredPool = getFilteredItems()
 
+  useEffect(() => {
+    if (hasHydratedSearchParams.current) return
+
+    const collectionIds = (searchParams.get('collections') || '')
+      .split(',')
+      .map(collectionId => collectionId.trim())
+      .filter(Boolean)
+    const shouldSelectAll = searchParams.get('select') === 'all'
+
+    if (collectionIds.length === 0 && !shouldSelectAll) return
+
+    hasHydratedSearchParams.current = true
+
+    if (collectionIds.length > 0) {
+      pendingCollectionSelectionIds.current = collectionIds
+      setSelectedCollectionIds(collectionIds)
+    }
+
+    if (shouldSelectAll) {
+      shouldSelectCollectionItems.current = true
+      setIsManualMode(true)
+      setTypes(Object.values(SubjectType))
+      setLevels([])
+    }
+  }, [searchParams, setIsManualMode, setLevels, setSelectedCollectionIds, setTypes])
+
+  useEffect(() => {
+    if (!shouldSelectCollectionItems.current || loading) return
+
+    const pendingCollectionIds = pendingCollectionSelectionIds.current
+    const hasAppliedCollectionFilters =
+      pendingCollectionIds.length === 0 ||
+      _.isEqual(_.sortBy(selectedCollectionIds), _.sortBy(pendingCollectionIds))
+
+    if (!hasAppliedCollectionFilters) return
+
+    const subjectIds = filteredPool.map(item => item.subject.id)
+
+    setManualSelection(subjectIds)
+    setItemCount(Math.min(Math.max(Math.ceil(subjectIds.length / 5) * 5, 5), 100))
+    shouldSelectCollectionItems.current = false
+    pendingCollectionSelectionIds.current = []
+  }, [filteredPool, loading, selectedCollectionIds, setItemCount, setManualSelection])
+
   const handleStart = () => {
     let finalItems = []
     if (isManualMode && manualSelection.length > 0) {
@@ -164,6 +220,7 @@ export const CustomGameSetup: React.FC = () => {
     setManualSelection([])
     setIsManualMode(false)
     setShowLevelSelect(false)
+    setSelectedCollectionIds([])
   }
 
   if (loading) {
@@ -276,6 +333,13 @@ export const CustomGameSetup: React.FC = () => {
                     </Box>
                   </>
                 )}
+
+                <CollectionMultiSelect
+                  label="Collections"
+                  description="Limit this custom room to selected collections."
+                  value={selectedCollectionIds}
+                  onChange={setSelectedCollectionIds}
+                />
 
                 <Box>
                   <Text size="sm" fw={500} mb="xs">

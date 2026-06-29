@@ -148,8 +148,25 @@ const sourceCards = [
 
 const navItems = [
   { id: 'practice', label: 'Practice' },
+  { id: 'collections', label: 'Collections' },
   { id: 'about', label: 'About' },
   { id: 'sources', label: 'Sources' },
+]
+
+// Glyph placement + color for the faux "word cloud" collection covers. Colors
+// echo the seed-based dynamic covers used in the real app.
+const collectionCloudGlyphs = [
+  'left-2 top-2 text-2xl -rotate-6 text-[#f5c84b]',
+  'right-3 top-3 text-lg rotate-6 text-[#7fd0bf]',
+  'left-10 top-7 text-3xl text-white/85',
+  'right-6 top-8 text-base -rotate-3 text-[#f6a98f]',
+]
+
+const collectionPreviews = [
+  { name: 'Tricky kanji', count: 18, glyphs: ['漢', '字', '読', '書'] },
+  { name: 'Kana', count: 46, glyphs: ['あ', 'き', 'ヌ', 'の'], system: true },
+  { name: 'Exam prep', count: 32, glyphs: ['語', '彙', '文', '法'] },
+  { name: 'Favorites', count: 12, glyphs: ['好', '学', '遊', '記'] },
 ]
 
 const revealVariants = ['fade', 'left', 'right', 'bottom'] as const
@@ -509,6 +526,72 @@ export const Landing: React.FC = () => {
                     <h3 className="mt-2 text-2xl font-black leading-tight">{feature.title}</h3>
                     <p className="mt-4 leading-7 text-[#53645b]">{feature.desc}</p>
                   </article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="collections"
+            data-landing-section
+            data-label="Collections"
+            className="scroll-mt-28 mx-auto w-full max-w-7xl px-5 py-20 md:px-8"
+          >
+            <div
+              data-landing-reveal
+              data-reveal="bottom"
+              className="grid gap-8 rounded-lg border border-[#151a17]/15 bg-[#fffaf0]/60 p-6 shadow-[10px_10px_0_rgba(45,143,123,.18)] backdrop-blur-xl md:grid-cols-[1.1fr_.9fr] md:p-10"
+            >
+              <div className="self-center">
+                <h2 className="text-4xl font-black leading-tight md:text-5xl">
+                  Group what you study, your way.
+                </h2>
+                <p className="mt-5 text-lg leading-8 text-[#53645b]">
+                  Build collections of kana, kanji, and vocabulary — save items straight from any
+                  flashcard, then point your dashboard and reminders at the sets you care about.
+                  Practice a collection on its own, hide what you've already mastered, and let every
+                  set carry its own generated cover.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 self-center">
+                {collectionPreviews.map(card => (
+                  <div
+                    key={card.name}
+                    className="relative flex h-32 flex-col justify-end overflow-hidden rounded-lg border border-[#151a17]/15 bg-[#151a17] p-3 text-white shadow-sm"
+                  >
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0"
+                      translate="no"
+                    >
+                      {card.glyphs.map((glyph, glyphIndex) => (
+                        <span
+                          key={glyphIndex}
+                          className={[
+                            'absolute font-serif font-black leading-none',
+                            collectionCloudGlyphs[glyphIndex],
+                          ].join(' ')}
+                        >
+                          {glyph}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="relative flex items-end justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black leading-tight">{card.name}</p>
+                        <p className="text-[0.65rem] font-bold uppercase tracking-[.1em] text-white/55">
+                          {card.count} items
+                        </p>
+                      </div>
+                      {card.system && (
+                        <span className="shrink-0 rounded bg-white/15 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase">
+                          System
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

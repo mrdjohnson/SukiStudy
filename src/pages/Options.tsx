@@ -20,6 +20,7 @@ import {
   IconBook,
   IconChartBar,
   IconDeviceGamepad2Filled,
+  IconFolder,
   IconPalette,
   IconPlayerPlay,
   IconRoad,
@@ -49,6 +50,15 @@ const Options = () => {
     : ''
 
   const actionColor = colorScheme === 'dark' ? 'white' : 'black'
+  const collectionNodes = [
+    { character: '好', className: 'left-[5%] top-[10%] text-lg rotate-10' },
+    { character: '学', className: 'right-[5%] bottom-[10%] text-lg rotate-10' },
+    { character: '仮', className: 'left-[5%] bottom-[10%] text-lg -rotate-10' },
+    { character: '漢', className: 'right-[5%] top-[10%] text-lg -rotate-10' },
+
+    { character: '語', className: 'left-[18%] my-auto! relative! text-lg hidden md:block' },
+    { character: '記', className: 'left-[72%] my-auto! relative! text-lg hidden md:block' },
+  ]
 
   return (
     <Stack className="px-4 pb-8 bg-default pt-4" gap="lg">
@@ -123,25 +133,6 @@ const Options = () => {
         <DashboardMessageCarousel />
       </div> */}
 
-      {/* <div>
-        <div className="font-serif! text-2xl font-semibold pb-2">Collections</div>
-        <Group>
-          <Button
-            variant="default"
-            className="p-6 bg-slate-600 rounded-xl! h-30! relative group"
-            fullWidth
-          >
-            <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/20 blur-2xl rounded-full group-hover:bg-white/30 transition-all"></div>
-            <Stack>
-              <Center>
-                <IconPlus />
-              </Center>
-              <Center>New Collection</Center>
-            </Stack>
-          </Button>
-        </Group>
-      </div> */}
-
       <SimpleGrid cols={2}>
         <Button
           variant="default"
@@ -181,29 +172,62 @@ const Options = () => {
         </Button>
       </SimpleGrid>
 
-      <Button
-        variant="default"
-        className="rounded-xl! bg-slate-600 h-20!  p-0! backdrop-blur-xs! relative -overflow-hidden"
-        color="white"
-        radius="md"
-        size="lg"
-        fullWidth
-        onClick={() => navigate('/session/games')}
-      >
-        <div className="absolute top-0 bottom-0 -right-10 text-end">
-          <IconDeviceGamepad2Filled
-            size={80}
-            className="text-black/20 drop-shadow-md drop-shadow-primary/50"
-          />
-        </div>
-        <div className="absolute top-0 bottom-0 -left-10 text-end">
-          <IconDeviceGamepad2Filled
-            size={80}
-            className="text-black/20 drop-shadow-md drop-shadow-primary/50"
-          />
-        </div>
-        Games
-      </Button>
+      <SimpleGrid cols={2}>
+        <Button
+          variant="default"
+          className="rounded-xl! bg-slate-600 h-20! p-0! backdrop-blur-xs! relative overflow-hidden"
+          color="white"
+          radius="md"
+          size="lg"
+          onClick={() => navigate('/session/games')}
+        >
+          <div className="absolute top-0 bottom-0 -right-10 text-end">
+            <IconDeviceGamepad2Filled
+              size={80}
+              className="text-black/20 drop-shadow-md drop-shadow-primary/50"
+            />
+          </div>
+          <div className="absolute top-0 bottom-0 -left-10 text-end">
+            <IconDeviceGamepad2Filled
+              size={80}
+              className="text-black/20 drop-shadow-md drop-shadow-primary/50"
+            />
+          </div>
+          Games
+        </Button>
+
+        <Button
+          variant="default"
+          className="rounded-xl! bg-slate-600 h-20! p-0! backdrop-blur-xs! relative overflow-hidden"
+          color="white"
+          radius="md"
+          size="lg"
+          onClick={() => navigate('/collections')}
+        >
+          <div
+            className="absolute inset-0 text-white/20 dark:text-white/15 flex"
+            aria-hidden
+            translate="no"
+          >
+            {collectionNodes.map(node => (
+              <span
+                key={node.character}
+                className={clsx('absolute font-bold leading-none', node.className)}
+              >
+                {node.character}
+              </span>
+            ))}
+          </div>
+
+          <Stack gap="5px" className="relative z-10">
+            <Center>
+              <IconFolder />
+            </Center>
+
+            <Center>Collections</Center>
+          </Stack>
+        </Button>
+      </SimpleGrid>
 
       {isGuest && (
         <>

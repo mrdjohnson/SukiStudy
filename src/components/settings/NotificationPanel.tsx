@@ -21,6 +21,7 @@ import {
 import { TimeInput } from '@mantine/dates'
 import { useUser } from '../../contexts/UserContext'
 import { IconBell } from '@tabler/icons-react'
+import { CollectionMultiSelect } from '../collections/CollectionMultiSelect'
 
 const dayOptions = [
   { value: '0', label: 'Sunday' },
@@ -33,7 +34,12 @@ const dayOptions = [
 ]
 
 export const NotificationPanel = () => {
-  const { notificationSchedule, setNotificationSchedule } = useSettings()
+  const {
+    notificationSchedule,
+    setNotificationSchedule,
+    notificationCollectionIds,
+    setNotificationCollectionIds,
+  } = useSettings()
 
   const { user } = useUser()
 
@@ -189,6 +195,13 @@ export const NotificationPanel = () => {
           label="Time"
           value={notificationSchedule.time}
           onChange={event => updateNotificationSchedule({ time: event.currentTarget.value })}
+        />
+
+        <CollectionMultiSelect
+          label="Notification Collections"
+          description="Limit reminder subjects to selected collections."
+          value={notificationCollectionIds}
+          onChange={setNotificationCollectionIds}
         />
 
         <Button

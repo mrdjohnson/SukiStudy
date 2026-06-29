@@ -59,6 +59,9 @@ const PWABadge = React.lazy(() => import('./PWABadge'))
 const Settings = React.lazy(() =>
   import('./pages/Settings').then(m => ({ default: m.SettingsModal })),
 )
+const Collections = React.lazy(() =>
+  import('./pages/Collections').then(m => ({ default: m.Collections })),
+)
 
 export const AuthWrapper = () => {
   const { user, loading, loginAsGuest } = useUser()
@@ -254,6 +257,22 @@ const DrawerRoutes = () => {
         element={
           <DrawerRoute title="Statistics">
             <Statistics />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/collections"
+        element={
+          <DrawerRoute title="Collections">
+            <Collections />
+          </DrawerRoute>
+        }
+      />
+      <Route
+        path="/collections/:collectionId"
+        element={
+          <DrawerRoute title="Collections">
+            <Collections />
           </DrawerRoute>
         }
       />

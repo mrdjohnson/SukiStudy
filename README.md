@@ -61,6 +61,21 @@ SukiStudy includes multiple practice formats so users can change the cognitive s
 
 Each mode consumes the same typed game-item model, which keeps the game layer flexible while avoiding one-off data pipelines per game.
 
+### Collections
+
+Collections let learners group any kana, radicals, kanji, and vocabulary into reusable study sets, so practice can focus on exactly what a user is working on rather than the full WaniKani firehose.
+
+What collections do:
+
+- **Save from anywhere** — add an item to a new or existing collection straight from its flashcard, the dashboard, or a Browse-style "add items" picker with search, type, and level filters.
+- **Drive the dashboard and reminders** — point the immersive dashboard and study notifications at one or more chosen collections instead of all review material.
+- **Practice a set directly** — launch a custom session pre-scoped to a collection's items.
+- **Hide what's mastered** — hide individual items into a private Hidden collection so they drop out of the dashboard and study pools (with a warning shown where a hidden item still lives in other collections).
+- **Stay organized** — rename, duplicate, and soft-delete collections (with a restore-able recycle bin), while system collections like Kana Basics are kept in sync automatically.
+- **Generated covers** — each collection renders a seeded word-cloud thumbnail with dynamic colors, so two sets with the same items still look distinct and a set's cover stays stable as items change.
+
+Collection membership lives in the same local-first SignalDB layer as the rest of the app, and the shared query helpers exclude hidden items and deleted collections so every surface stays consistent.
+
 ### WaniKani-Aware Sync
 
 Authenticated users can sync subjects, assignments, study materials, and encounter results. The app also supports kana-first guest mode, so new users can practice hiragana and katakana without connecting an account.
@@ -83,7 +98,7 @@ The app has a lot of power: sync, game filters, WaniKani levels, hidden subject 
 
 ### Local-First Study Data
 
-Study apps should not feel fragile. SukiStudy stores subjects, assignments, preferences, encounters, and logs in SignalDB collections backed by IndexedDB. React screens subscribe to local collections, while sync workers refresh data in the background.
+Study apps should not feel fragile. SukiStudy stores subjects, assignments, preferences, study collections, encounters, and logs in SignalDB collections backed by IndexedDB. React screens subscribe to local collections, while sync workers refresh data in the background.
 
 ### Shared Query Logic
 
@@ -198,7 +213,7 @@ scripts/            Wallpaper/font/data generation helpers
 
 - Continue refining the dashboard recommendation model.
 - Add richer progress visualizations for practice history.
-- Expand custom sessions and saved study collections.
+- Grow collections with sharing and smart, auto-generated study sets.
 - Improve automated visual regression coverage for the new drawer-first UI.
 
 ## Credits

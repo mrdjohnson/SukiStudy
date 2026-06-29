@@ -1,5 +1,6 @@
 import moment from 'moment'
 import { flush } from '../utils/flush.ts'
+import { syncKanaCollection } from '../core/collectionStore'
 
 const SYNC_KEYS = {
   USER: 'wk_last_sync_user',
@@ -217,6 +218,10 @@ export const syncService = {
       SYNC_KEYS.KANA,
       async () => {
         await syncServiceWorker.populateKana()
+        // Let the worker's writes propagate to the main collection, then mirror
+        // the kana subjects into the Kana Basics system collection.
+        await flush()
+        await syncKanaCollection()
       },
       { forceSync: forcePopulate, beforeDate: 'Feb 09 2026' },
     )

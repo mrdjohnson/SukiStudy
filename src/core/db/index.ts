@@ -9,6 +9,7 @@ import type {
   Encounter,
   EncounterItem,
   Preferences,
+  SubjectCollection,
 } from '../types'
 import { initLogService, LogEntry } from '../logService'
 
@@ -57,6 +58,12 @@ export const preferences = new ExtendedCollection<Preferences>({
   persistence: createSyncedIndexedDBAdapter('preferences'),
   reactivity: maverickjsReactivityAdapter,
   indices: [createIndex('id')],
+})
+
+export const subjectCollections = new ExtendedCollection<SubjectCollection>({
+  persistence: createSyncedIndexedDBAdapter('subject_collections'),
+  reactivity: maverickjsReactivityAdapter,
+  indices: [createIndex('id'), createIndex('source'), createIndex('updatedAt')],
 })
 
 export const logs = new ExtendedCollection<LogEntry>({

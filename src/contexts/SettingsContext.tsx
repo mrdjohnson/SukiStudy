@@ -105,6 +105,9 @@ const useSettingsContext = () => {
   const gameLevelMin = contentPreferences.gameLevelMin
   const gameLevelMax = contentPreferences.gameLevelMax
   const dashboardSubjectSource = contentPreferences.dashboardSubjectSource
+  const dashboardCollectionIds = contentPreferences.dashboardCollectionIds
+  const studyCollectionIds = contentPreferences.studyCollectionIds
+  const notificationCollectionIds = contentPreferences.notificationCollectionIds
 
   const disabledSubjects = useMemo(() => {
     if (!isGuest) return []
@@ -209,8 +212,6 @@ const useSettingsContext = () => {
     }
   }, [themeBackground])
 
-  console.log({ currentPreferences })
-
   return {
     soundEnabled,
     toggleSound,
@@ -240,6 +241,12 @@ const useSettingsContext = () => {
     setGameLevelMax: updateContentPreferenceKey('gameLevelMax'),
     dashboardSubjectSource,
     setDashboardSubjectSource: updateContentPreferenceKey('dashboardSubjectSource'),
+    dashboardCollectionIds,
+    setDashboardCollectionIds: updateContentPreferenceKey('dashboardCollectionIds'),
+    studyCollectionIds,
+    setStudyCollectionIds: updateContentPreferenceKey('studyCollectionIds'),
+    notificationCollectionIds,
+    setNotificationCollectionIds: updateContentPreferenceKey('notificationCollectionIds'),
 
     gameSyncEnabled,
     toggleGameSyncEnabled,

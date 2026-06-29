@@ -114,6 +114,21 @@ export interface Subject {
   isKana?: boolean
 }
 
+export type SubjectCollectionSource = 'system' | 'user'
+
+export interface SubjectCollection {
+  id: string
+  name: string
+  description?: string
+  subjectIds: number[]
+  source: SubjectCollectionSource
+  seed: number
+  createdAt: number
+  updatedAt: number
+  /** Soft-delete flag; when true the collection is in the recycle bin. */
+  isDeleted?: boolean
+}
+
 export interface Assignment {
   id: number
   created_at: string
@@ -271,13 +286,16 @@ export type NotificationPreferenceState = {
   updatedAt?: number
 }
 
-export type DashboardSubjectSource = 'review' | 'learned' | 'assigned'
+export type DashboardSubjectSource = 'review' | 'learned' | 'assigned' | 'collections'
 
 export type ContentPreferenceState = {
   hiddenSubjects?: SubjectType[]
   gameLevelMin?: number
   gameLevelMax?: number
   dashboardSubjectSource?: DashboardSubjectSource
+  dashboardCollectionIds?: string[]
+  studyCollectionIds?: string[]
+  notificationCollectionIds?: string[]
   updatedAt?: number
 }
 

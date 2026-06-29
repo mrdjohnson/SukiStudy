@@ -42,10 +42,13 @@ import {
   IconBulb,
   IconChevronLeft,
   IconChevronRight,
+  IconEyeOff,
 } from '@tabler/icons-react'
 import { DynamicLanguageIcon } from './DynamicLanguageIcon'
 import { useSettings } from '../contexts/SettingsContext'
 import { SubjectHero } from './SubjectHero'
+import { FlashcardCollections } from './collections/FlashcardCollections'
+import { useIsSubjectHidden } from '../hooks/useHiddenSubjects'
 
 const READING_EXPLANATIONS: Record<string, string> = {
   onyomi:
@@ -220,6 +223,8 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
     return encounterService.getItemStats(subject.id)
   }, [subject?.id])
+
+  const isHidden = useIsSubjectHidden(subject?.id)
 
   useEffect(() => {
     setStudyMaterial(null)
@@ -590,6 +595,16 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             ref={heroRef}
             className=" bg-linear-to-br from-white/20 to-transparent via-80% via-transparent border border-transparent border-b-white/10 border-r-white/10 rounded-4xl p-8 px-2 relative overflow-hidden flex flex-col items-center justify-center min-h-70 shadow-xs shadow-white/20 mb-4 group"
           >
+            {isHidden && (
+              <div
+                className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-xs text-white/70 backdrop-blur-sm"
+                title="This item is hidden"
+              >
+                <IconEyeOff size={14} />
+                Hidden
+              </div>
+            )}
+
             <SubjectHero subject={subject} />
           </section>
 
@@ -879,6 +894,8 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </div>
             </div>
           )}
+
+          <FlashcardCollections subject={subject} />
 
           <OtherSubjectsSection otherSubjects={components} title="Composition" />
           <OtherSubjectsSection otherSubjects={similars} title="Similar" />

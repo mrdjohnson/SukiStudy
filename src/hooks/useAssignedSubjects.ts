@@ -9,7 +9,7 @@ export const useAssignedSubjects = () => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useUser()
-  const { availableSubjects, gameLevelMin, gameLevelMax } = useSettings()
+  const { availableSubjects, gameLevelMin, gameLevelMax, studyCollectionIds } = useSettings()
 
   const runQuery = useCallback(() => {
     if (!user) {
@@ -21,12 +21,13 @@ export const useAssignedSubjects = () => {
       subjectTypes: availableSubjects,
       gameLevelMin,
       gameLevelMax,
+      collectionIds: studyCollectionIds,
       includeKana: true,
     })
 
     setItems(combined)
     setLoading(false)
-  }, [user, availableSubjects, gameLevelMin, gameLevelMax])
+  }, [user, availableSubjects, gameLevelMin, gameLevelMax, studyCollectionIds])
 
   useEffect(() => {
     runQuery()

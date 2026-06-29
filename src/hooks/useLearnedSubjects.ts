@@ -6,12 +6,27 @@ import { useUser } from '../contexts/UserContext'
 import { useSettings } from '../contexts/SettingsContext'
 import _ from 'lodash'
 
-export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => {
+type LearnedSubjectOptions = {
+  collectionIds?: string[]
+}
+
+export const useLearnedSubjects = (
+  enabled: boolean = true,
+  gameId?: string,
+  options: LearnedSubjectOptions = {},
+) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useUser()
-  const { gameLevelMin, gameLevelMax, availableSubjects, disabledSubjects, getGameSettings } =
-    useSettings()
+  const {
+    gameLevelMin,
+    gameLevelMax,
+    availableSubjects,
+    disabledSubjects,
+    getGameSettings,
+    studyCollectionIds,
+  } = useSettings()
+  const collectionIds = options.collectionIds ?? studyCollectionIds
 
   const runQuery = useCallback(() => {
     if (!enabled) {
@@ -40,6 +55,7 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
       subjectTypes,
       gameLevelMin,
       gameLevelMax,
+      collectionIds,
     })
 
     setItems(combined)
@@ -53,6 +69,7 @@ export const useLearnedSubjects = (enabled: boolean = true, gameId?: string) => 
     gameId,
     gameLevelMin,
     gameLevelMax,
+    collectionIds,
   ])
 
   useEffect(() => {

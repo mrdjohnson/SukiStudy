@@ -5,11 +5,16 @@ import { allGameItems } from '../core/db/gameItems'
 import { useUser } from '../contexts/UserContext'
 import { useSettings } from '../contexts/SettingsContext'
 
-export const useAllSubjects = (enabled: boolean = true) => {
+type SubjectQueryHookOptions = {
+  collectionIds?: string[]
+}
+
+export const useAllSubjects = (enabled: boolean = true, options: SubjectQueryHookOptions = {}) => {
   const [items, setItems] = useState<GameItem[]>([])
   const [loading, setLoading] = useState(enabled)
   const { user } = useUser()
-  const { availableSubjects, gameLevelMin, gameLevelMax } = useSettings()
+  const { availableSubjects, gameLevelMin, gameLevelMax, studyCollectionIds } = useSettings()
+  const collectionIds = options.collectionIds ?? studyCollectionIds
 
   const runQuery = useCallback(() => {
     if (!enabled) {
@@ -27,11 +32,12 @@ export const useAllSubjects = (enabled: boolean = true) => {
       subjectTypes: availableSubjects,
       gameLevelMin,
       gameLevelMax,
+      collectionIds,
     })
 
     setItems(combined)
     setLoading(false)
-  }, [user, enabled, availableSubjects, gameLevelMin, gameLevelMax])
+  }, [user, enabled, availableSubjects, gameLevelMin, gameLevelMax, collectionIds])
 
   useEffect(() => {
     runQuery()
