@@ -119,10 +119,15 @@ export const AuthWrapper = () => {
 
   // Handle guest login from landing page
   useEffect(() => {
-    if (searchParams.get('guest') === 'true' && !user) {
+    if (searchParams.get('guest') !== 'true') return
+
+    // Enter guest mode unless we're already a guest. This also replaces any
+    // stale WaniKani user record so guests aren't mistaken for logged-in users.
+    if (!user?.is_guest) {
       loginAsGuest()
-      setSearchParams({}, { replace: true })
     }
+
+    setSearchParams({}, { replace: true })
   }, [searchParams, user, loginAsGuest, setSearchParams])
 
   useEffect(() => {

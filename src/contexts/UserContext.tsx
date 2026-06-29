@@ -6,6 +6,7 @@ import type { User } from '../core/types'
 import { modals } from '@mantine/modals'
 import { Text } from '@mantine/core'
 import useReactivity from '../hooks/useReactivity'
+import { GUEST_TOKEN, shouldPromoteToWaniKani } from './userSession'
 
 interface UserContextType {
   user: User | null
@@ -30,8 +31,6 @@ const GUEST_USER: User = {
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
-const GUEST_TOKEN = 'guest_token'
-
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
@@ -48,7 +47,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (dbUser) {
         setLoading(false)
 
-        if (storedToken === GUEST_TOKEN || !storedToken) return
+        // The persisted is_guest flag wins: never promote a guest to a WaniKani
+        // session just because a stale token is sitting in storage.
+        if (!shouldPromoteToWaniKani(dbUser, storedToken)) return
 
         waniKaniService.setToken(storedToken)
         users.updateOne({ id: 'current' }, { $set: { is_guest: false } })
@@ -98,6 +99,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     if (user?.is_guest) {
+      localStorage.removeItem('wk_token')
       users.removeOne({ id: 'current' })
       return
     }
@@ -117,15 +119,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const loginAsGuest = async () => {
-    if (user) return
+    // Already browsing as a guest — nothing to do.
+    if (user?.is_guest) return
 
     localStorage.setItem('wk_token', GUEST_TOKEN)
 
+    // Replace any stale session (e.g. a leftover WaniKani user record) so the
+    // app reliably enters guest mode instead of treating us as logged in.
     const guestUser = { ...GUEST_USER, id: 'current' }
-    users.insert(guestUser)
+    users.batch(() => {
+      users.removeOne({ id: 'current' })
+      users.insert(guestUser)
+    })
   }
-
-  console.log('user: ', user)
 
   const value = {
     user,
