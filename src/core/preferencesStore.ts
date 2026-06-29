@@ -20,40 +20,59 @@ const getPreferencesDocument = async () => {
   return preferences.findOne({ id: CURRENT_KEY })
 }
 
-const updateNotificationPreference = async (updates: Partial<NotificationPreferenceState>) => {
-  const current = await getPreferencesDocument()
-  const notification: NotificationPreferenceState = {
-    ...current?.notification,
-    ...updates,
-    updatedAt: Date.now(),
-  }
+// Serialize preference writes so concurrent updates don't clobber each other.
+// Each task reads the latest persisted value right before writing, instead of
+// every caller awaiting (and then overwriting) the same stale snapshot.
+let pendingWrite: Promise<unknown> = Promise.resolve()
 
-  preferences.updateOne(
-    { id: CURRENT_KEY },
-    { $set: { id: CURRENT_KEY, notification } },
-    { upsert: true },
+const queuePreferenceWrite = <T>(task: () => Promise<T>): Promise<T> => {
+  const result = pendingWrite.then(task)
+  pendingWrite = result.then(
+    () => undefined,
+    () => undefined,
   )
 
-  return notification
+  return result
 }
 
-export const updateContentPreference = async (updates: Partial<ContentPreferenceState>) => {
-  const current = await getPreferencesDocument()
-  const content: ContentPreferenceState = {
-    ...defaultContentPreferences,
-    ...current?.content,
-    ...updates,
-    updatedAt: Date.now(),
-  }
+const updateNotificationPreference = (updates: Partial<NotificationPreferenceState>) =>
+  queuePreferenceWrite(async () => {
+    await preferences.isReady()
+    const current = preferences.findOne({ id: CURRENT_KEY })
+    const notification: NotificationPreferenceState = {
+      ...current?.notification,
+      ...updates,
+      updatedAt: Date.now(),
+    }
 
-  preferences.updateOne(
-    { id: CURRENT_KEY },
-    { $set: { id: CURRENT_KEY, content } },
-    { upsert: true },
-  )
+    preferences.updateOne(
+      { id: CURRENT_KEY },
+      { $set: { id: CURRENT_KEY, notification } },
+      { upsert: true },
+    )
 
-  return content
-}
+    return notification
+  })
+
+export const updateContentPreference = (updates: Partial<ContentPreferenceState>) =>
+  queuePreferenceWrite(async () => {
+    await preferences.isReady()
+    const current = preferences.findOne({ id: CURRENT_KEY })
+    const content: ContentPreferenceState = {
+      ...defaultContentPreferences,
+      ...current?.content,
+      ...updates,
+      updatedAt: Date.now(),
+    }
+
+    preferences.updateOne(
+      { id: CURRENT_KEY },
+      { $set: { id: CURRENT_KEY, content } },
+      { upsert: true },
+    )
+
+    return content
+  })
 
 export const getLocalNotificationPreferences = async () => {
   const current = await getPreferencesDocument()
