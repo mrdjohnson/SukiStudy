@@ -813,11 +813,11 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <div className="rounded-xl backdrop-blur-md px-3 divide-y divide-white/20">
                 {contextSentences.slice(0, 5).map((s, i) => (
                   <Box key={i} className="px-3 py-4 text-sm">
-                    <Text className="mb-1 font-medium text-black">
+                    <Text className="mb-1 font-medium text-gray-100">
                       {renderInteractiveSentence(s.ja)}
                     </Text>
 
-                    <Text className=" text-sm!">{s.en}</Text>
+                    <Text className="text-sm! text-gray-400">{s.en}</Text>
                   </Box>
                 ))}
               </div>
