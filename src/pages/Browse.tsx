@@ -451,7 +451,7 @@ export const Browse: React.FC = () => {
       <Sheet isOpen={optionsOpened} onClose={() => setOptionsOpened(false)} style={{ zIndex: 200 }}>
         <Sheet.Container className="rounded-t-2xl! rounded-b-none! overflow-hidden max-h-fit max-w-4xl! mx-auto! left-0! right-0!">
           <Sheet.Content className="relative">
-            <Paper className="rounded-none!  md:px-4">
+            <Paper className="rounded-none! px-2 md:px-4">
               <Box className="py-4">
                 <Center>
                   <Sheet.DragIndicator />
@@ -614,11 +614,11 @@ export const Browse: React.FC = () => {
 
               <Paper className="z-10 sticky bottom-0 w-full pt-2 max-w-2xl mx-auto">
                 <Group className="p-2 px-8 justify-between!">
-                  <Button size="lg" variant="outline" onClick={reset} radius="lg">
+                  <Button size="md" variant="outline" onClick={reset} radius="lg">
                     Reset
                   </Button>
 
-                  <Button size="lg" onClick={() => setOptionsOpened(false)} radius="lg">
+                  <Button size="md" onClick={() => setOptionsOpened(false)} radius="lg">
                     Close
                   </Button>
                 </Group>

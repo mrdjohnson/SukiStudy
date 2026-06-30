@@ -61,7 +61,7 @@ const Options = () => {
   ]
 
   return (
-    <Stack className="px-4 pb-8 bg-default pt-4" gap="lg">
+    <Stack className="px-4 pb-4 bg-default" gap="lg">
       <Group
         className={clsx('justify-evenly!', import.meta.env.DEV && 'cursor-help')}
         onDoubleClick={() => {
