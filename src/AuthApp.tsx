@@ -153,9 +153,9 @@ export const AuthWrapper = () => {
   return (
     <Header>
       {isSyncing && (
-        <div className="fixed bottom-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
-          <Icons.RotateCcw className="w-3 h-3 animate-spin" />
-          Syncing...
+        <div className="fixed top-4 left-4 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs font-medium text-white/70 shadow-lg backdrop-blur-md">
+          <Icons.RotateCcw className="w-3 h-3 animate-spin text-white/50" />
+          Syncing…
         </div>
       )}
 
