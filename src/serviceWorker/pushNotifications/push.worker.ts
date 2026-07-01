@@ -32,15 +32,18 @@ const debugNotificationClick = async (message: string, details: ServiceWorkerDeb
   }
 }
 
-const getNotificationUrl = (event: NotificationEvent) => {
-  if (event.action === 'disable_notifications') return '/settings/notifications?disable=true'
-  if (event.action === 'more_info' && event.notification.data?.itemId) {
-    return `/subjects/${event.notification.data.itemId}`
+const getNotificationUrl = ({ action, notification }: NotificationEvent) => {
+  if (action === 'disable_notifications') return '/settings/notifications?disable=true'
+  if (action === 'learn') return '/session/lesson'
+
+  const itemId = notification.data?.itemId
+  const url = notification.data?.url
+
+  if (itemId && (action === 'more_info' || !action)) {
+    return `/subjects/${itemId}`
   }
 
-  if (event.action === 'learn') return '/session/lesson'
-
-  return event.notification.data?.url || '/'
+  return url || '/'
 }
 
 const openOrFocusUrl = async (url: string) => {
