@@ -119,7 +119,7 @@ export const DrawerRoute: React.FC<DrawerRouteProps> = ({ children, title: defau
         }}
       >
         {currentHeader.title && (
-          <Paper className="rounded-b-none! p-2 shrink-0 border-b border-gray-200 dark:border-gray-800 max-w-4xl! mx-auto! w-full!">
+          <Paper className="rounded-b-none! p-2 shrink-0 max-w-4xl! mx-auto! w-full!">
             <Group gap="xs" wrap="nowrap" className="w-full justify-between!">
               {currentHeader.headerLeft}
               <Group>
