@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import {
   ActionIcon,
@@ -64,6 +64,7 @@ import { SubjectType } from '../core/types'
 import type { Subject, SubjectCollection } from '../core/types'
 import { useCollections } from '../hooks/useCollections'
 import useReactivity from '../hooks/useReactivity'
+import { toRomanji } from '../utils/kana'
 
 const SUBJECT_TYPE_ORDER = [
   SubjectType.HIRAGANA,
@@ -97,6 +98,19 @@ const getSubjectSubtitle = (subject: Subject) => {
     .filter(meaning => !meaning.primary)
     .map(meaning => meaning.meaning)
     .join(', ')
+}
+
+// Kanji/vocabulary rows already show the kana reading as a badge, so the
+// subtext gives the romaji version instead of repeating the meaning/slug.
+const getSubjectSubtext = (subject: Subject) => {
+  if (subject.object === SubjectType.KANJI || subject.object === SubjectType.VOCABULARY) {
+    const primaryReading =
+      subject.readings?.find(reading => reading.primary)?.reading ?? subject.readings?.[0]?.reading
+
+    if (primaryReading) return toRomanji(primaryReading)
+  }
+
+  return getSubjectSubtitle(subject) || subject.slug
 }
 
 const getCollectionSubjects = (
@@ -451,7 +465,7 @@ const CollectionDetail = ({
                   {groupSubjects.map((subject, index) => {
                     const isLast = index === groupSubjects.length - 1
                     const title = getSubjectTitle(subject)
-                    const subtitle = getSubjectSubtitle(subject)
+                    const subtext = getSubjectSubtext(subject)
 
                     return (
                       <Box key={subject.id} id={`collection-subject-${subject.id}`}>
@@ -485,7 +499,7 @@ const CollectionDetail = ({
                                 </Group>
 
                                 <Text size="xs" c="dimmed" lineClamp={1}>
-                                  {subtitle || subject.slug}
+                                  {subtext}
                                 </Text>
                               </div>
                             </Group>
@@ -545,6 +559,18 @@ export const Collections = () => {
   const [isPending, runAction] = useAsyncAction()
   const [query, setQuery] = useState('')
   const [showDeleted, setShowDeleted] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Opening a collection resets the search, so returning to the list starts
+  // fresh instead of restoring the previous filter.
+  useEffect(() => {
+    if (collectionId) setQuery('')
+  }, [collectionId])
+
+  const clearQuery = () => {
+    setQuery('')
+    searchInputRef.current?.focus()
+  }
 
   const deletedCollections = useMemo(
     () => allCollections.filter(collection => collection.isDeleted),
@@ -706,12 +732,19 @@ export const Collections = () => {
       <Stack gap="lg" className="pb-4">
         <Group wrap="nowrap">
           <TextInput
+            ref={searchInputRef}
             radius="xl"
             placeholder="Search or create collections..."
             value={query}
             onChange={event => setQuery(event.currentTarget.value)}
             leftSection={<IconSearch size={16} />}
-            rightSection={<InputClearButton onClick={() => setQuery('')} hidden={!query} />}
+            rightSection={
+              <InputClearButton
+                onMouseDown={event => event.preventDefault()}
+                onClick={clearQuery}
+                hidden={!query}
+              />
+            }
             className="flex-1"
           />
 

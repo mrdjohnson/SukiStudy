@@ -39,6 +39,7 @@ import {
   IconActivity,
   IconSun,
   IconMoon,
+  IconMeteor,
 } from '@tabler/icons-react'
 
 export const Icons = {
@@ -82,4 +83,5 @@ export const Icons = {
   Activity: IconActivity,
   Sun: IconSun,
   Moon: IconMoon,
+  Meteor: IconMeteor,
 }

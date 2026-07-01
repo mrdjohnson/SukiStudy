@@ -5,6 +5,9 @@ import { SubjectType, type GameComponent, type GameDefinition } from '../core/ty
 import { gameMetadata } from '../utils/gameMetadata'
 
 const gameComponents: Record<string, GameComponent> = {
+  asteroids: React.lazy(() =>
+    import('../pages/games/AsteroidsGame').then(m => ({ default: m.AsteroidsGame })),
+  ),
   audio: React.lazy(() =>
     import('../pages/games/AudioQuizGame').then(m => ({ default: m.AudioQuizGame })),
   ),

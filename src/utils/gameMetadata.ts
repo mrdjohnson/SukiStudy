@@ -19,6 +19,14 @@ export const gameMetadata: GameMetadata[] = [
     hiddenSubjectTypes: [],
   },
   {
+    id: 'asteroids',
+    name: 'Asteroids',
+    desc: 'Shoot down the falling words that match your targets.',
+    icon: Icons.Meteor,
+    color: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-300',
+    hiddenSubjectTypes: [SubjectType.RADICAL],
+  },
+  {
     id: 'matching',
     name: 'Matching Pairs',
     desc: 'Find matching pairs of Kanji/Kana and Meanings.',
