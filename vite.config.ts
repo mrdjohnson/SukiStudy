@@ -70,7 +70,9 @@ export default defineConfig(({ command, mode }) => {
           name: 'SukiStudy',
           short_name: 'SukiStudy',
           description: 'WaniKani backed Japanese learning app',
-          theme_color: '#0f172a',
+          // Transparent so the wallpaper draws under the Android status bar
+          // (edge-to-edge). background_color stays solid for the splash screen.
+          theme_color: 'transparent',
           background_color: '#0f172a',
           display: 'standalone',
           scope: '/',

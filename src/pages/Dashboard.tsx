@@ -153,13 +153,13 @@ export const Dashboard: React.FC = () => {
     <>
       <div
         className={clsx(
-          'w-screen h-svh flex overflow-hidden transition-opacity ease-in-out duration-300',
+          'w-full h-dvh flex overflow-hidden transition-opacity ease-in-out duration-300',
           optionsOpened && 'opacity-0',
         )}
       >
         {!online && (
           <IconWifiOff
-            className="drop-shadow-[2px_2px_2px_rgba(0,0,0,0.5)] absolute top-3 right-3 w-fit! text-white"
+            className="drop-shadow-[2px_2px_2px_rgba(0,0,0,0.5)] absolute top-[calc(0.75rem_+_env(safe-area-inset-top))] right-[calc(0.75rem_+_env(safe-area-inset-right))] w-fit! text-white"
             stroke={3}
           />
         )}
@@ -167,7 +167,7 @@ export const Dashboard: React.FC = () => {
         <Group
           gap="sm"
           wrap="nowrap"
-          className="justify-between! absolute! z-10 w-full bottom-6 py-0 px-6 pointer-events-none max-w-4xl left-0! right-0! mx-auto!"
+          className="justify-between! absolute! z-10 w-full bottom-[calc(1.5rem_+_env(safe-area-inset-bottom))] py-0 px-6 pointer-events-none max-w-4xl left-0! right-0! mx-auto!"
         >
           <ActionIcon
             color="gray"
