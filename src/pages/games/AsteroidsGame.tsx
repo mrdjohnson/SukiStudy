@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Button } from '@mantine/core'
+import { Button, SegmentedControl } from '@mantine/core'
 import { IconHeart, IconHeartFilled } from '@tabler/icons-react'
 import clsx from 'clsx'
 import _ from 'lodash'
@@ -25,6 +25,27 @@ const FALL_BASE = 7.5 // base seconds for a short word to cross the screen
 const FALL_MIN = 4.5
 const FALL_MAX = 12
 const MIN_ITEMS = 6
+
+type SpeedSetting = 'slow' | 'normal' | 'fast'
+
+// Higher factor = slower fall. Persisted so the choice sticks between sessions.
+const SPEED_STORAGE_KEY = 'sukistudy:asteroids-speed'
+const SPEED_FACTORS: Record<SpeedSetting, number> = { slow: 1.8, normal: 1.35, fast: 1 }
+const SPEED_OPTIONS: { label: string; value: SpeedSetting }[] = [
+  { label: 'Relaxed', value: 'slow' },
+  { label: 'Normal', value: 'normal' },
+  { label: 'Fast', value: 'fast' },
+]
+
+const readSpeedSetting = (): SpeedSetting => {
+  try {
+    const stored = localStorage.getItem(SPEED_STORAGE_KEY)
+    if (stored === 'slow' || stored === 'normal' || stored === 'fast') return stored
+  } catch {
+    // Ignore storage access errors (private mode, etc.).
+  }
+  return 'normal'
+}
 
 type PromptType = 'meaning' | 'reading' | 'romaji'
 
@@ -70,10 +91,10 @@ const primaryMeaning = (subject: Subject) =>
 
 // Longer words drift down more slowly so there's time to read them; the wave
 // index shaves a little off so later waves feel faster.
-const computeDuration = (subject: Subject, waveIndex: number) => {
+const computeDuration = (subject: Subject, waveIndex: number, speedFactor: number) => {
   const lengthTime = Math.min(glyphLen(subject), 10) * 0.45
   const ramp = waveIndex * 0.5
-  return Math.min(FALL_MAX, Math.max(FALL_MIN, FALL_BASE - ramp + lengthTime))
+  return Math.min(FALL_MAX, Math.max(FALL_MIN, FALL_BASE - ramp + lengthTime)) * speedFactor
 }
 
 // Build the hint shown at the bottom for a target. Kana show their rōmaji;
@@ -180,6 +201,8 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
   const [destroyed, setDestroyed] = useState(0)
   const [targets, setTargets] = useState<Target[]>([])
   const [asteroids, setAsteroids] = useState<Asteroid[]>([])
+  const [speed, setSpeed] = useState<SpeedSetting>(readSpeedSetting)
+  const [waveKey, setWaveKey] = useState(0) // bumps each wave to replay the target transition
 
   // Refs mirror state that timer callbacks need to read without going stale.
   const targetsRef = useRef<Target[]>([])
@@ -195,6 +218,17 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
   const mountedRef = useRef(true)
   const endGameRef = useRef(endGame)
   endGameRef.current = endGame
+  const speedFactorRef = useRef(SPEED_FACTORS[speed])
+  speedFactorRef.current = SPEED_FACTORS[speed]
+
+  const changeSpeed = (value: SpeedSetting) => {
+    setSpeed(value)
+    try {
+      localStorage.setItem(SPEED_STORAGE_KEY, value)
+    } catch {
+      // Ignore storage access errors.
+    }
+  }
 
   const addTimer = (id: ReturnType<typeof setInterval>) => {
     timersRef.current.push(id)
@@ -218,7 +252,7 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
     setHelpSteps([
       {
         title: 'Read your targets',
-        description: 'The words at the bottom are meanings or readings you need to find.',
+        description: 'The words at the top are meanings or readings you need to find.',
         icon: Icons.ListCheck,
       },
       {
@@ -269,6 +303,7 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
 
     waveRef.current = { spawnList, spawnIndex: 0, waveIndex }
     applyTargets(nextTargets)
+    setWaveKey(key => key + 1)
   }
 
   const nextWave = () => {
@@ -303,7 +338,7 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
           item,
           subject: item.subject,
           leftPct,
-          duration: computeDuration(item.subject, wave.waveIndex),
+          duration: computeDuration(item.subject, wave.waveIndex, speedFactorRef.current),
           status: 'falling',
         },
       ]
@@ -461,8 +496,19 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
           <h2 className="text-2xl font-bold">Asteroids</h2>
           <p className="mt-2 text-gray-500">
             Words rain from the sky. Tap the asteroids whose characters match the target words at
-            the bottom. Wrong taps cost health — survive {GAME_DURATION} seconds to win.
+            the top. Wrong taps cost health — survive {GAME_DURATION} seconds to win.
           </p>
+        </div>
+        <div className="w-full">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+            Asteroid speed
+          </p>
+          <SegmentedControl
+            fullWidth
+            value={speed}
+            onChange={value => changeSpeed(value as SpeedSetting)}
+            data={SPEED_OPTIONS}
+          />
         </div>
         <Button size="lg" onClick={startPlaying} leftSection={<Icons.Meteor className="h-5 w-5" />}>
           Launch
@@ -505,6 +551,40 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
         />
       </div>
 
+      {/* Targets — remounts each wave (via key) to replay the entrance animation */}
+      <div
+        key={waveKey}
+        className="shrink-0 border-b border-gray-200 px-3 py-3 dark:border-gray-800"
+      >
+        <p className="mb-2 text-center text-xs font-bold uppercase tracking-wider text-gray-400">
+          Destroy these words
+        </p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {targets.map((target, index) => (
+            <div
+              key={target.subject.id}
+              style={{ animation: `ast-target-in 0.35s ease-out ${index * 0.07}s both` }}
+              className={clsx(
+                'relative flex flex-col items-center rounded-xl border px-3 py-1.5 transition-colors',
+                target.hits > 0
+                  ? 'border-green-400 bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
+                  : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800',
+              )}
+            >
+              {target.hits > 0 && (
+                <span className="absolute -right-2 -top-2 rounded-full bg-green-500 px-1.5 text-[10px] font-bold text-white">
+                  ×{target.hits}
+                </span>
+              )}
+              <span className="text-base font-bold">{target.prompt.text}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                {target.prompt.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Play area */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
         {asteroids.map(asteroid => (
@@ -535,36 +615,6 @@ export const AsteroidsGame: GameComponent = ({ items: propItems, onComplete, isL
             </button>
           </div>
         ))}
-      </div>
-
-      {/* Targets */}
-      <div className="shrink-0 border-t border-gray-200 px-3 py-3 dark:border-gray-800">
-        <p className="mb-2 text-center text-xs font-bold uppercase tracking-wider text-gray-400">
-          Destroy these words
-        </p>
-        <div className="flex flex-wrap justify-center gap-2">
-          {targets.map(target => (
-            <div
-              key={target.subject.id}
-              className={clsx(
-                'relative flex flex-col items-center rounded-xl border px-3 py-1.5 transition-colors',
-                target.hits > 0
-                  ? 'border-green-400 bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
-                  : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800',
-              )}
-            >
-              {target.hits > 0 && (
-                <span className="absolute -right-2 -top-2 rounded-full bg-green-500 px-1.5 text-[10px] font-bold text-white">
-                  ×{target.hits}
-                </span>
-              )}
-              <span className="text-base font-bold">{target.prompt.text}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                {target.prompt.label}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   )
@@ -599,6 +649,10 @@ const ASTEROID_KEYFRAMES = `
 @keyframes ast-fall {
   from { top: -16%; }
   to { top: 118%; }
+}
+@keyframes ast-target-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes ast-pop-correct {
   0% { transform: scale(1); opacity: 1; }
