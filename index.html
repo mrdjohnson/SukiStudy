@@ -38,11 +38,15 @@
     </style>
 
     <!--
-      Initial splash screen. Lives in index.html (not React) so it paints
-      instantly when the app opens, before the JS bundle loads. It holds until
-      the app signals readiness via window.__sukiSplashFinish() (called once the
-      databases have initialized), then the red ring finishes expanding outward
-      and the whole layer fades to reveal the app.
+      Initial splash screen. The markup + CSS live here (not React) so they
+      paint instantly, before the JS bundle loads; the animation is driven from
+      src/utils/splashScreen.ts (initSplash / finishSplash).
+
+      A red ring expands outward from the logo while the app boots. It holds
+      until finishSplash() is called (once the databases have initialized), then
+      the ring contracts back to nothing: the dark splash is clip-masked to the
+      inside of the ring, so as the ring shrinks the app is revealed outside it
+      while the logo stays inside until the ring swallows it whole.
     -->
     <style id="suki-splash-style">
       :root {
@@ -61,176 +65,129 @@
         overflow: hidden;
       }
 
+      /* The radius of the ring drives everything: the reveal clip and the ring
+         box. Registered so it can be animated (plain custom properties can't).
+         --suki-cover is set by the script to the exact distance to a corner so
+         the mask fully covers the screen at rest. */
+      @property --suki-r {
+        syntax: '<length>';
+        inherits: true;
+        initial-value: 0px;
+      }
+
       #suki-splash {
         position: fixed;
         inset: 0;
         z-index: 2147483647;
         overflow: hidden;
-        background: radial-gradient(circle at 50% 50%, #16161d 0%, #0a0a0c 58%, #060608 100%);
-        opacity: 1;
-        transition: opacity 0.7s ease 0.1s;
-        will-change: opacity;
+        /* Transparent: the mask carries the dark surface, everything outside the
+           masked circle shows the app rendering behind. */
+        background: transparent;
+        --suki-r: 80px;
+        --suki-cover: 75vmax;
+        transition: --suki-r 1s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
-      /* Ring + logo are centered with translate(); the standalone `scale`
-         property composes on top of it, so it animates without fighting the
-         centering transform. (auto margins mis-center boxes wider than the
-         viewport, so translate is used instead.) */
-      #suki-splash .suki-splash__ring {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 108vmax;
-        height: 108vmax;
-        border-radius: 50%;
-        border: 3px solid var(--suki-red);
-        box-shadow:
-          0 0 24px rgba(255, 0, 0, 0.5),
-          inset 0 0 24px rgba(255, 0, 0, 0.32);
-        opacity: 0;
-        scale: 0.13;
-        transition:
-          scale 1s cubic-bezier(0.22, 1, 0.36, 1),
-          opacity 0.6s ease;
-        will-change: scale, opacity;
+      /* The dark splash surface + logo, clip-masked to a circle of radius
+         --suki-r. Outside the circle is transparent (app shows through). */
+      #suki-splash .suki-splash__mask {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 50% 50%, #15151b 0%, #0a0a0c 55%, #060608 100%);
+        clip-path: circle(var(--suki-r) at 50% 50%);
       }
 
       #suki-splash .suki-splash__logo {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         width: 92px;
         height: 92px;
         object-fit: contain;
         border-radius: 22%;
-        opacity: 0;
-        scale: 0.6;
         filter: drop-shadow(0 10px 34px rgba(255, 0, 0, 0.35));
-        transition:
-          scale 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-          opacity 0.6s ease;
-        will-change: scale, opacity;
       }
 
-      /* Entry: ring expands out to rest against the screen edges, logo settles. */
+      /* The red ring rides the clip boundary. A sibling of the mask so it isn't
+         clipped away. Sized from --suki-r so it always sits on the edge. */
+      #suki-splash .suki-splash__ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--suki-r) * 2);
+        height: calc(var(--suki-r) * 2);
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        border: 3px solid var(--suki-red);
+        box-shadow:
+          0 0 26px rgba(255, 0, 0, 0.55),
+          inset 0 0 26px rgba(255, 0, 0, 0.35);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        will-change: width, height;
+      }
+
+      /* Entry: expand the ring outward from the logo to cover the screen. */
+      #suki-splash.suki-splash--enter {
+        --suki-r: var(--suki-cover);
+      }
       #suki-splash.suki-splash--enter .suki-splash__ring {
         opacity: 1;
-        scale: 1;
-        animation: suki-ring-breathe 3.2s ease-in-out 1.1s infinite;
-      }
-      #suki-splash.suki-splash--enter .suki-splash__logo {
-        opacity: 1;
-        scale: 1;
       }
 
-      /* Exit: ring finishes expanding past the edges while everything fades. */
+      /* Done: contract to nothing. The mask shrinks with the ring, revealing the
+         app from the outside in; the logo stays put until the ring swallows it. */
       #suki-splash.suki-splash--done {
-        opacity: 0;
+        --suki-r: 0px;
+        transition: --suki-r 0.9s cubic-bezier(0.65, 0, 0.35, 1);
         pointer-events: none;
-      }
-      #suki-splash.suki-splash--done .suki-splash__ring {
-        scale: 2.8;
-        opacity: 0;
-        animation: none;
-        transition:
-          scale 0.9s cubic-bezier(0.4, 0, 0.9, 1),
-          opacity 0.7s ease 0.15s;
-      }
-      #suki-splash.suki-splash--done .suki-splash__logo {
-        scale: 1.18;
-        opacity: 0;
-      }
-
-      /* Gentle glow while holding — box-shadow only, so it never fights scale. */
-      @keyframes suki-ring-breathe {
-        0%,
-        100% {
-          box-shadow:
-            0 0 22px rgba(255, 0, 0, 0.45),
-            inset 0 0 22px rgba(255, 0, 0, 0.3);
-        }
-        50% {
-          box-shadow:
-            0 0 44px rgba(255, 0, 0, 0.8),
-            inset 0 0 34px rgba(255, 0, 0, 0.5);
-        }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        #suki-splash .suki-splash__ring,
-        #suki-splash .suki-splash__logo {
-          animation: none !important;
-          scale: 1 !important;
-          transition: opacity 0.4s ease !important;
+        #suki-splash {
+          transition: opacity 0.4s ease;
         }
-        #suki-splash.suki-splash--done .suki-splash__ring,
-        #suki-splash.suki-splash--done .suki-splash__logo {
-          scale: 1 !important;
+        #suki-splash .suki-splash__mask {
+          clip-path: none;
+        }
+        #suki-splash .suki-splash__ring {
+          display: none;
+        }
+        #suki-splash.suki-splash--done {
+          opacity: 0;
         }
       }
     </style>
   </head>
   <body class="text-text antialiased transition-colors duration-200">
     <div id="suki-splash" aria-hidden="true" role="presentation">
+      <div class="suki-splash__mask">
+        <img class="suki-splash__logo" src="/apple-touch-icon.png" alt="" />
+      </div>
       <div class="suki-splash__ring"></div>
-      <img class="suki-splash__logo" src="/apple-touch-icon.png" alt="" />
     </div>
 
     <script>
-      // Drives the initial splash defined above. Kept inline + dependency-free so
-      // it runs immediately, before the app bundle is fetched or parsed.
+      // Only the two things that must happen before first paint stay inline; the
+      // rest of the splash lifecycle lives in src/utils/splashScreen.ts.
       ;(function () {
         var splash = document.getElementById('suki-splash')
         if (!splash) return
 
         // The splash is only for the app itself, not the marketing landing/login
         // pages. Mirror AppRouter's public-page check: a visitor with no token on
-        // a public path renders the landing without ever initializing the DB, so
-        // remove the splash before it paints. (Runs synchronously before first
-        // paint since this script directly follows the element.)
+        // a public path renders the landing, so remove the splash before it
+        // paints. Otherwise lock scroll + paint dark behind it for the boot.
         var PUBLIC_PATHS = ['/', '/landing', '/login', '/about']
         var hasToken = false
         try {
           hasToken = !!localStorage.getItem('wk_token')
         } catch (e) {}
+
         if (PUBLIC_PATHS.indexOf(window.location.pathname) !== -1 && !hasToken) {
           if (splash.parentNode) splash.parentNode.removeChild(splash)
-          return
+        } else {
+          document.documentElement.classList.add('suki-booting')
         }
-
-        var MIN_VISIBLE_MS = 1100 // let the entry animation finish before we can exit
-        var SAFETY_MS = 12000 // never let the splash get stuck if readiness never fires
-        var start = Date.now()
-        var finished = false
-
-        // Lock scroll + paint dark behind the splash for the duration of the boot.
-        document.documentElement.classList.add('suki-booting')
-
-        // Kick off the entry animation once the initial (hidden) state has painted.
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            splash.classList.add('suki-splash--enter')
-          })
-        })
-
-        function finish() {
-          if (finished) return
-          finished = true
-          var wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - start))
-          window.setTimeout(function () {
-            splash.classList.add('suki-splash--done')
-            window.setTimeout(function () {
-              if (splash.parentNode) splash.parentNode.removeChild(splash)
-              // Restore scroll + background now that the app is revealed.
-              document.documentElement.classList.remove('suki-booting')
-            }, 1000)
-          }, wait)
-        }
-
-        window.__sukiSplashFinish = finish
-        window.setTimeout(finish, SAFETY_MS)
       })()
     </script>
 

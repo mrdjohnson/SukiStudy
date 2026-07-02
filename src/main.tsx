@@ -5,9 +5,14 @@ import { MantineProvider, createTheme } from '@mantine/core'
 import { generateColors } from '@mantine/colors-generator'
 
 import AppRouter from './AppRouter'
+import { initSplash } from './utils/splashScreen'
 
 import '@mantine/core/styles.css'
 import './index.css'
+
+// Start the boot splash's entry animation as early as possible (no-op unless
+// the inline bootstrap in index.html left the splash in place for the app path).
+initSplash()
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
