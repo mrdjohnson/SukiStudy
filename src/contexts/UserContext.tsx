@@ -7,6 +7,7 @@ import { modals } from '@mantine/modals'
 import { Text } from '@mantine/core'
 import useReactivity from '../hooks/useReactivity'
 import { GUEST_TOKEN, shouldPromoteToWaniKani } from './userSession'
+import { finishSplash } from '../utils/splashScreen'
 
 interface UserContextType {
   user: User | null
@@ -83,7 +84,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false)
       }
     }
-    init()
+    // Hold the splash screen until the DB has initialized (users.isReady) and
+    // the auth state is resolved, then let it play its exit animation.
+    void init().finally(finishSplash)
   }, [])
 
   const login = async (token: string, userData: User) => {
