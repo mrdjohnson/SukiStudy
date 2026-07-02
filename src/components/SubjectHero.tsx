@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type Ref, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@mantine/core'
 import { IconPlayerPlay } from '@tabler/icons-react'
 import clsx from 'clsx'
@@ -6,7 +6,16 @@ import clsx from 'clsx'
 import type { Subject } from '../core/types'
 import { toRomanji } from '../utils/kana'
 
-export const SubjectHero = ({ subject, onClick }: { subject: Subject; onClick?: () => void }) => {
+export const SubjectHero = ({
+  subject,
+  onClick,
+  contentRef,
+}: {
+  subject: Subject
+  onClick?: () => void
+  /** The inner content block, used as the source/target of the hero transition. */
+  contentRef?: Ref<HTMLDivElement>
+}) => {
   const [audioIndex, setAudioIndex] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -46,7 +55,7 @@ export const SubjectHero = ({ subject, onClick }: { subject: Subject; onClick?: 
   return (
     <>
       <div className="hero-glow transition-opacity duration-700 opacity-50 group-hover:opacity-100"></div>
-      <div className="relative z-10 flex flex-col items-center">
+      <div ref={contentRef} className="relative z-10 flex flex-col items-center">
         <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4 dark">
           {primaryMeaning}
         </span>

@@ -1,4 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo, Suspense, useSyncExternalStore } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useMemo,
+  Suspense,
+  useSyncExternalStore,
+} from 'react'
 import clsx from 'clsx'
 import { SubjectType } from '../core/types'
 import type { Subject, StudyMaterial, ReadingType } from '../core/types'
@@ -49,6 +57,7 @@ import { useSettings } from '../contexts/SettingsContext'
 import { SubjectHero } from './SubjectHero'
 import { FlashcardCollections } from './collections/FlashcardCollections'
 import { useIsSubjectHidden } from '../hooks/useHiddenSubjects'
+import { playHeroTransition } from '../utils/heroTransition'
 
 const READING_EXPLANATIONS: Record<string, string> = {
   onyomi:
@@ -199,7 +208,11 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null)
   const [itemIndex, setItemIndex] = useState(index)
   const viewportRef = useRef<HTMLDivElement>(null)
+  const heroContentRef = useRef<HTMLDivElement>(null)
   const mnemonicScrollRef = useRef<HTMLDivElement>(null)
+  // Remembers each stack level's scroll so popping back to a card restores it.
+  const scrollByDepthRef = useRef<Map<number, number>>(new Map())
+  const prevDepthRef = useRef(depth)
   const [mnemonicTab, setMnemonicTab] = useState('meaning')
   const [isReadingJapanese, setIsReadingJapanese] = useState(true)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -207,6 +220,17 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
   const { ref: meaningSlideRef, height: meaningHeight } = useElementSize()
   const { ref: readingSlideRef, height: readingHeight } = useElementSize()
+
+  // Fly the clicked source element (dashboard hero or a GameItemIcon) into this
+  // card's hero. Keyed on modalId, not mount: Mantine's modal manager reuses this
+  // component instance when drilling into a related subject (it renders only the
+  // top modal and swaps its content), so a mount-only effect would never fire for
+  // drilled-in cards. modalId changes per opened card but is stable across
+  // prev/next, so this runs for opens/drills but not in-card navigation. No-op
+  // when nothing was captured (e.g. programmatic opens).
+  useLayoutEffect(() => {
+    playHeroTransition(heroContentRef.current)
+  }, [modalId])
 
   const allItems = useMemo(() => {
     return items || subjects.find({ id: { $in: ids } }).fetch()
@@ -353,9 +377,19 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     return null
   }, [subject, vocabularies])
 
-  useEffect(() => {
-    viewportRef.current?.scrollTo({ top: 0 })
-  }, [subject?.id])
+  // Scroll to top for a new card at this level (open or prev/next), but restore
+  // the saved position when popping back to a shallower card we've already seen,
+  // so drilling in and closing feels "as if nothing changed".
+  useLayoutEffect(() => {
+    const el = viewportRef.current
+    if (!el) return
+
+    const poppedBack = depth < prevDepthRef.current
+    prevDepthRef.current = depth
+
+    const saved = scrollByDepthRef.current.get(depth)
+    el.scrollTo({ top: poppedBack && saved != null ? saved : 0 })
+  }, [subject?.id, depth])
 
   useEffect(() => {
     audioIndexRef.current = 0
@@ -549,7 +583,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
           <Group justify="space-between" h="100%" wrap="nowrap" className="relative flex">
             <Group gap="sm" wrap="nowrap" translate="no" className="cursor-pointer">
-              <GameItemIcon subject={subject} size="xs" />
+              <GameItemIcon subject={subject} size="xs" no-animate />
               <Text fw={600} size="sm">
                 {toRomanji(primaryReading || '')}
               </Text>
@@ -582,6 +616,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
         <Paper
           ref={viewportRef}
+          onScroll={e => scrollByDepthRef.current.set(depth, e.currentTarget.scrollTop)}
           className="flex-1 overflow-y-auto py-6 p-4 pr-5 space-y-6 custom-scrollbar text-left max-h-full bg-transparent! relative w-full! scroll-p-6!"
           style={{
             maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
@@ -605,7 +640,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </div>
             )}
 
-            <SubjectHero subject={subject} />
+            <SubjectHero subject={subject} contentRef={heroContentRef} />
           </section>
 
           <section className="text-right font-semibold">{_.upperCase(type)}</section>
@@ -1038,6 +1073,9 @@ export const openFlashcardModal = (
     padding: 0,
     size: 'lg',
     centered: true,
+    // A plain fade keeps the content's geometry stable while it appears, so the
+    // hero transition can measure the destination and morph into it accurately.
+    transitionProps: { transition: 'fade', duration: 220 },
     // Trim the trail however the modal closes (button, overlay, or escape) so
     // the breadcrumbs stay in sync with the stack of open modals.
     onClose: () => flashcardStack.truncate(depth),

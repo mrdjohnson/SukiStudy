@@ -25,6 +25,7 @@ import clsx from 'clsx'
 
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import { SubjectHero } from '../components/SubjectHero'
+import { captureHeroSource } from '../utils/heroTransition'
 import { useSettings } from '../contexts/SettingsContext'
 import {
   allGameItems,
@@ -312,19 +313,28 @@ type SlideProps = {
 }
 
 const Slide = ({ subject, onInfoClick, onBookmarkClick }: SlideProps) => {
+  const heroContentRef = useRef<HTMLDivElement>(null)
+
+  // Snapshot the hero so it flies into the flashcard, whether the open was
+  // triggered by tapping the characters or the info button.
+  const handleInfoClick = () => {
+    captureHeroSource(heroContentRef.current)
+    onInfoClick?.()
+  }
+
   return (
     <Carousel.Slide>
       <div className="justify-center h-full flex">
         <Center className=" flex-col gap-6 w-full">
           <div className="relative -mt-10">
-            <SubjectHero subject={subject} onClick={onInfoClick} />
+            <SubjectHero subject={subject} onClick={handleInfoClick} contentRef={heroContentRef} />
 
             <div className="absolute left-1/2 -translate-x-1/2 top-full w-max">
               <Group className="mt-10" wrap="nowrap" gap="lg">
                 <ActionIcon
                   variant="transparent"
                   size="xl"
-                  onClick={onInfoClick}
+                  onClick={handleInfoClick}
                   aria-label="Show item details"
                 >
                   <IconInfoCircle

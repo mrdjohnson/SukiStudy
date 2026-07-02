@@ -1,17 +1,40 @@
 import { Box } from '@mantine/core'
 import clsx from 'clsx'
 import type { Subject } from '../core/types'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { bgColorByType } from '../utils/subject'
+import { captureHeroSource } from '../utils/heroTransition'
 
 export const GameItemIcon = ({
   subject,
   size = 'sm',
+  'no-animate': noAnimate = false,
 }: {
   subject: Subject
   size?: 'lg' | 'sm' | 'xs'
+  /** Opt out of the flashcard hero transition (e.g. icons that don't navigate). */
+  'no-animate'?: boolean
 }) => {
   const color = bgColorByType[subject.object || 'vocabulary']
+  const ref = useRef<HTMLDivElement>(null)
+
+  // When this icon lives inside something clickable that opens a flashcard,
+  // snapshot the icon on press so it can fly into the card. The capture is
+  // discarded if no flashcard opens, so it's harmless on non-navigating rows.
+  useEffect(() => {
+    if (noAnimate) return
+
+    const el = ref.current
+    if (!el) return
+
+    const trigger =
+      (el.closest('button, a, [role="button"], .cursor-pointer') as HTMLElement | null) ?? el
+
+    const onPointerDown = () => captureHeroSource(el)
+    trigger.addEventListener('pointerdown', onPointerDown, { capture: true })
+
+    return () => trigger.removeEventListener('pointerdown', onPointerDown, { capture: true })
+  }, [noAnimate, subject.id])
 
   const classes = useMemo(() => {
     if (size === 'xs') {
@@ -42,6 +65,7 @@ export const GameItemIcon = ({
 
   return (
     <Box
+      ref={ref}
       className={clsx(
         color,
         'flex items-center justify-center font-bold shrink-0 w-fit p-1 text-white dark:text-white/80 flex-col',
