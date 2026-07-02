@@ -12,11 +12,8 @@ import { SubjectType } from '../core/types'
 import type { Subject, StudyMaterial, ReadingType } from '../core/types'
 import { Icons } from './Icons'
 import { Button } from './ui/Button'
-import { ARTWORK_URLS } from '../utils/artworkUrls'
 import { toRomanji } from '../utils/romanji'
 import {
-  Modal,
-  Image,
   ActionIcon,
   Stack,
   Group,
@@ -27,20 +24,17 @@ import {
   Badge,
   HoverCard,
   Center,
-  SegmentedControl,
   SimpleGrid,
   Tooltip,
   UnstyledButton,
   useMatches,
-  NavLink,
 } from '@mantine/core'
-import { useDisclosure, useIntersection, useElementSize } from '@mantine/hooks'
+import { useIntersection } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { flashcardStack } from './flashcardStack'
 import { studyMaterials, subjects } from '../core/db'
 import _ from 'lodash'
 import { GameItemIcon } from './GameItemIcon'
-import Markdown from 'react-markdown'
 import useReactivity from '../hooks/useReactivity'
 import { encounterService } from '../services/encounterService'
 import {
@@ -48,7 +42,6 @@ import {
   IconPlayerPlay,
   IconInfoCircle,
   IconChevronCompactUp,
-  IconBulb,
   IconChevronLeft,
   IconChevronRight,
   IconEyeOff,
@@ -60,6 +53,10 @@ import { SubjectHero } from './SubjectHero'
 import { FlashcardCollections } from './collections/FlashcardCollections'
 import { useIsSubjectHidden } from '../hooks/useHiddenSubjects'
 import { playHeroTransition } from '../utils/heroTransition'
+import { MnemonicImage } from './MnemonicImage'
+import { FlashcardItemList } from './FlashcardItemList'
+import { FlashcardMnemonics } from './FlashcardMnemonics'
+import { FlashcardStats } from './FlashcardStats'
 
 const READING_EXPLANATIONS: Record<string, string> = {
   onyomi:
@@ -68,8 +65,6 @@ const READING_EXPLANATIONS: Record<string, string> = {
     'The native Japanese reading of a kanji, often used when the kanji stands alone as a word.',
   nanori: 'Specialized readings used primarily for Japanese names.',
 }
-
-const ReviewHistoryChart = React.lazy(() => import('./ReviewHistoryChart'))
 
 export const getSubjectLabel = (subject: Subject) => {
   return (
@@ -96,111 +91,6 @@ type FlashcardProps = {
     }
 )
 
-// Global cache for failed image URLs to prevent flickering/re-checking in same session
-const failedImages = new Set<string>()
-
-const MnemonicImage: React.FC<{ id: string; type: SubjectType; url?: string }> = ({
-  id,
-  type,
-  url: initialUrl = null,
-}) => {
-  const [imageUrl, setImageUrl] = useState<string | null>(initialUrl)
-  const [error, setError] = useState(false)
-  const [opened, { open, close }] = useDisclosure(false)
-
-  useEffect(() => {
-    if (initialUrl) {
-      return
-    }
-
-    if (type === SubjectType.VOCABULARY) {
-      setError(true)
-      return
-    }
-
-    const url = ARTWORK_URLS[Number(id)]
-    if (url) {
-      if (failedImages.has(url)) {
-        setError(true)
-      } else {
-        setImageUrl(url)
-        setError(false)
-      }
-    } else {
-      setError(true)
-    }
-  }, [id, type])
-
-  const handleError = () => {
-    if (imageUrl) failedImages.add(imageUrl)
-    setError(true)
-  }
-
-  if (error || !imageUrl) return null
-
-  return (
-    <>
-      <div
-        className="mt-4 mb-4 relative group cursor-zoom-in inline-block"
-        onClick={e => {
-          e.stopPropagation()
-          open()
-        }}
-      >
-        <img
-          src={imageUrl}
-          alt={`${id} mnemonic visualization`}
-          className="rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 max-h-64 mx-auto object-contain transition-transform group-hover:scale-[1.02] backdrop-blur-sm! w-full bg-linear-to-br from-white/20 to-transparent"
-          onError={handleError}
-        />
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-lg pointer-events-none">
-          <Icons.Maximize2 className="w-8 h-8 text-white drop-shadow-lg" />
-        </div>
-        {!initialUrl && (
-          <p className="text-xs text-center text-gray-400 mt-1">
-            Community Mnemonic Artwork (Tap to expand)
-          </p>
-        )}
-      </div>
-
-      <Modal
-        opened={opened}
-        onClose={close}
-        fullScreen
-        withCloseButton={false}
-        padding={0}
-        styles={{ body: { backgroundColor: 'black' } }}
-        zIndex={300}
-      >
-        <div
-          className="relative w-full h-svh flex items-center justify-center bg-linear-to-br from-white/20 to-transparent backdrop-blur-sm!"
-          onClick={e => {
-            e.stopPropagation()
-            close()
-          }}
-        >
-          <ActionIcon
-            variant="filled"
-            color="gray"
-            size="lg"
-            radius="xl"
-            style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}
-          >
-            <Icons.X size={20} />
-          </ActionIcon>
-          <Image
-            src={imageUrl}
-            fit="contain"
-            h="90vh"
-            w="auto"
-            className="backdrop-blur-sm! rounded-xl!"
-          />
-        </div>
-      </Modal>
-    </>
-  )
-}
-
 export const Flashcard: React.FC<FlashcardProps> = ({
   ids,
   items,
@@ -214,17 +104,12 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const [itemIndex, setItemIndex] = useState(index)
   const viewportRef = useRef<HTMLDivElement>(null)
   const heroContentRef = useRef<HTMLDivElement>(null)
-  const mnemonicScrollRef = useRef<HTMLDivElement>(null)
   // Remembers each stack level's scroll so popping back to a card restores it.
   const scrollByDepthRef = useRef<Map<number, number>>(new Map())
   const prevDepthRef = useRef(depth)
-  const [mnemonicTab, setMnemonicTab] = useState('meaning')
   const [isReadingJapanese, setIsReadingJapanese] = useState(true)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioIndexRef = useRef(0)
-
-  const { ref: meaningSlideRef, height: meaningHeight } = useElementSize()
-  const { ref: readingSlideRef, height: readingHeight } = useElementSize()
 
   // Fly the clicked source element (dashboard hero or a GameItemIcon) into this
   // card's hero. Keyed on modalId, not mount: Mantine's modal manager reuses this
@@ -270,30 +155,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
     const studyMaterial = studyMaterials.findOne({ subject_id: subject.id })
 
     setStudyMaterial(studyMaterial || null)
-    setMnemonicTab('meaning')
   }, [subject?.id])
-
-  useEffect(() => {
-    if (mnemonicScrollRef.current) {
-      const index = mnemonicTab === 'meaning' ? 0 : 1
-      const slideWidth = mnemonicScrollRef.current.offsetWidth
-      mnemonicScrollRef.current.scrollTo({
-        left: index * slideWidth,
-        behavior: 'smooth',
-      })
-    }
-  }, [mnemonicTab])
-
-  const handleMnemonicScrollEnd = (e: React.UIEvent<HTMLDivElement>) => {
-    const scrollLeft = e.currentTarget.scrollLeft
-    const width = e.currentTarget.offsetWidth
-    if (width === 0) return
-    const index = Math.round(scrollLeft / width)
-    const newTab = index === 0 ? 'meaning' : 'reading'
-    if (newTab !== mnemonicTab) {
-      setMnemonicTab(newTab)
-    }
-  }
 
   useEffect(() => {
     setItemIndex(index)
@@ -787,96 +649,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </Group>
             </section>
 
-            <section>
-              <Stack mb="xs">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                  <IconBulb size={14} /> Mnemonics
-                </h3>
-
-                {subject.reading_mnemonic && (
-                  <SegmentedControl
-                    size="xs"
-                    radius="xl"
-                    value={mnemonicTab}
-                    onChange={setMnemonicTab}
-                    data={[
-                      { label: 'Meaning', value: 'meaning' },
-                      { label: 'Reading', value: 'reading' },
-                    ]}
-                    className="bg-black/30! p-2! backdrop-blur-sm"
-                  />
-                )}
-              </Stack>
-
-              <div
-                className="overflow-hidden transition-[height] duration-300 ease-in-out backdrop-blur-sm p-4 rounded-xl bg-black/30"
-                style={{
-                  height:
-                    mnemonicTab === 'meaning'
-                      ? (meaningHeight || 0) + 30
-                      : (readingHeight || 0) + 30,
-                }}
-              >
-                <div
-                  ref={mnemonicScrollRef}
-                  onScrollEnd={handleMnemonicScrollEnd}
-                  className="flex items-start overflow-x-auto snap-x snap-mandatory scrollbar-hide no-scrollbar scroll-smooth gap-4"
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                  }}
-                >
-                  {/* Meaning Slide */}
-                  <div className="w-full shrink-0 snap-start">
-                    <div ref={meaningSlideRef}>
-                      <Stack gap="md">
-                        <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                          {subject.isKana ? (
-                            <Markdown>{subject.meaning_mnemonic}</Markdown>
-                          ) : (
-                            <div dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }} />
-                          )}
-                        </div>
-
-                        {subject.meaning_hint && (
-                          <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
-                            <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
-                              Hint
-                            </Text>
-                            <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                              <div dangerouslySetInnerHTML={{ __html: subject.meaning_hint }} />
-                            </div>
-                          </Box>
-                        )}
-                      </Stack>
-                    </div>
-                  </div>
-
-                  {/* Reading Slide */}
-                  {!!subject.reading_mnemonic && (
-                    <div className="w-full shrink-0 snap-start">
-                      <div ref={readingSlideRef}>
-                        <Stack gap="md">
-                          <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                            <div dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }} />
-                          </div>
-                          {subject.reading_hint && (
-                            <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
-                              <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
-                                Hint
-                              </Text>
-                              <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                                <div dangerouslySetInnerHTML={{ __html: subject.reading_hint }} />
-                              </div>
-                            </Box>
-                          )}
-                        </Stack>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
+            <FlashcardMnemonics key={subject.id} subject={subject} />
 
             {contextSentences && contextSentences.length > 0 && (
               <div>
@@ -922,52 +695,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               </div>
             )}
 
-            {itemStats && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Your Stats
-                </h3>
-                <div className="border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{itemStats.reviewCount}</div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Games</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{itemStats.averageScore}%</div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Accuracy</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">
-                        {itemStats.lastGameId ? (
-                          <span className="capitalize">{itemStats.lastGameId}</span>
-                        ) : (
-                          '-'
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Last Game</div>
-                    </div>
-                  </div>
-
-                  {itemStats.history.length > 0 && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                        Review History
-                      </h4>
-                      <Suspense
-                        fallback={
-                          <div className="h-32 flex items-center justify-center">
-                            <Loader size="sm" />
-                          </div>
-                        }
-                      >
-                        <ReviewHistoryChart results={itemStats.history} />
-                      </Suspense>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {itemStats && <FlashcardStats stats={itemStats} />}
 
             <FlashcardCollections subject={subject} />
 
@@ -1047,31 +775,6 @@ const OtherSubjectsSection = ({
           </Group>
         ))}
       </SimpleGrid>
-    </div>
-  )
-}
-
-/**
- * The set of items this card can page through (siblings from the source list, or
- * the related subjects when drilled in). Shown as a permanent sidebar on wide
- * screens and a toggleable slide-over on narrow ones.
- */
-const FlashcardItemList: React.FC<{
-  items: Array<Subject & { label: string }>
-  currentIndex: number
-  onSelect: (index: number) => void
-}> = ({ items, currentIndex, onSelect }) => {
-  return (
-    <div className="flex h-full flex-col overflow-y-auto no-scrollbar py-2" translate="no">
-      {items.map((item, index) => (
-        <NavLink
-          key={item.id}
-          onClick={() => onSelect(index)}
-          active={index === currentIndex}
-          label={item.label}
-          rightSection={<IconChevronRight size={16} />}
-        />
-      ))}
     </div>
   )
 }
