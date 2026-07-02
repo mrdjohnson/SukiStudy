@@ -30,32 +30,30 @@ export const GameMenu: React.FC = () => {
   return (
     <Container size="md" className="max-h-full overflow-scroll h-full py-4">
       {/* Custom Game Banner */}
-      <div className="mb-8">
+      <div className="mb-4 md:mb-8">
         <button
           onClick={() => navigate('/session/custom')}
-          className="w-full bg-linear-to-r from-gray-900 to-gray-700 text-white dark:text-gray-200 p-6 rounded-2xl shadow-lg flex items-center justify-between hover:scale-[1.01] transition-transform cursor-pointer"
+          className="w-full bg-linear-to-r from-gray-900 to-gray-700 text-white dark:text-gray-200 p-4 rounded-2xl shadow-lg flex items-center hover:scale-[1.01] transition-transform cursor-pointer"
         >
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/10 rounded-xl">
-              <Icons.Adjustments className="w-8 h-8" />
-            </div>
-            <div className="text-left">
-              <h2 className="text-xl font-bold">Custom Session</h2>
-              <p className="text-gray-400 mt-1 text-sm">
-                Create your own game mix with specific filters.
-              </p>
-            </div>
+          <div className="p-4 mr-6 bg-white/10 rounded-xl">
+            <Icons.Adjustments className="w-8 h-8" />
           </div>
-          <Icons.ChevronRight className="w-6 h-6" />
+          <div className="flex-1 text-left">
+            <h2 className="text-xl font-bold">Custom Session</h2>
+            <p className="text-gray-400 mt-1 text-sm">
+              Create your own game mix with specific filters.
+            </p>
+          </div>
+          <Icons.ChevronRight className="ml-2 text-gray-300 group-hover:text-indigo-500" />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {availableGames.map(game => (
           <button
             key={game.id}
             onClick={() => navigate(`/session/games/${game.id}`)}
-            className="flex items-center p-6 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all text-left group cursor-pointer"
+            className="flex items-center p-4 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all text-left group cursor-pointer"
           >
             <div
               className={`p-4 rounded-xl mr-6 ${game.color} group-hover:scale-110 transition-transform`}
