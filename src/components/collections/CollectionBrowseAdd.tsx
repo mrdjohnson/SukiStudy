@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActionIcon,
   Badge,
@@ -57,6 +57,7 @@ export const CollectionBrowseAdd = ({ collectionId }: CollectionBrowseAddProps) 
   const [levels, setLevels] = useState<number[]>([])
   const [showLevelSelect, levelSelect] = useDisclosure(false)
   const [showLimit, setShowLimit] = useState(60)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const limitStep = useMatches({ base: 30, sm: 60 })
 
@@ -134,13 +135,21 @@ export const CollectionBrowseAdd = ({ collectionId }: CollectionBrowseAddProps) 
     <Stack gap="md">
       <Group wrap="nowrap">
         <TextInput
+          ref={searchInputRef}
           radius="xl"
           placeholder="Search English, kana, or romaji..."
           leftSection={<IconSearch size={16} />}
           value={searchQuery}
           onChange={event => setSearchQuery(event.currentTarget.value)}
           rightSection={
-            <InputClearButton onClick={() => setSearchQuery('')} hidden={!searchQuery} />
+            <InputClearButton
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => {
+                setSearchQuery('')
+                searchInputRef.current?.focus()
+              }}
+              hidden={!searchQuery}
+            />
           }
           className="flex-1"
         />

@@ -91,6 +91,7 @@ export const Browse: React.FC = () => {
 
   const assignmentMapRef = useRef<Record<number, Assignment>>(undefined)
   const itemStatMapRef = useRef<Record<number, GameItemStat>>(undefined)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const limit = useMatches({
     base: 20,
@@ -287,13 +288,21 @@ export const Browse: React.FC = () => {
       {/* Filters Header */}
       <Group wrap="nowrap" className="pb-4">
         <TextInput
+          ref={searchInputRef}
           radius="xl"
           placeholder="Search English, Kana, or Romanji..."
           leftSection={<IconSearch size={16} />}
           value={searchQuery}
           onChange={e => setSearchQuery(e.currentTarget.value)}
           rightSection={
-            <InputClearButton onClick={() => setSearchQuery('')} hidden={!searchQuery} />
+            <InputClearButton
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => {
+                setSearchQuery('')
+                searchInputRef.current?.focus()
+              }}
+              hidden={!searchQuery}
+            />
           }
           className="w-full"
         />
