@@ -51,6 +51,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconEyeOff,
+  IconList,
 } from '@tabler/icons-react'
 import { DynamicLanguageIcon } from './DynamicLanguageIcon'
 import { useSettings } from '../contexts/SettingsContext'
@@ -242,6 +243,9 @@ export const Flashcard: React.FC<FlashcardProps> = ({
 
   const hasPrev = itemIndex > 0
 
+  const hasList = allItems.length > 1
+  const [listOpen, setListOpen] = useState(false)
+
   const itemStats = useReactivity(() => {
     if (!subject) return null
 
@@ -297,6 +301,12 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   const handlePrev = () => {
     setItemIndex(itemIndex - 1)
     onIndexChanged?.(itemIndex - 1)
+  }
+
+  const handleSelectItem = (nextIndex: number) => {
+    setItemIndex(nextIndex)
+    onIndexChanged?.(nextIndex)
+    setListOpen(false)
   }
 
   const { ref: heroRef, entry } = useIntersection({
@@ -472,470 +482,520 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   return (
     <div className={`w-full max-w-full mx-auto h-full`} onClick={e => e.stopPropagation()}>
       <div
-        className="overflow-hidden flex flex-col h-full bg-black/60 md:border md:border-white/15 sm:rounded-[32px] md:rounded-2xl! relative"
-        // style={{
-        //   boxShadow:
-        //     '0 28px 80px rgba(0, 0, 0, 0.46), 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.42)',
-        // }}
+        className="overflow-hidden flex h-full bg-black/60 md:border md:border-white/15 sm:rounded-[32px] md:rounded-2xl! relative"
         onClick={e => e.stopPropagation()}
       >
-        {/* top bar */}
-        <Group className="px-4 py-2" wrap="nowrap" gap="xs">
-          {modalId && (
-            <Tooltip label={hasParent ? 'Back' : 'Close'} openDelay={300} withinPortal={false}>
+        {/* Permanent item list on wide screens */}
+        {hasList && (
+          <aside className="hidden md:flex w-52 shrink-0 flex-col border-r border-white/10 bg-black/20">
+            <FlashcardItemList
+              items={allItems}
+              currentIndex={itemIndex}
+              onSelect={handleSelectItem}
+            />
+          </aside>
+        )}
+
+        <div className="relative flex h-full min-w-0 flex-1 flex-col">
+          {/* top bar */}
+          <Group className="px-4 py-2" wrap="nowrap" gap="xs">
+            {modalId && (
+              <Tooltip label={hasParent ? 'Back' : 'Close'} openDelay={300} withinPortal={false}>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  aria-label={hasParent ? 'Back to previous item' : 'Close'}
+                  onClick={e => {
+                    e.stopPropagation()
+                    handleClose()
+                  }}
+                  className="border! border-transparent! border-b-white/20! shrink-0"
+                  radius="xl"
+                >
+                  {hasParent ? <IconArrowLeft size={16} /> : <Icons.X size={14} />}
+                </ActionIcon>
+              </Tooltip>
+            )}
+
+            {visibleCrumbs.length > 1 && (
+              <Group
+                gap={2}
+                wrap="nowrap"
+                translate="no"
+                className="min-w-0 flex-1 overflow-x-auto no-scrollbar"
+              >
+                {visibleCrumbs.map((crumb, crumbIndex) => {
+                  const isCurrent = crumbIndex === depth
+
+                  return (
+                    <Group gap={2} wrap="nowrap" key={crumb.modalId} className="shrink-0">
+                      {crumbIndex > 0 && (
+                        <IconChevronRight size={12} className="text-white/40 shrink-0" />
+                      )}
+                      <UnstyledButton
+                        disabled={isCurrent}
+                        onClick={e => {
+                          e.stopPropagation()
+                          if (!isCurrent) navigateToCrumb(crumbIndex)
+                        }}
+                        className={clsx(
+                          'max-w-32 truncate text-xs transition-colors',
+                          isCurrent
+                            ? 'cursor-default font-semibold text-white'
+                            : 'text-white/50 hover:text-white/90',
+                        )}
+                      >
+                        {crumb.label}
+                      </UnstyledButton>
+                    </Group>
+                  )
+                })}
+              </Group>
+            )}
+
+            <Group className="ml-auto shrink-0" wrap="nowrap" gap="xs">
+              {hasList && (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  onClick={() => setListOpen(open => !open)}
+                  aria-label="Show item list"
+                  className="md:hidden! border! border-transparent! border-b-white/20! text-white/50!"
+                  radius="xl"
+                >
+                  <IconList size={18} />
+                </ActionIcon>
+              )}
+
               <ActionIcon
                 variant="subtle"
                 color="gray"
-                aria-label={hasParent ? 'Back to previous item' : 'Close'}
-                onClick={e => {
-                  e.stopPropagation()
-                  handleClose()
-                }}
-                className="border! border-transparent! border-b-white/20! shrink-0"
+                onClick={handlePrev}
+                disabled={!hasPrev}
+                className="border! border-transparent! border-l-white/20! border-b-white/20! text-white/50! disabled:opacity-0! transition-opacity duration-300 ease-in-out"
                 radius="xl"
               >
-                {hasParent ? <IconArrowLeft size={16} /> : <Icons.X size={14} />}
+                <IconChevronLeft size={18} />
               </ActionIcon>
-            </Tooltip>
-          )}
 
-          {visibleCrumbs.length > 1 && (
-            <Group
-              gap={2}
-              wrap="nowrap"
-              translate="no"
-              className="min-w-0 flex-1 overflow-x-auto no-scrollbar"
-            >
-              {visibleCrumbs.map((crumb, crumbIndex) => {
-                const isCurrent = crumbIndex === depth
-
-                return (
-                  <Group gap={2} wrap="nowrap" key={crumb.modalId} className="shrink-0">
-                    {crumbIndex > 0 && (
-                      <IconChevronRight size={12} className="text-white/40 shrink-0" />
-                    )}
-                    <UnstyledButton
-                      disabled={isCurrent}
-                      onClick={e => {
-                        e.stopPropagation()
-                        if (!isCurrent) navigateToCrumb(crumbIndex)
-                      }}
-                      className={clsx(
-                        'max-w-32 truncate text-xs transition-colors',
-                        isCurrent
-                          ? 'cursor-default font-semibold text-white'
-                          : 'text-white/50 hover:text-white/90',
-                      )}
-                    >
-                      {crumb.label}
-                    </UnstyledButton>
-                  </Group>
-                )
-              })}
-            </Group>
-          )}
-
-          <Group className="ml-auto shrink-0" wrap="nowrap" gap="xs">
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              onClick={handlePrev}
-              disabled={!hasPrev}
-              className="border! border-transparent! border-l-white/20! border-b-white/20! text-white/50! disabled:opacity-0! transition-opacity duration-300 ease-in-out"
-              radius="xl"
-            >
-              <IconChevronLeft size={18} />
-            </ActionIcon>
-
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              onClick={handleNext}
-              disabled={!hasNext}
-              className="border! border-transparent! border-r-white/20! border-b-white/20! text-white/50! disabled:opacity-0! transition-opacity duration-300 ease-in-out"
-              radius="xl"
-            >
-              <IconChevronRight size={18} />
-            </ActionIcon>
-          </Group>
-        </Group>
-
-        <Box
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: 'var(--mantine-spacing-xs)',
-            height: 60,
-            zIndex: 1000000,
-            transform: `translate3d(0, ${pinned ? 0 : '-110px'}, 0)`,
-            transition: 'transform 400ms cubic-bezier(0.32, 0.72, 0, 1)',
-            backgroundColor: 'var(--mantine-color-body)',
-            borderBottom: '1px solid var(--mantine-color-default-border)',
-          }}
-          onClick={() => viewportRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="rounded-b-xl! cursor-pointer md:rounded-t-2xl!"
-        >
-          <Center className="absolute top-0 right-0 left-0 opacity-30">
-            <IconChevronCompactUp />
-          </Center>
-
-          <Group justify="space-between" h="100%" wrap="nowrap" className="relative flex">
-            <Group gap="sm" wrap="nowrap" translate="no" className="cursor-pointer">
-              <GameItemIcon subject={subject} size="xs" no-animate />
-              <Text fw={600} size="sm">
-                {toRomanji(primaryReading || '')}
-              </Text>
-              <Text c="dimmed" size="sm" lineClamp={1}>
-                {primaryMeaning}
-              </Text>
-            </Group>
-            {hasAudio && (
               <ActionIcon
                 variant="subtle"
-                onClick={e => {
-                  e.stopPropagation()
-                  playAudio(e)
-                }}
+                color="gray"
+                onClick={handleNext}
+                disabled={!hasNext}
+                className="border! border-transparent! border-r-white/20! border-b-white/20! text-white/50! disabled:opacity-0! transition-opacity duration-300 ease-in-out"
                 radius="xl"
               >
-                <IconPlayerPlay size={18} />
+                <IconChevronRight size={18} />
               </ActionIcon>
-            )}
+            </Group>
           </Group>
-        </Box>
 
-        <div
-          className="fixed bottom-0 right-0 left-0 h-6 bg-black z-90"
-          style={{
-            maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 24px)',
-          }}
-        />
-
-        <Paper
-          ref={viewportRef}
-          onScroll={e => scrollByDepthRef.current.set(depth, e.currentTarget.scrollTop)}
-          className="flex-1 overflow-y-auto py-6 p-4 pr-5 space-y-6 custom-scrollbar text-left max-h-full bg-transparent! relative w-full! scroll-p-6!"
-          style={{
-            maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 24px)',
-          }}
-          shadow="sm"
-          translate="no"
-        >
-          {/* hero section */}
-          <section
-            ref={heroRef}
-            className=" bg-linear-to-br from-white/20 to-transparent via-80% via-transparent border border-transparent border-b-white/10 border-r-white/10 rounded-4xl p-8 px-2 relative overflow-hidden flex flex-col items-center justify-center min-h-70 shadow-xs shadow-white/20 mb-4 group"
+          <Box
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              padding: 'var(--mantine-spacing-xs)',
+              height: 60,
+              zIndex: 1000000,
+              transform: `translate3d(0, ${pinned ? 0 : '-110px'}, 0)`,
+              transition: 'transform 400ms cubic-bezier(0.32, 0.72, 0, 1)',
+              backgroundColor: 'var(--mantine-color-body)',
+              borderBottom: '1px solid var(--mantine-color-default-border)',
+            }}
+            onClick={() => viewportRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="rounded-b-xl! cursor-pointer md:rounded-t-2xl!"
           >
-            {isHidden && (
-              <div
-                className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-xs text-white/70 backdrop-blur-sm"
-                title="This item is hidden"
-              >
-                <IconEyeOff size={14} />
-                Hidden
-              </div>
-            )}
+            <Center className="absolute top-0 right-0 left-0 opacity-30">
+              <IconChevronCompactUp />
+            </Center>
 
-            <SubjectHero subject={subject} contentRef={heroContentRef} />
-          </section>
-
-          <section className="text-right font-semibold">{_.upperCase(type)}</section>
-
-          <section>
-            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
-              Meanings
-            </h3>
-
-            <Group gap="sm">
-              {meanings.map(meaning => (
-                <Badge
-                  key={meaning}
-                  color="gray"
-                  variant="default"
-                  className="shrink-0 p-4! font-normal!"
-                  size="lg"
+            <Group justify="space-between" h="100%" wrap="nowrap" className="relative flex">
+              <Group gap="sm" wrap="nowrap" translate="no" className="cursor-pointer">
+                <GameItemIcon subject={subject} size="xs" no-animate />
+                <Text fw={600} size="sm">
+                  {toRomanji(primaryReading || '')}
+                </Text>
+                <Text c="dimmed" size="sm" lineClamp={1}>
+                  {primaryMeaning}
+                </Text>
+              </Group>
+              {hasAudio && (
+                <ActionIcon
+                  variant="subtle"
+                  onClick={e => {
+                    e.stopPropagation()
+                    playAudio(e)
+                  }}
+                  radius="xl"
                 >
-                  {meaning}
-                </Badge>
-              ))}
+                  <IconPlayerPlay size={18} />
+                </ActionIcon>
+              )}
             </Group>
+          </Box>
 
-            {studyMaterial && (
-              <Stack gap="xs" mt="md" className="pl-1">
-                {studyMaterial.meaning_synonyms.length > 0 && (
-                  <Group gap="xs">
-                    <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-                      Synonyms:
-                    </Text>
-                    {studyMaterial.meaning_synonyms.map(synonym => (
-                      <Badge key={synonym} size="sm" variant="light" color="gray">
-                        {synonym}
-                      </Badge>
-                    ))}
-                  </Group>
-                )}
+          <div
+            className="fixed bottom-0 right-0 left-0 h-6 bg-black z-90"
+            style={{
+              maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+            }}
+          />
 
-                {studyMaterial.meaning_note && (
-                  <Box>
-                    <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
-                      Meaning Note:
-                    </Text>
-                    <Text size="sm">{studyMaterial.meaning_note}</Text>
-                  </Box>
-                )}
+          <Paper
+            ref={viewportRef}
+            onScroll={e => scrollByDepthRef.current.set(depth, e.currentTarget.scrollTop)}
+            className="flex-1 overflow-y-auto py-6 p-4 pr-5 space-y-6 custom-scrollbar text-left max-h-full bg-transparent! relative w-full! scroll-p-6!"
+            style={{
+              maskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 24px)',
+            }}
+            shadow="sm"
+            translate="no"
+          >
+            {/* hero section */}
+            <section
+              ref={heroRef}
+              className=" bg-linear-to-br from-white/20 to-transparent via-80% via-transparent border border-transparent border-b-white/10 border-r-white/10 rounded-4xl p-8 px-2 relative overflow-hidden flex flex-col items-center justify-center min-h-70 shadow-xs shadow-white/20 mb-4 group"
+            >
+              {isHidden && (
+                <div
+                  className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-xs text-white/70 backdrop-blur-sm"
+                  title="This item is hidden"
+                >
+                  <IconEyeOff size={14} />
+                  Hidden
+                </div>
+              )}
 
-                {studyMaterial.reading_note && (
-                  <Box>
-                    <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
-                      Reading Note:
-                    </Text>
-                    <Text size="sm">{studyMaterial.reading_note}</Text>
-                  </Box>
-                )}
-              </Stack>
-            )}
-          </section>
+              <SubjectHero subject={subject} contentRef={heroContentRef} />
+            </section>
 
-          {/* hide if there are no readings */}
-          <section hidden={!readingGroups[0]}>
-            <Group className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
-              Readings
-              <Button
-                variant="transparent"
-                color="white"
-                onClick={() => setIsReadingJapanese(!isReadingJapanese)}
-              >
-                <DynamicLanguageIcon japanese={isReadingJapanese} />
-              </Button>
-            </Group>
+            <section className="text-right font-semibold">{_.upperCase(type)}</section>
 
-            <Group gap="sm" grow align="stretch">
-              {readingGroups.map(({ type, readings }) => (
-                <Paper key={type} className="p-3 rounded-xl! relative group/reading">
-                  <Stack gap="xs">
-                    {type && (
-                      <Group className="justify-between!">
-                        <Text className="text-xs! uppercase font-bold opacity-70">{type}</Text>
-
-                        {READING_EXPLANATIONS[type] && (
-                          <HoverCard width={300} position="bottom" withArrow withinPortal={false}>
-                            <HoverCard.Target>
-                              <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="xs"
-                                className="opacity-50"
-                              >
-                                <IconInfoCircle size={14} />
-                              </ActionIcon>
-                            </HoverCard.Target>
-
-                            <HoverCard.Dropdown className="z-50">
-                              <Text>{READING_EXPLANATIONS[type]}</Text>
-                            </HoverCard.Dropdown>
-                          </HoverCard>
-                        )}
-                      </Group>
-                    )}
-                    <Text className="text-primary! font-semibold! text-lg">
-                      {isReadingJapanese ? readings : toRomanji(readings)}
-                    </Text>
-                  </Stack>
-                </Paper>
-              ))}
-            </Group>
-          </section>
-
-          <section>
-            <Stack mb="xs">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                <IconBulb size={14} /> Mnemonics
+            <section>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+                Meanings
               </h3>
 
-              {subject.reading_mnemonic && (
-                <SegmentedControl
-                  size="xs"
-                  radius="xl"
-                  value={mnemonicTab}
-                  onChange={setMnemonicTab}
-                  data={[
-                    { label: 'Meaning', value: 'meaning' },
-                    { label: 'Reading', value: 'reading' },
-                  ]}
-                  className="bg-black/30! p-2! backdrop-blur-sm"
-                />
-              )}
-            </Stack>
+              <Group gap="sm">
+                {meanings.map(meaning => (
+                  <Badge
+                    key={meaning}
+                    color="gray"
+                    variant="default"
+                    className="shrink-0 p-4! font-normal!"
+                    size="lg"
+                  >
+                    {meaning}
+                  </Badge>
+                ))}
+              </Group>
 
-            <div
-              className="overflow-hidden transition-[height] duration-300 ease-in-out backdrop-blur-sm p-4 rounded-xl bg-black/30"
-              style={{
-                height:
-                  mnemonicTab === 'meaning' ? (meaningHeight || 0) + 30 : (readingHeight || 0) + 30,
-              }}
-            >
+              {studyMaterial && (
+                <Stack gap="xs" mt="md" className="pl-1">
+                  {studyMaterial.meaning_synonyms.length > 0 && (
+                    <Group gap="xs">
+                      <Text size="xs" fw={700} tt="uppercase" c="dimmed">
+                        Synonyms:
+                      </Text>
+                      {studyMaterial.meaning_synonyms.map(synonym => (
+                        <Badge key={synonym} size="sm" variant="light" color="gray">
+                          {synonym}
+                        </Badge>
+                      ))}
+                    </Group>
+                  )}
+
+                  {studyMaterial.meaning_note && (
+                    <Box>
+                      <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                        Meaning Note:
+                      </Text>
+                      <Text size="sm">{studyMaterial.meaning_note}</Text>
+                    </Box>
+                  )}
+
+                  {studyMaterial.reading_note && (
+                    <Box>
+                      <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                        Reading Note:
+                      </Text>
+                      <Text size="sm">{studyMaterial.reading_note}</Text>
+                    </Box>
+                  )}
+                </Stack>
+              )}
+            </section>
+
+            {/* hide if there are no readings */}
+            <section hidden={!readingGroups[0]}>
+              <Group className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+                Readings
+                <Button
+                  variant="transparent"
+                  color="white"
+                  onClick={() => setIsReadingJapanese(!isReadingJapanese)}
+                >
+                  <DynamicLanguageIcon japanese={isReadingJapanese} />
+                </Button>
+              </Group>
+
+              <Group gap="sm" grow align="stretch">
+                {readingGroups.map(({ type, readings }) => (
+                  <Paper key={type} className="p-3 rounded-xl! relative group/reading">
+                    <Stack gap="xs">
+                      {type && (
+                        <Group className="justify-between!">
+                          <Text className="text-xs! uppercase font-bold opacity-70">{type}</Text>
+
+                          {READING_EXPLANATIONS[type] && (
+                            <HoverCard width={300} position="bottom" withArrow withinPortal={false}>
+                              <HoverCard.Target>
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="gray"
+                                  size="xs"
+                                  className="opacity-50"
+                                >
+                                  <IconInfoCircle size={14} />
+                                </ActionIcon>
+                              </HoverCard.Target>
+
+                              <HoverCard.Dropdown className="z-50">
+                                <Text>{READING_EXPLANATIONS[type]}</Text>
+                              </HoverCard.Dropdown>
+                            </HoverCard>
+                          )}
+                        </Group>
+                      )}
+                      <Text className="text-primary! font-semibold! text-lg">
+                        {isReadingJapanese ? readings : toRomanji(readings)}
+                      </Text>
+                    </Stack>
+                  </Paper>
+                ))}
+              </Group>
+            </section>
+
+            <section>
+              <Stack mb="xs">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-300 uppercase tracking-wider">
+                  <IconBulb size={14} /> Mnemonics
+                </h3>
+
+                {subject.reading_mnemonic && (
+                  <SegmentedControl
+                    size="xs"
+                    radius="xl"
+                    value={mnemonicTab}
+                    onChange={setMnemonicTab}
+                    data={[
+                      { label: 'Meaning', value: 'meaning' },
+                      { label: 'Reading', value: 'reading' },
+                    ]}
+                    className="bg-black/30! p-2! backdrop-blur-sm"
+                  />
+                )}
+              </Stack>
+
               <div
-                ref={mnemonicScrollRef}
-                onScrollEnd={handleMnemonicScrollEnd}
-                className="flex items-start overflow-x-auto snap-x snap-mandatory scrollbar-hide no-scrollbar scroll-smooth gap-4"
+                className="overflow-hidden transition-[height] duration-300 ease-in-out backdrop-blur-sm p-4 rounded-xl bg-black/30"
                 style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
+                  height:
+                    mnemonicTab === 'meaning'
+                      ? (meaningHeight || 0) + 30
+                      : (readingHeight || 0) + 30,
                 }}
               >
-                {/* Meaning Slide */}
-                <div className="w-full shrink-0 snap-start">
-                  <div ref={meaningSlideRef}>
-                    <Stack gap="md">
-                      <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                        {subject.isKana ? (
-                          <Markdown>{subject.meaning_mnemonic}</Markdown>
-                        ) : (
-                          <div dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }} />
-                        )}
-                      </div>
-
-                      {subject.meaning_hint && (
-                        <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
-                          <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
-                            Hint
-                          </Text>
-                          <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                            <div dangerouslySetInnerHTML={{ __html: subject.meaning_hint }} />
-                          </div>
-                        </Box>
-                      )}
-                    </Stack>
-                  </div>
-                </div>
-
-                {/* Reading Slide */}
-                {!!subject.reading_mnemonic && (
+                <div
+                  ref={mnemonicScrollRef}
+                  onScrollEnd={handleMnemonicScrollEnd}
+                  className="flex items-start overflow-x-auto snap-x snap-mandatory scrollbar-hide no-scrollbar scroll-smooth gap-4"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  }}
+                >
+                  {/* Meaning Slide */}
                   <div className="w-full shrink-0 snap-start">
-                    <div ref={readingSlideRef}>
+                    <div ref={meaningSlideRef}>
                       <Stack gap="md">
                         <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                          <div dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }} />
+                          {subject.isKana ? (
+                            <Markdown>{subject.meaning_mnemonic}</Markdown>
+                          ) : (
+                            <div dangerouslySetInnerHTML={{ __html: subject.meaning_mnemonic }} />
+                          )}
                         </div>
-                        {subject.reading_hint && (
+
+                        {subject.meaning_hint && (
                           <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
                             <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
                               Hint
                             </Text>
                             <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
-                              <div dangerouslySetInnerHTML={{ __html: subject.reading_hint }} />
+                              <div dangerouslySetInnerHTML={{ __html: subject.meaning_hint }} />
                             </div>
                           </Box>
                         )}
                       </Stack>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-          </section>
 
-          {contextSentences && contextSentences.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Context Sentences
-              </h3>
-
-              <div className="rounded-xl backdrop-blur-md px-3 divide-y divide-white/20">
-                {contextSentences.slice(0, 5).map((s, i) => (
-                  <Box key={i} className="px-3 py-4 text-sm">
-                    <Text className="mb-1 font-medium text-gray-100">
-                      {renderInteractiveSentence(s.ja)}
-                    </Text>
-
-                    <Text className="text-sm! text-gray-400">{s.en}</Text>
-                  </Box>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {type !== SubjectType.VOCABULARY && subject.character_images?.[0] && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Visuals
-              </h3>
-
-              <Stack>
-                <MnemonicImage id={String(subject.id)} type={type} />
-
-                {subject.character_images.map(
-                  image =>
-                    image.url && (
-                      <MnemonicImage
-                        key={image.url}
-                        id={String(subject.id)}
-                        type={type}
-                        url={image.url}
-                      />
-                    ),
-                )}
-              </Stack>
-            </div>
-          )}
-
-          {itemStats && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Your Stats
-              </h3>
-              <div className="border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{itemStats.reviewCount}</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">Games</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{itemStats.averageScore}%</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">
-                      {itemStats.lastGameId ? (
-                        <span className="capitalize">{itemStats.lastGameId}</span>
-                      ) : (
-                        '-'
-                      )}
+                  {/* Reading Slide */}
+                  {!!subject.reading_mnemonic && (
+                    <div className="w-full shrink-0 snap-start">
+                      <div ref={readingSlideRef}>
+                        <Stack gap="md">
+                          <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
+                            <div dangerouslySetInnerHTML={{ __html: subject.reading_mnemonic }} />
+                          </div>
+                          {subject.reading_hint && (
+                            <Box className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700/50">
+                              <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
+                                Hint
+                              </Text>
+                              <div className="prose prose-spacing dark:prose-invert max-w-none text-sm">
+                                <div dangerouslySetInnerHTML={{ __html: subject.reading_hint }} />
+                              </div>
+                            </Box>
+                          )}
+                        </Stack>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">Last Game</div>
-                  </div>
+                  )}
                 </div>
-
-                {itemStats.history.length > 0 && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                      Review History
-                    </h4>
-                    <Suspense
-                      fallback={
-                        <div className="h-32 flex items-center justify-center">
-                          <Loader size="sm" />
-                        </div>
-                      }
-                    >
-                      <ReviewHistoryChart results={itemStats.history} />
-                    </Suspense>
-                  </div>
-                )}
               </div>
-            </div>
-          )}
+            </section>
 
-          <FlashcardCollections subject={subject} />
+            {contextSentences && contextSentences.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Context Sentences
+                </h3>
 
-          <OtherSubjectsSection otherSubjects={components} title="Composition" />
-          <OtherSubjectsSection otherSubjects={similars} title="Similar" />
-          <OtherSubjectsSection otherSubjects={vocabularies} title="Vocabulary" />
-        </Paper>
+                <div className="rounded-xl backdrop-blur-md px-3 divide-y divide-white/20">
+                  {contextSentences.slice(0, 5).map((s, i) => (
+                    <Box key={i} className="px-3 py-4 text-sm">
+                      <Text className="mb-1 font-medium text-gray-100">
+                        {renderInteractiveSentence(s.ja)}
+                      </Text>
+
+                      <Text className="text-sm! text-gray-400">{s.en}</Text>
+                    </Box>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {type !== SubjectType.VOCABULARY && subject.character_images?.[0] && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Visuals
+                </h3>
+
+                <Stack>
+                  <MnemonicImage id={String(subject.id)} type={type} />
+
+                  {subject.character_images.map(
+                    image =>
+                      image.url && (
+                        <MnemonicImage
+                          key={image.url}
+                          id={String(subject.id)}
+                          type={type}
+                          url={image.url}
+                        />
+                      ),
+                  )}
+                </Stack>
+              </div>
+            )}
+
+            {itemStats && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Your Stats
+                </h3>
+                <div className="border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{itemStats.reviewCount}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">Games</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{itemStats.averageScore}%</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">Accuracy</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">
+                        {itemStats.lastGameId ? (
+                          <span className="capitalize">{itemStats.lastGameId}</span>
+                        ) : (
+                          '-'
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">Last Game</div>
+                    </div>
+                  </div>
+
+                  {itemStats.history.length > 0 && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        Review History
+                      </h4>
+                      <Suspense
+                        fallback={
+                          <div className="h-32 flex items-center justify-center">
+                            <Loader size="sm" />
+                          </div>
+                        }
+                      >
+                        <ReviewHistoryChart results={itemStats.history} />
+                      </Suspense>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <FlashcardCollections subject={subject} />
+
+            <OtherSubjectsSection otherSubjects={components} title="Composition" />
+            <OtherSubjectsSection otherSubjects={similars} title="Similar" />
+            <OtherSubjectsSection otherSubjects={vocabularies} title="Vocabulary" />
+          </Paper>
+        </div>
+
+        {/* Slide-over item list on narrow screens (a drawer within the card) */}
+        {hasList && (
+          <div
+            className={clsx(
+              'fixed inset-0 z-[1000002] transition-opacity duration-200 md:hidden',
+              listOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+            )}
+            onClick={() => setListOpen(false)}
+          >
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <aside
+              onClick={e => e.stopPropagation()}
+              className={clsx(
+                'absolute inset-y-0 right-0 flex w-64 max-w-[80%] flex-col border-l border-white/10 bg-zinc-900/95 shadow-2xl transition-transform duration-300 ease-out',
+                listOpen ? 'translate-x-0' : 'translate-x-full',
+              )}
+            >
+              <FlashcardItemList
+                items={allItems}
+                currentIndex={itemIndex}
+                onSelect={handleSelectItem}
+              />
+            </aside>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -985,6 +1045,53 @@ const OtherSubjectsSection = ({
   )
 }
 
+/**
+ * The set of items this card can page through (siblings from the source list, or
+ * the related subjects when drilled in). Shown as a permanent sidebar on wide
+ * screens and a toggleable slide-over on narrow ones.
+ */
+const FlashcardItemList: React.FC<{
+  items: Subject[]
+  currentIndex: number
+  onSelect: (index: number) => void
+}> = ({ items, currentIndex, onSelect }) => {
+  const activeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [currentIndex])
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto no-scrollbar py-2" translate="no">
+      {items.map((item, index) => {
+        const meaning = item.meanings?.find(m => m.primary)?.meaning ?? item.meanings?.[0]?.meaning
+        const active = index === currentIndex
+
+        return (
+          <UnstyledButton
+            key={item.id}
+            ref={active ? activeRef : undefined}
+            onClick={() => onSelect(index)}
+            className={clsx(
+              'flex items-center gap-2 px-3 py-2 text-left transition-colors',
+              active
+                ? 'bg-white/10 text-white'
+                : 'text-white/55 hover:bg-white/5 hover:text-white/90',
+            )}
+          >
+            {item.characters && (
+              <span className="font-japanese shrink-0 text-base leading-none">
+                {item.characters}
+              </span>
+            )}
+            {meaning && <span className="truncate text-xs">{meaning}</span>}
+          </UnstyledButton>
+        )
+      })}
+    </div>
+  )
+}
+
 const FlashcardModalWrapper: React.FC<{
   items: Subject[]
   index: number
@@ -1002,10 +1109,14 @@ const FlashcardModalWrapper: React.FC<{
       : themeBackground.landscapeUrl
     : ''
 
+  // Give the desktop modal extra width when it shows the permanent item sidebar.
+  const hasList = items.length > 1
+
   useEffect(() => {
     modals.updateModal({
       modalId,
       fullScreen: isMobile,
+      size: hasList ? 'xl' : 'lg',
       withCloseButton: false,
       overlayProps: {
         style: backgroundUrl
@@ -1014,7 +1125,7 @@ const FlashcardModalWrapper: React.FC<{
         className: `bg-cover! bg-no-repeat brightness-75!`,
       },
     })
-  }, [modalId, isMobile])
+  }, [modalId, isMobile, hasList])
 
   return (
     <div
