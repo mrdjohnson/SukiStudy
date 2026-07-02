@@ -10,6 +10,7 @@ import {
   Divider,
   Group,
   InputClearButton,
+  Modal,
   Paper,
   SimpleGrid,
   Stack,
@@ -160,6 +161,7 @@ const CollectionDetail = ({
   const highlightedSubjectId = searchParams.get('subject')
   const [isEditingName, nameEditHandlers] = useDisclosure(false)
   const [draftName, setDraftName] = useState(collection.name)
+  const [isBrowseAddOpen, browseAddHandlers] = useDisclosure(false)
   const isDashboardCollection = dashboardCollectionIds.includes(collection.id)
   const isNotificationCollection = notificationCollectionIds.includes(collection.id)
 
@@ -214,14 +216,11 @@ const CollectionDetail = ({
     navigate(`/session/custom?collections=${collection.id}&select=all`)
   }
 
-  const openBrowseAdd = () => {
-    modals.open({
-      title: `Add items to ${collection.name}`,
-      fullScreen: isMobile,
-      size: 'xl',
-      children: <CollectionBrowseAdd collectionId={collection.id} />,
-    })
-  }
+  // Rendered as a standalone, always-mounted Modal (not through the modals
+  // manager, which only keeps one modal mounted at a time). That way opening a
+  // flashcard stacks above it without unmounting the browse list — so its search
+  // and filters survive.
+  const openBrowseAdd = () => browseAddHandlers.open()
 
   // When arriving from a flashcard ("open collection"), scroll to and briefly
   // highlight the originating item.
@@ -547,6 +546,16 @@ const CollectionDetail = ({
           </Stack>
         )}
       </Stack>
+
+      <Modal
+        opened={isBrowseAddOpen}
+        onClose={browseAddHandlers.close}
+        title={`Add items to ${collection.name}`}
+        fullScreen={isMobile}
+        size="xl"
+      >
+        <CollectionBrowseAdd collectionId={collection.id} />
+      </Modal>
     </Container>
   )
 }
