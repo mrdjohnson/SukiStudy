@@ -32,6 +32,7 @@ import {
   Tooltip,
   UnstyledButton,
   useMatches,
+  NavLink,
 } from '@mantine/core'
 import { useDisclosure, useIntersection, useElementSize } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
@@ -70,11 +71,14 @@ const READING_EXPLANATIONS: Record<string, string> = {
 
 const ReviewHistoryChart = React.lazy(() => import('./ReviewHistoryChart'))
 
-export const getFlashcardCrumbLabel = (subject: Subject) =>
-  subject.characters ||
-  subject.meanings.find(meaning => meaning.primary)?.meaning ||
-  subject.meanings[0]?.meaning ||
-  subject.slug
+export const getSubjectLabel = (subject: Subject) => {
+  return (
+    subject.characters ||
+    subject.meanings.find(meaning => meaning.primary)?.meaning ||
+    subject.meanings[0]?.meaning ||
+    subject.slug
+  )
+}
 
 type FlashcardProps = {
   index?: number
@@ -234,7 +238,9 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   }, [modalId])
 
   const allItems = useMemo(() => {
-    return items || subjects.find({ id: { $in: ids } }).fetch()
+    const all = items || subjects.find({ id: { $in: ids } }).fetch()
+
+    return all.map(subject => ({ ...subject, label: getSubjectLabel(subject) }))
   }, [ids, items])
 
   const subject = allItems[itemIndex]
@@ -409,7 +415,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
   useEffect(() => {
     if (!subject || !modalId) return
 
-    flashcardStack.update(depth, { id: subject.id, label: getFlashcardCrumbLabel(subject) })
+    flashcardStack.update(depth, { id: subject.id, label: subject.label })
   }, [subject?.id, depth, modalId])
 
   const hasParent = depth > 0
@@ -554,19 +560,6 @@ export const Flashcard: React.FC<FlashcardProps> = ({
             )}
 
             <Group className="ml-auto shrink-0" wrap="nowrap" gap="xs">
-              {hasList && (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  onClick={() => setListOpen(open => !open)}
-                  aria-label="Show item list"
-                  className="md:hidden! border! border-transparent! border-b-white/20! text-white/50!"
-                  radius="xl"
-                >
-                  <IconList size={18} />
-                </ActionIcon>
-              )}
-
               <ActionIcon
                 variant="subtle"
                 color="gray"
@@ -588,6 +581,19 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               >
                 <IconChevronRight size={18} />
               </ActionIcon>
+
+              {hasList && (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  onClick={() => setListOpen(open => !open)}
+                  aria-label="Show item list"
+                  className="md:hidden! border! border-transparent! border-b-white/20! text-white/50!"
+                  radius="xl"
+                >
+                  <IconList size={18} />
+                </ActionIcon>
+              )}
             </Group>
           </Group>
 
@@ -975,7 +981,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         {hasList && (
           <div
             className={clsx(
-              'fixed inset-0 z-[1000002] transition-opacity duration-200 md:hidden',
+              'fixed inset-0 z-10 transition-opacity duration-200 md:hidden',
               listOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
             )}
             onClick={() => setListOpen(false)}
@@ -1051,43 +1057,21 @@ const OtherSubjectsSection = ({
  * screens and a toggleable slide-over on narrow ones.
  */
 const FlashcardItemList: React.FC<{
-  items: Subject[]
+  items: Array<Subject & { label: string }>
   currentIndex: number
   onSelect: (index: number) => void
 }> = ({ items, currentIndex, onSelect }) => {
-  const activeRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: 'nearest' })
-  }, [currentIndex])
-
   return (
     <div className="flex h-full flex-col overflow-y-auto no-scrollbar py-2" translate="no">
-      {items.map((item, index) => {
-        const meaning = item.meanings?.find(m => m.primary)?.meaning ?? item.meanings?.[0]?.meaning
-        const active = index === currentIndex
-
-        return (
-          <UnstyledButton
-            key={item.id}
-            ref={active ? activeRef : undefined}
-            onClick={() => onSelect(index)}
-            className={clsx(
-              'flex items-center gap-2 px-3 py-2 text-left transition-colors',
-              active
-                ? 'bg-white/10 text-white'
-                : 'text-white/55 hover:bg-white/5 hover:text-white/90',
-            )}
-          >
-            {item.characters && (
-              <span className="font-japanese shrink-0 text-base leading-none">
-                {item.characters}
-              </span>
-            )}
-            {meaning && <span className="truncate text-xs">{meaning}</span>}
-          </UnstyledButton>
-        )
-      })}
+      {items.map((item, index) => (
+        <NavLink
+          key={item.id}
+          onClick={() => onSelect(index)}
+          active={index === currentIndex}
+          label={item.label}
+          rightSection={<IconChevronRight size={16} />}
+        />
+      ))}
     </div>
   )
 }
@@ -1167,7 +1151,7 @@ export const openFlashcardModal = (
 ) => {
   const subject = items[index]
   const modalId = subject.id.toString()
-  const crumb = { id: subject.id, label: getFlashcardCrumbLabel(subject), modalId }
+  const crumb = { id: subject.id, label: getSubjectLabel(subject), modalId }
 
   if (options.child) {
     flashcardStack.push(crumb)
